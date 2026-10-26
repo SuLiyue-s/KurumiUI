@@ -1,0 +1,16 @@
+# 依赖（本项目零依赖，保留以防万一）
+node_modules/
+
+# 构建产物（由源码生成，不入库；见 README「构建与发布」）
+config/bundle.js
+src/core/kui-all.js
+.shots/
+
+# 本机工具链（Node 13.14 兼容性验证用，不入库）
+.tools/
+
+# 日志与临时文件
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db

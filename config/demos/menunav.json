@@ -1,0 +1,77 @@
+{
+  "type": "menunav",
+  "props": {
+    "mode": "header",
+    "title": "刻刻帝终端",
+    "subtitle": "观测回廊 · 菜单导航",
+    "showCollapse": true,
+    "showHistory": true,
+    "showRefresh": true,
+    "showFullscreen": true,
+    "breadcrumb": {
+      "enabled": true,
+      "separator": "chevron-right",
+      "max": 4,
+      "home": {
+        "id": "home",
+        "label": "刻刻帝终端",
+        "icon": "home"
+      },
+      "items": [
+        {
+          "id": "observe",
+          "label": "观测回廊",
+          "icon": "chart"
+        },
+        {
+          "id": "menunav",
+          "label": "菜单导航",
+          "icon": "terminal"
+        },
+        {
+          "id": "standalone",
+          "label": "独立渲染",
+          "icon": "code"
+        }
+      ]
+    },
+    "actions": [
+      {
+        "id": "search",
+        "icon": "search",
+        "label": "检索",
+        "title": "检索（search.toggle）",
+        "action": "search.toggle"
+      },
+      {
+        "id": "notify",
+        "icon": "bell",
+        "label": "提醒",
+        "title": "提醒讯号（notify.demo）",
+        "badge": 8,
+        "action": "notify.demo"
+      },
+      {
+        "id": "settings",
+        "icon": "settings",
+        "label": "设置",
+        "title": "终端设置（settings.open）",
+        "action": "settings.open"
+      },
+      {
+        "id": "theme",
+        "icon": "palette",
+        "label": "主题",
+        "title": "灵装主题（theme.picker）",
+        "action": "theme.picker"
+      },
+      {
+        "id": "fullscreen",
+        "icon": "fullscreen",
+        "label": "全屏",
+        "title": "全屏（app.fullscreen）",
+        "action": "app.fullscreen"
+      }
+    ]
+  }
+}

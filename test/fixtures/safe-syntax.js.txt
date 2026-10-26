@@ -1,0 +1,23 @@
+/* 干净的兼容写法，内含大量「看起来像禁用语法」的字符串/注释/正则/模板，供遮蔽器测试。 */
+var s1 = 'a?.b ?? c ||= d &&= e ??= f .replaceAll( .at( Object.fromEntries structuredClone #x import export';
+var s2 = "说明文字：?? 与 ?. 不是代码";
+var tpl = 'template ' + '${' + 'ok ? 1 : 2' + '}';
+var re1 = /a\?\.b/;
+var re2 = /["'`]/g;
+var re3 = /[\]]+/;
+var commentOnly = 1; // 注释里写 ?. 与 ?? 也不会被标记
+/* 块注释：var bad = obj?.x; import x from 'y'; */
+var arrow = function (x) { return x + 1; };
+var safeTernary = commentOnly > 0 ? 'yes' : 'no';
+var safeTemplate = 'Hello ' + safeTernary + ' ' + re1.source;
+var KEYWORDS = { 'return': true, 'typeof': true, 'case': true };
+function asyncRunner() {
+  return Promise.resolve().then(function () {
+    return 'ok';
+  });
+}
+exports.safeTemplate = safeTemplate;
+exports.re2 = re2;
+exports.re3 = re3;
+exports.KEYWORDS = KEYWORDS;
+exports.asyncRunner = asyncRunner;

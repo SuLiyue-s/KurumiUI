@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <!-- 主题预置：首帧前写入当前主题 token，防 FOUC 闪烁（由 .tools/patch-theme-boot.js 注入） -->
+  <script src="../src/core/theme-boot.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>编辑页保活 · editor | KurumiUI</title>
+<link rel="stylesheet" href="../src/styles/base.css">
+<link rel="stylesheet" href="../src/styles/controls.css">
+<link rel="stylesheet" href="../src/styles/components.css">
+<link rel="stylesheet" href="../src/styles/tooltip.css">
+<style>
+  html, body { margin: 0; min-height: 100%; }
+  body { background: var(--kui-bg-0, #08050a); color: var(--kui-text-1, #f5e9ee); font-family: var(--kui-font-family, "Microsoft YaHei", "PingFang SC", sans-serif); font-size: 13px; line-height: 1.7; }
+  .page { max-width: 1180px; margin: 0 auto; padding: 6px 24px 40px; }
+  .page__head { display: flex; align-items: flex-start; gap: 14px; flex-wrap: wrap; margin-bottom: 14px; }
+  .page__title { margin: 0; font-size: 19px; letter-spacing: .05em; }
+  .page__desc { margin: 4px 0 0; font-size: 12px; color: var(--kui-text-2, #cbb8c0); }
+  .page__meta { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip { font-size: 11px; color: var(--kui-text-2, #cbb8c0); border: 1px solid var(--kui-border, #2a1f26); background: var(--kui-bg-1, #141018); border-radius: 999px; padding: 3px 10px; }
+  .chip--gold { color: var(--kui-accent-2, #d4af37); border-color: var(--kui-accent-2, #d4af37); }
+  .tip { border: 1px solid var(--kui-accent-2, #d4af37); background: linear-gradient(120deg, var(--kui-bg-1, #141018), var(--kui-bg-2, #1d141d)); border-radius: 10px; padding: 12px 16px; margin-bottom: 14px; font-size: 12px; color: var(--kui-text-2, #cbb8c0); }
+  .tip b { color: var(--kui-accent-2, #d4af37); }
+  .tip code { font-family: var(--kui-font-mono, Consolas, monospace); font-size: 11px; color: var(--kui-accent-3, #8ee6d6); }
+  .editor { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 14px; align-items: stretch; }
+  @media (max-width: 900px) { .editor { grid-template-columns: 1fr; } }
+  .pane { display: flex; flex-direction: column; border: 1px solid var(--kui-border, #2a1f26); background: var(--kui-bg-1, #141018); border-radius: 10px; overflow: hidden; min-height: 420px; }
+  .pane__head { display: flex; align-items: center; gap: 10px; padding: 9px 14px; border-bottom: 1px solid var(--kui-border, #2a1f26); font-size: 12px; color: var(--kui-text-2, #cbb8c0); }
+  .pane__head b { color: var(--kui-text-1, #f5e9ee); font-weight: 600; }
+  .pane__head .spacer { margin-left: auto; }
+  .pane__head select { height: 26px; background: var(--kui-control-bg, #1b141c); color: var(--kui-text-1, #f5e9ee); border: 1px solid var(--kui-control-border, #3a2b33); border-radius: 5px; padding: 0 6px; font-size: 11px; }
+  .pane textarea { flex: 1 1 auto; width: 100%; box-sizing: border-box; resize: none; border: 0; outline: none; padding: 12px 14px; background: transparent; color: var(--kui-text-1, #f5e9ee); font-family: var(--kui-font-mono, Consolas, monospace); font-size: 12px; line-height: 1.8; tab-size: 2; }
+  .pane pre { flex: 1 1 auto; margin: 0; padding: 12px 14px; overflow: auto; background: var(--kui-bg-0, #08050a); color: var(--kui-text-2, #cbb8c0); font-family: var(--kui-font-mono, Consolas, monospace); font-size: 12px; line-height: 1.8; white-space: pre-wrap; word-break: break-word; }
+  .pane pre.is-err { color: var(--kui-danger, #ff5c7a); }
+  .status { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+  .status__flag { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; border-radius: 999px; padding: 5px 12px; border: 1px solid var(--kui-border, #2a1f26); color: var(--kui-text-2, #cbb8c0); background: var(--kui-bg-1, #141018); }
+  .status__flag.is-dirty { color: var(--kui-warning, #f5b942); border-color: var(--kui-warning, #f5b942); }
+  .status__flag.is-clean { color: var(--kui-success, #3ecf8e); border-color: var(--kui-success, #3ecf8e); }
+  .status__flag i { width: 8px; height: 8px; border-radius: 50%; background: currentColor; display: block; }
+  .btnrow { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+  .btn { height: 30px; padding: 0 13px; cursor: pointer; font-size: 12px; border-radius: 6px; color: var(--kui-text-1, #f5e9ee); background: var(--kui-control-bg, #1b141c); border: 1px solid var(--kui-control-border, #3a2b33); }
+  .btn:hover { border-color: var(--kui-accent, #e11d48); color: var(--kui-accent, #e11d48); }
+  .btn--primary { background: linear-gradient(180deg, var(--kui-accent-hover, #e11d48), var(--kui-accent, #e11d48)); border-color: var(--kui-accent, #e11d48); color: var(--kui-on-accent, var(--kui-text-inverse, #fff)); box-shadow: 0 2px 8px var(--kui-accent-glow, transparent); }
+  .btn--primary:hover { color: var(--kui-on-accent, var(--kui-text-inverse, #fff)); background: var(--kui-accent-hover, #e11d48); border-color: var(--kui-accent-hover, #e11d48); }
+  .log { margin: 14px 0 0; padding: 10px 12px; min-height: 84px; max-height: 180px; overflow: auto; background: var(--kui-bg-0, #08050a); border: 1px dashed var(--kui-border, #2a1f26); border-radius: 6px; font-family: var(--kui-font-mono, Consolas, monospace); font-size: 11px; line-height: 1.7; color: var(--kui-text-2, #cbb8c0); white-space: pre-wrap; }
+  .log .is-err { color: var(--kui-danger, #ff5c7a); }
+  .log .is-ok { color: var(--kui-success, #3ecf8e); }
+</style>
+</head>
+<body>
+<main class="page">
+  <header class="page__head">
+    <div>
+      <h1 class="page__title">编辑页保活</h1>
+      <p class="page__desc">textarea 里的未保存内容在标签切换 / 主题切换后都必须原样保留；本页同时演示 JSON 实时预览与脏状态。</p>
+    </div>
+    <div class="page__meta">
+      <span class="chip chip--gold">iframe 保活</span>
+      <span class="chip">setDirty</span>
+      <span class="chip">JSON 预览</span>
+    </div>
+  </header>
+
+  <div class="tip">
+    <b>验证步骤：</b>① 在左侧随意修改文本（不必保存）；② 切到「首页」或其他标签再切回；③ 文本必须原样保留，本页日志出现 <code>tab:activate</code>；④ 点「保存」会先弹 <code>KUI.frame.dialog.confirm</code> 确认，再清标记；⑤ 修改后直接关标签，主框架应弹出未保存确认。
+  </div>
+
+  <div class="editor">
+    <section class="pane">
+      <div class="pane__head">
+        <b>灵装回路刻印稿</b>
+        <span class="spacer"></span>
+        <label>语法
+          <select data-kui-native id="syntaxSel">
+            <option value="json">JSON</option>
+            <option value="text">纯文本</option>
+          </select>
+        </label>
+        <span id="charCount" style="font-size:11px">0 字符</span>
+      </div>
+      <textarea data-kui-grip id="editorInput" spellcheck="false"></textarea>
+    </section>
+    <section class="pane">
+      <div class="pane__head">
+        <b>实时预览</b>
+        <span class="spacer"></span>
+        <span id="parseState" style="font-size:11px">等待输入</span>
+      </div>
+      <pre id="preview">// JSON 预览会在这里显示（格式化 + 语法检查）</pre>
+    </section>
+  </div>
+
+  <div class="status">
+    <span class="status__flag" id="dirtyFlag"><i></i><span id="dirtyText">未修改（干净）</span></span>
+    <span style="font-size:11px;color:var(--kui-text-3,#9a8b93)" id="lastSave">上次保存：尚未保存</span>
+  </div>
+
+  <div class="btnrow">
+    <button class="btn btn--primary" id="btnSave">保存（先确认）</button>
+    <button class="btn" id="btnFormat">格式化 JSON</button>
+    <button class="btn" id="btnReset">还原示例</button>
+    <button class="btn" id="btnDirty">setDirty(true)</button>
+    <button class="btn" id="btnClean">setDirty(false)</button>
+  </div>
+  <pre class="log" id="logEl">// 本页日志</pre>
+</main>
+
+<script src="../src/core/kui-all.js" data-kui-profile="standalone"></script>
+<script>
+(function () {
+  'use strict';
+  var KUI = window.KUI || {};
+  var frame = KUI.frame || null;
+  var input = document.getElementById('editorInput');
+  var preview = document.getElementById('preview');
+  var parseState = document.getElementById('parseState');
+  var charCount = document.getElementById('charCount');
+  var logEl = document.getElementById('logEl');
+  var dirty = false;
+
+  var SAMPLE = JSON.stringify({
+    seal: '刻刻帝 · 一之弹',
+    timeline: '第一时区',
+    bullets: 3,
+    mode: 'timeline',
+    remark: '时间流稳定，绯红结界边缘在 03:00 出现轻微涟漪。',
+    tags: ['演算', '观测', '封印']
+  }, null, 2);
+
+  function log(text, kind) {
+    var line = document.createElement('div');
+    if (kind === 'err') line.className = 'is-err';
+    if (kind === 'ok') line.className = 'is-ok';
+    line.textContent = '[' + new Date().toLocaleTimeString() + '] ' + text;
+    logEl.appendChild(line);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+  function ready(fn) {
+    if (frame && typeof frame.ready === 'function') {
+      try { frame.ready(fn); return; } catch (e) { /* 独立打开 */ }
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn);
+    else fn();
+  }
+  function setDirty(on) {
+    dirty = !!on;
+    if (frame && typeof frame.setDirty === 'function') {
+      try { frame.setDirty(dirty); } catch (e) { /* 忽略 */ }
+    }
+    var flag = document.getElementById('dirtyFlag');
+    document.getElementById('dirtyText').textContent = dirty ? '未保存（脏）' : '未修改（干净）';
+    flag.className = 'status__flag ' + (dirty ? 'is-dirty' : 'is-clean');
+    log('KUI.frame.setDirty(' + dirty + ')', dirty ? undefined : 'ok');
+  }
+  function toast(type, title, message) {
+    var t = frame && frame.toast;
+    if (!t) { log('[toast] ' + type + '：' + title); return; }
+    if (typeof t === 'function') { t({ type: type, title: title, message: message }); return; }
+    var fn = t[type] || t.info;
+    if (typeof fn === 'function') fn({ title: title, message: message });
+  }
+  function frameDialog(method, cfg) {
+    if (frame && frame.dialog && typeof frame.dialog[method] === 'function') return frame.dialog[method](cfg);
+    if (KUI.dialog && typeof KUI.dialog[method] === 'function') return KUI.dialog[method](cfg);
+    return Promise.resolve(true);
+  }
+
+  function updatePreview() {
+    var text = input.value;
+    charCount.textContent = text.length + ' 字符';
+    var mode = document.getElementById('syntaxSel').value;
+    if (mode === 'text') {
+      preview.className = '';
+      preview.textContent = text;
+      parseState.textContent = '纯文本';
+      return;
+    }
+    if (!text.replace(/\s/g, '')) {
+      preview.className = '';
+      preview.textContent = '// 空内容';
+      parseState.textContent = '空';
+      return;
+    }
+    try {
+      var obj = JSON.parse(text);
+      preview.className = '';
+      preview.textContent = JSON.stringify(obj, null, 2);
+      parseState.textContent = 'JSON 有效 ✓';
+    } catch (err) {
+      preview.className = 'is-err';
+      preview.textContent = 'JSON 解析失败：\n' + err.message;
+      parseState.textContent = 'JSON 错误';
+    }
+  }
+
+  function markDirty() {
+    if (!dirty) setDirty(true);
+    updatePreview();
+  }
+
+  function save() {
+    frameDialog('confirm', {
+      type: 'info',
+      icon: 'save',
+      title: '保存刻印稿',
+      message: '将用当前内容覆盖时间线中的旧刻印，确定保存？',
+      okText: '保存',
+      cancelText: '继续编辑'
+    }).then(function (ok) {
+      if (!ok) { log('已取消保存'); return; }
+      var d = new Date();
+      function p(n) { return (n < 10 ? '0' : '') + n; }
+      document.getElementById('lastSave').textContent = '上次保存：' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+      setDirty(false);
+      toast('success', '刻印稿已保存', '未保存标记已清除。');
+      log('保存成功（模拟写入）', 'ok');
+    });
+  }
+
+  ready(function () {
+    input.value = SAMPLE;
+    updatePreview();
+
+    input.addEventListener('input', markDirty);
+    document.getElementById('syntaxSel').onchange = updatePreview;
+
+    document.getElementById('btnSave').onclick = save;
+    document.getElementById('btnFormat').onclick = function () {
+      try {
+        input.value = JSON.stringify(JSON.parse(input.value), null, 2);
+        updatePreview();
+        markDirty();
+        log('已格式化 JSON', 'ok');
+      } catch (err) {
+        log('格式化失败：' + err.message, 'err');
+      }
+    };
+    document.getElementById('btnReset').onclick = function () {
+      input.value = SAMPLE;
+      updatePreview();
+      setDirty(false);
+      log('已还原示例内容');
+    };
+    document.getElementById('btnDirty').onclick = function () { setDirty(true); };
+    document.getElementById('btnClean').onclick = function () { setDirty(false); };
+
+    if (frame && typeof frame.on === 'function') {
+      frame.on('activate', function () { log('收到 tab:activate —— 文本长度 ' + input.value.length + '，内容仍在', 'ok'); });
+    }
+    if (frame && typeof frame.setTitle === 'function') {
+      try { frame.setTitle('编辑页保活'); } catch (e) { /* 忽略 */ }
+    }
+    log('页面就绪；修改左侧文本后切换标签再回来验证保活', 'ok');
+  });
+})();
+</script>
+</body>
+</html>
+

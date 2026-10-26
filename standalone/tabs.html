@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <!-- 主题预置：首帧前写入当前主题 token，防 FOUC 闪烁（由 .tools/patch-theme-boot.js 注入） -->
+  <script src="../src/core/theme-boot.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>tabs · 子标签独立渲染 | KurumiUI</title>
+<link rel="stylesheet" href="../src/styles/base.css">
+<link rel="stylesheet" href="../src/styles/components.css">
+<link rel="stylesheet" href="../src/styles/tooltip.css">
+<style>
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--kui-bg-0, #08050a); color: var(--kui-text-1, #f5e9ee); font-family: var(--kui-font-family, "Microsoft YaHei", "PingFang SC", sans-serif); }
+  .demo-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 18px; border-bottom: 1px solid var(--kui-border, #2a1f26); background: var(--kui-bg-1, #141018); flex-wrap: wrap; }
+  .demo-bar__title { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+  .demo-bar__title strong { font-size: 16px; letter-spacing: .04em; }
+  .demo-tag { padding: 2px 8px; border-radius: 999px; font-size: 11px; color: var(--kui-accent-2, #d4af37); border: 1px solid var(--kui-accent-2, #d4af37); }
+  .demo-bar__ops { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .demo-bar select { background: var(--kui-control-bg, #1b141c); color: var(--kui-text-1, #f5e9ee); border: 1px solid var(--kui-control-border, #3a2b33); border-radius: 6px; height: 30px; padding: 0 8px; outline: none; }
+  .demo-nav { display: flex; gap: 6px; flex-wrap: wrap; }
+  .demo-nav a { color: var(--kui-text-2, #cbb8c0); text-decoration: none; font-size: 12px; padding: 4px 9px; border-radius: 999px; border: 1px solid transparent; }
+  .demo-nav a:hover { color: var(--kui-text-1); border-color: var(--kui-accent); }
+  .demo-nav a.is-current { color: var(--kui-text-1); border-color: var(--kui-accent); background: var(--kui-accent-soft); font-weight: 600; }
+  .demo-main { padding: 18px; display: grid; gap: 12px; }
+  .demo-panel { background: var(--kui-bg-1, #141018); border: 1px solid var(--kui-border, #2a1f26); border-radius: var(--kui-radius-lg, 10px); padding: 14px; }
+  .demo-panel__title { font-size: 13px; color: var(--kui-accent-2, #d4af37); margin: 0 0 10px; letter-spacing: .08em; }
+  .demo-tabs-box { height: 420px; border: 1px solid var(--kui-border, #2a1f26); border-radius: 8px; overflow: hidden; background: var(--kui-bg-0, #08050a); }
+  .demo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
+  .demo-card { background: var(--kui-bg-1, #141018); border: 1px solid var(--kui-border, #2a1f26); border-radius: var(--kui-radius-md, 6px); padding: 12px; }
+  .demo-card h3 { margin: 0 0 6px; font-size: 13px; }
+  .demo-card p, .demo-card li { font-size: 12px; line-height: 1.7; color: var(--kui-text-2, #cbb8c0); margin: 0; }
+  .demo-card ul { margin: 0; padding-left: 16px; }
+  .demo-card code { font-family: var(--kui-font-mono, Consolas, monospace); font-size: 11px; color: var(--kui-accent-3, #8ee6d6); background: var(--kui-bg-2, #1d141d); padding: 1px 5px; border-radius: 4px; }
+  .demo-ops { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .demo-btn { height: 30px; padding: 0 12px; cursor: pointer; font-size: 12px; color: var(--kui-text-1, #f5e9ee); background: var(--kui-control-bg, #1b141c); border: 1px solid var(--kui-control-border, #3a2b33); border-radius: 6px; }
+    .demo-btn:not(.demo-btn--primary):hover { border-color: var(--kui-accent); color: var(--kui-text-1); background: var(--kui-control-bg-hover); }
+  .demo-btn--primary { background: linear-gradient(180deg, var(--kui-accent-hover), var(--kui-accent)); border-color: var(--kui-accent); color: var(--kui-on-accent, var(--kui-text-inverse)); }
+  .demo-btn--primary:hover { background: var(--kui-accent-hover); border-color: var(--kui-accent-hover); color: var(--kui-on-accent, var(--kui-text-inverse)); }
+  .demo-log { margin: 10px 0 0; padding: 10px 12px; min-height: 84px; max-height: 160px; overflow: auto; background: var(--kui-bg-0, #08050a); border: 1px dashed var(--kui-border, #2a1f26); border-radius: 6px; font-family: var(--kui-font-mono, Consolas, monospace); font-size: 11px; line-height: 1.7; color: var(--kui-text-2, #cbb8c0); white-space: pre-wrap; }
+  .demo-log .is-err { color: var(--kui-danger, #ff5c7a); }
+  .demo-error { color: var(--kui-danger, #ff5c7a); font-size: 12px; padding: 10px; }
+</style>
+</head>
+<body data-kui-auto="false">
+<header class="demo-bar">
+  <div class="demo-bar__title">
+    <span class="demo-tag">独立渲染</span>
+    <strong>tabs</strong>
+    <span>子标签 · iframe 保活 / 固定首页 / 上下文菜单 / 脏状态</span>
+  </div>
+  <div class="demo-bar__ops">
+    <nav class="demo-nav" id="demoNav"></nav>
+    <label>主题 <select data-kui-native id="kuiThemeSwitch"><option value="kurumi">绯红刻刻帝</option></select></label>
+  </div>
+</header>
+<main class="demo-main">
+  <section class="demo-panel">
+    <h2 class="demo-panel__title">CONFIG / config/demos/tabs.json</h2>
+    <div class="demo-tabs-box" id="tabsHost"><div class="demo-error">正在加载 config/demos/tabs.json …</div></div>
+    <div class="demo-ops">
+      <button class="demo-btn demo-btn--primary" id="btnOpenNotify">打开「提醒讯号」</button>
+      <button class="demo-btn" id="btnOpenDialogs">打开「弹窗剧场」</button>
+      <button class="demo-btn" id="btnCloseActive">关闭当前标签</button>
+      <button class="demo-btn" id="btnCloseOthers">关闭其它</button>
+      <button class="demo-btn" id="btnCloseAll">关闭全部</button>
+      <button class="demo-btn" id="btnRefresh">刷新当前 iframe</button>
+      <button class="demo-btn" id="btnDirty">给当前标签加脏标</button>
+    </div>
+  </section>
+  <section class="demo-grid">
+    <div class="demo-card">
+      <h3>保活规则（验收重点）</h3>
+      <p>pane 与 iframe 创建后<strong>永不重建</strong>；切换标签只切 <code>hidden/.is-active</code>，首次激活才设置 <code>src</code>。在 pages/profile.html 改输入值后切走再切回，值仍在。</p>
+    </div>
+    <div class="demo-card">
+      <h3>可配置 props</h3>
+      <ul>
+        <li><code>home</code>：固定首页，<code>pinned:true</code> 不可关闭</li>
+        <li><code>initial</code>：启动时额外打开的标签数组（第一个激活）</li>
+        <li><code>keepAlive</code> / <code>maxTabs</code> / <code>closable</code> / <code>contextMenu</code> / <code>drag</code></li>
+      </ul>
+    </div>
+    <div class="demo-card">
+      <h3>实例 API</h3>
+      <ul>
+        <li><code>open(tab) / close(id) / closeOthers(id) / closeAll()</code></li>
+        <li><code>activate(id) / refresh(id) / getActive() / getTabs()</code></li>
+        <li><code>setTitle / setIcon / setBadge / setDirty</code></li>
+      </ul>
+    </div>
+  </section>
+  <section class="demo-panel">
+    <h2 class="demo-panel__title">操作日志（含 contextmenu 右键菜单提示）</h2>
+    <pre class="demo-log" id="demoLog">// 操作日志</pre>
+  </section>
+</main>
+<script src="embedded.js"></script>
+<script src="../src/core/kui-all.js" data-kui-profile="standalone"></script>
+<script>
+(function () {
+  'use strict';
+  var KUI = window.KUI;
+  var host = document.getElementById('tabsHost');
+  var logEl = document.getElementById('demoLog');
+  var api = null;
+  var seq = 0;
+  var PAGES = ['menu', 'menunav', 'tabs', 'dialog', 'toast', 'form', 'controls', 'theme', 'no-shell'];
+
+  function log(text, isError) {
+    var line = document.createElement('div');
+    if (isError) line.className = 'is-err';
+    line.textContent = '[' + new Date().toLocaleTimeString() + '] ' + text;
+    logEl.appendChild(line);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+  function nav() {
+    var box = document.getElementById('demoNav');
+    for (var i = 0; i < PAGES.length; i++) {
+      var a = document.createElement('a');
+      a.href = PAGES[i] + '.html';
+      a.textContent = PAGES[i];
+      if (PAGES[i] === 'tabs') a.className = 'is-current';
+      box.appendChild(a);
+    }
+  }
+  function fillThemeSelect() {
+    var sel = document.getElementById('kuiThemeSwitch');
+    var list = (KUI.theme && KUI.theme.list) ? KUI.theme.list() : [];
+    if (!list.length) return;
+    sel.innerHTML = '';
+    for (var i = 0; i < list.length; i++) {
+      var opt = document.createElement('option');
+      opt.value = list[i].id;
+      opt.textContent = list[i].name + '（' + list[i].id + '）';
+      sel.appendChild(opt);
+    }
+    sel.value = (KUI.theme.currentId && KUI.theme.currentId()) || list[0].id;
+    sel.onchange = function () { KUI.theme.apply(sel.value); };
+  }
+  function initTheme() {
+    KUI.config.load('themes').then(function (data) {
+      if (data && data.themes && KUI.theme.init) {
+        KUI.theme.init(data, { fallbackId: 'kurumi', storageKey: 'kui-demo-theme', persist: true, silent: true });
+      }
+      fillThemeSelect();
+    })['catch'](function () { fillThemeSelect(); });
+  }
+  function bindApi(el) {
+    var inst = el && el.__kuiInstance;
+    if (inst && inst.open) api = inst;
+    if (api && api.on) {
+      api.on('open', function (tab) { log('open：' + (tab && (tab.id || tab.title) || '?')); });
+      api.on('close', function (tab) { log('close：' + (tab && (tab.id || tab.title) || '?')); });
+      api.on('activate', function (tab) { log('activate：' + (tab && (tab.id || tab.title) || '?')); });
+      api.on('refresh', function (tab) { log('refresh：' + (tab && (tab.id || tab.title) || '?')); });
+      api.on('before-close', function (tab) { log('before-close：' + (tab && (tab.id || tab.title) || '?') + '（脏状态时会先询问）'); });
+    }
+  }
+  function load() {
+    host.innerHTML = '';
+    KUI.config.load('demos/tabs').then(function (node) {
+      if (!node) { host.innerHTML = '<div class="demo-error">未找到 config/demos/tabs.json，请先运行 npm run build:config。</div>'; return; }
+      var el = KUI.renderNode(node, null);
+      if (!el) { host.innerHTML = '<div class="demo-error">tabs 组件未注册：请确认 src/components/tabs.js 已加载。</div>'; return; }
+      host.appendChild(el);
+      bindApi(el);
+      log('已渲染 config/demos/tabs.json（home=' + (node.props && node.props.home && node.props.home.url) + '）');
+    })['catch'](function (err) { host.innerHTML = '<div class="demo-error">渲染失败：' + (err && err.message ? err.message : err) + '</div>'; log(String(err), true); });
+  }
+  function ensureApi() {
+    if (api) return api;
+    var el = host.querySelector('[class*="kui-tabs"]');
+    if (el && el.__kuiInstance) api = el.__kuiInstance;
+    return api;
+  }
+  function activeId() {
+    var a = ensureApi();
+    if (!a || !a.getActive) return null;
+    var t = a.getActive();
+    return t && (t.id || t);
+  }
+
+  document.getElementById('btnOpenNotify').onclick = function () {
+    var a = ensureApi();
+    if (!a) { log('tabs 实例未就绪', true); return; }
+    seq++;
+    a.open({ id: 'notify-' + seq, title: '提醒讯号 ' + seq, url: '../pages/notify.html', icon: 'bell' });
+    log('open notify-' + seq);
+  };
+  document.getElementById('btnOpenDialogs').onclick = function () {
+    var a = ensureApi();
+    if (!a) { log('tabs 实例未就绪', true); return; }
+    a.open({ id: 'dialogs', title: '弹窗剧场', url: '../pages/dialogs.html', icon: 'message' });
+    log('open dialogs');
+  };
+  document.getElementById('btnCloseActive').onclick = function () {
+    var a = ensureApi();
+    var id = activeId();
+    if (!a || !id) { log('没有活动标签', true); return; }
+    a.close(id);
+    log('close ' + id);
+  };
+  document.getElementById('btnCloseOthers').onclick = function () {
+    var a = ensureApi();
+    var id = activeId();
+    if (!a || !id) { log('没有活动标签', true); return; }
+    a.closeOthers(id);
+    log('closeOthers ' + id);
+  };
+  document.getElementById('btnCloseAll').onclick = function () {
+    var a = ensureApi();
+    if (!a) return;
+    a.closeAll();
+    log('closeAll（固定首页会保留）');
+  };
+  document.getElementById('btnRefresh').onclick = function () {
+    var a = ensureApi();
+    var id = activeId();
+    if (!a || !id) { log('没有活动标签', true); return; }
+    a.refresh(id);
+    log('refresh ' + id);
+  };
+  document.getElementById('btnDirty').onclick = function () {
+    var a = ensureApi();
+    var id = activeId();
+    if (!a || !id || !a.setDirty) { log('setDirty 不可用', true); return; }
+    a.setDirty(id, true);
+    log('setDirty(' + id + ', true)：标签出现脏点，关闭时会二次确认');
+  };
+
+  nav();
+  initTheme();
+  load();
+})();
+</script>
+</body>
+</html>
+

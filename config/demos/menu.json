@@ -1,0 +1,214 @@
+{
+  "type": "menu",
+  "props": {
+    "brand": {
+      "title": "刻刻帝终端",
+      "subtitle": "KurumiUI · 独立菜单",
+      "logoIcon": "clock",
+      "logoText": "KUI"
+    },
+    "collapsed": false,
+    "collapsible": true,
+    "width": 252,
+    "collapsedWidth": 68,
+    "defaultActive": "home",
+    "tooltip": true,
+    "accordion": true,
+    "flyout": true,
+    "items": [
+      {
+        "type": "group",
+        "id": "g-time",
+        "label": "时间中枢",
+        "icon": "clock",
+        "children": [
+          {
+            "type": "item",
+            "id": "home",
+            "label": "刻刻帝终端",
+            "icon": "clock",
+            "badge": "主",
+            "badgeType": "accent",
+            "tooltip": "控制台首页",
+            "target": {
+              "tab": {
+                "id": "home",
+                "title": "刻刻帝终端",
+                "url": "../pages/home.html",
+                "icon": "clock",
+                "pinned": true
+              }
+            }
+          },
+          {
+            "type": "item",
+            "id": "time-console",
+            "label": "时停调度台",
+            "icon": "timer",
+            "children": [
+              {
+                "type": "item",
+                "id": "profile",
+                "label": "未保存数据验证",
+                "icon": "shield",
+                "badge": "验证",
+                "badgeType": "success",
+                "target": {
+                  "tab": {
+                    "id": "profile",
+                    "title": "未保存数据验证",
+                    "url": "../pages/profile.html",
+                    "icon": "shield"
+                  }
+                }
+              },
+              {
+                "type": "item",
+                "id": "editor",
+                "label": "文本编辑结界",
+                "icon": "edit",
+                "target": {
+                  "tab": {
+                    "id": "editor",
+                    "title": "文本编辑结界",
+                    "url": "../pages/editor.html",
+                    "icon": "edit"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "divider"
+      },
+      {
+        "type": "group",
+        "id": "g-armor",
+        "label": "灵装回路",
+        "icon": "grid",
+        "children": [
+          {
+            "type": "item",
+            "id": "controls",
+            "label": "控件陈列",
+            "icon": "grid",
+            "badge": "25",
+            "badgeType": "accent",
+            "target": {
+              "tab": {
+                "id": "controls",
+                "title": "控件陈列",
+                "url": "controls.html",
+                "icon": "grid"
+              }
+            }
+          },
+          {
+            "type": "item",
+            "id": "form",
+            "label": "表单联动",
+            "icon": "list",
+            "badge": "deps",
+            "badgeType": "success",
+            "target": {
+              "tab": {
+                "id": "form",
+                "title": "表单联动",
+                "url": "form.html",
+                "icon": "list"
+              }
+            }
+          },
+          {
+            "type": "item",
+            "id": "theme",
+            "label": "主题灵装",
+            "icon": "palette",
+            "badge": "6",
+            "badgeType": "gold",
+            "target": {
+              "tab": {
+                "id": "theme",
+                "title": "主题灵装",
+                "url": "theme.html",
+                "icon": "palette"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "group",
+        "id": "g-observe",
+        "label": "观测回廊",
+        "icon": "chart",
+        "children": [
+          {
+            "type": "item",
+            "id": "dialog",
+            "label": "弹窗剧场",
+            "icon": "message",
+            "badge": "5",
+            "badgeType": "danger",
+            "target": {
+              "tab": {
+                "id": "dialog",
+                "title": "弹窗剧场",
+                "url": "dialog.html",
+                "icon": "message"
+              }
+            }
+          },
+          {
+            "type": "item",
+            "id": "toast",
+            "label": "提醒讯号",
+            "icon": "bell",
+            "badge": "8",
+            "badgeType": "warning",
+            "target": {
+              "tab": {
+                "id": "toast",
+                "title": "提醒讯号",
+                "url": "toast.html",
+                "icon": "bell"
+              }
+            }
+          },
+          {
+            "type": "item",
+            "id": "disabled-seal",
+            "label": "封存的时间结界",
+            "icon": "lock",
+            "disabled": true,
+            "tooltip": "该菜单项已禁用（disabled 演示）"
+          }
+        ]
+      }
+    ],
+    "footer": {
+      "title": "灵装回路",
+      "subtitle": "独立渲染 · 在线",
+      "version": "v1.0.0",
+      "actions": [
+        {
+          "type": "button",
+          "props": {
+            "text": "切换灵装主题",
+            "icon": "palette",
+            "size": "sm",
+            "variant": "ghost",
+            "block": true
+          },
+          "on": {
+            "click": {
+              "action": "theme.picker"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "type": "tabs",
+  "props": {
+    "closable": true,
+    "pinnedClosable": false,
+    "keepAlive": true,
+    "maxTabs": 24,
+    "contextMenu": true,
+    "drag": false,
+    "emptyText": "暂无打开的灵装页面",
+    "home": {
+      "id": "home",
+      "title": "刻刻帝终端",
+      "url": "../pages/home.html",
+      "icon": "clock",
+      "pinned": true
+    },
+    "initial": [
+      {
+        "id": "profile",
+        "title": "未保存数据验证",
+        "url": "../pages/profile.html",
+        "icon": "shield"
+      },
+      {
+        "id": "editor",
+        "title": "文本编辑结界",
+        "url": "../pages/editor.html",
+        "icon": "edit"
+      },
+      {
+        "id": "theme",
+        "title": "主题灵装",
+        "url": "../pages/theme.html",
+        "icon": "palette"
+      }
+    ],
+    "sandbox": ""
+  }
+}

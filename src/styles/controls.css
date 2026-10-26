@@ -1,0 +1,4396 @@
+/*!
+ * KurumiUI - styles/controls.css
+ * 控件库统一样式：33 个控件 + 字段包装 + 表单 + 统一弹层
+ *
+ * 约定：
+ * - 颜色/尺寸只允许使用 base.css 中已声明的 --kui-* token，不写死颜色；
+ * - 尺寸统一走 --kui-control-h-sm/md/lg（26/32/38px）；
+ * - 状态统一为 is-disabled / is-readonly / is-error / is-focus / is-open /
+ *   is-empty / is-active / is-checked，由控件脚本切换；
+ * - 装饰性箭头/对勾/角标全部是内联 SVG（currentColor），本文件只负责尺寸与颜色；
+ * - 滚动条统一走 --kui-scrollbar-*。
+ *
+ * 视觉方向（契约 §16）：暗夜玻璃拟态 + 细描边 + 斜切感 + 绯红/金点缀。
+ */
+
+/* ==========================================================================
+   1. 基础盒与状态
+   ========================================================================== */
+
+.kui-control,
+.kui-control__box {
+  box-sizing: border-box;
+  color: var(--kui-control-text);
+  font-family: var(--kui-font-family);
+  font-size: var(--kui-fs-base);
+  line-height: 1.5;
+  letter-spacing: var(--kui-letter-spacing);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.kui-control *,
+.kui-control *::before,
+.kui-control *::after,
+.kui-control__box *,
+.kui-control__box *::before,
+.kui-control__box *::after {
+  box-sizing: border-box;
+}
+
+.kui-control__box {
+  min-width: 0;
+}
+
+/* 组件内部尺寸变量（默认 md；sm/lg 修饰类在下方覆盖） */
+.kui-control {
+  --ctl-h: var(--kui-control-h-md);
+  --ctl-fs: var(--kui-fs-base);
+  --ctl-px: var(--kui-control-px);
+  --ctl-radius: var(--kui-control-radius);
+  --ctl-arrow: var(--kui-control-arrow-color);
+  --ctl-arrow-size: var(--kui-control-arrow-size);
+}
+
+/* 尺寸组：sm / lg 修饰类由控件脚本按 props.size 添加 */
+.kui-btn--sm,
+.kui-input--sm,
+.kui-textarea--sm,
+.kui-number--sm,
+.kui-select--sm,
+.kui-multiselect--sm,
+.kui-picker--sm,
+.kui-checkbox-group--sm,
+.kui-radio-group--sm,
+.kui-switch--sm,
+.kui-slider--sm,
+.kui-progress--sm,
+.kui-rating--sm,
+.kui-color--sm,
+.kui-tag--sm,
+.kui-badge--sm,
+.kui-iconbox--sm,
+.kui-table--sm,
+.kui-pagination--sm {
+  --ctl-h: var(--kui-control-h-sm);
+  --ctl-fs: var(--kui-fs-sm);
+  --ctl-px: 8px;
+}
+
+.kui-btn--lg,
+.kui-input--lg,
+.kui-textarea--lg,
+.kui-number--lg,
+.kui-select--lg,
+.kui-multiselect--lg,
+.kui-picker--lg,
+.kui-checkbox-group--lg,
+.kui-radio-group--lg,
+.kui-switch--lg,
+.kui-slider--lg,
+.kui-progress--lg,
+.kui-rating--lg,
+.kui-color--lg,
+.kui-tag--lg,
+.kui-badge--lg,
+.kui-iconbox--lg,
+.kui-table--lg,
+.kui-pagination--lg {
+  --ctl-h: var(--kui-control-h-lg);
+  --ctl-fs: var(--kui-fs-md);
+  --ctl-px: 12px;
+}
+
+/* 统一禁用 / 只读 / 错误 / 空值语义 */
+.kui-control.is-disabled {
+  cursor: not-allowed;
+}
+
+.kui-control.is-readonly {
+  cursor: default;
+}
+
+.kui-control button {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+.kui-control button:focus {
+  outline: none;
+}
+
+/* 输入类焦点环：鼠标点击不出、键盘/脚本聚焦才出 */
+.kui-input.is-focus,
+.kui-textarea.is-focus,
+.kui-number.is-focus,
+.kui-select.is-focus .kui-select__trigger,
+.kui-multiselect.is-focus .kui-multiselect__trigger,
+.kui-picker.is-focus .kui-picker__trigger,
+.kui-color.is-focus .kui-color__trigger,
+.kui-upload.is-focus .kui-upload__area,
+.kui-select__trigger:focus-visible,
+.kui-multiselect__trigger:focus-visible,
+.kui-picker__trigger:focus-visible,
+.kui-color__trigger:focus-visible,
+.kui-upload__area:focus-visible,
+.kui-slider__thumb:focus-visible,
+.kui-switch__inner:focus-visible,
+.kui-rating__star:focus-visible {
+  outline: none;
+  border-color: var(--kui-control-border-focus);
+  box-shadow: var(--kui-focus-ring);
+}
+
+/* 错误态：边框转危险色，焦点环仍保留绯红光晕 */
+.kui-input.is-error,
+.kui-textarea.is-error,
+.kui-number.is-error,
+.kui-upload.is-error .kui-upload__area,
+.kui-checkbox.is-error .kui-checkbox__box,
+.kui-radio.is-error .kui-radio__box,
+.kui-select.is-error .kui-select__trigger,
+.kui-multiselect.is-error .kui-multiselect__trigger,
+.kui-picker.is-error .kui-picker__trigger,
+.kui-color.is-error .kui-color__trigger {
+  border-color: var(--kui-danger);
+}
+
+.kui-input.is-error .kui-input__inner {
+  color: var(--kui-danger);
+}
+
+/* 空值占位 */
+.is-empty .kui-select__value,
+.is-empty .kui-multiselect__placeholder,
+.kui-picker.is-empty .kui-picker__text,
+.kui-color.is-empty .kui-color__text,
+.kui-input.is-empty .kui-input__inner::placeholder,
+.kui-number.is-empty .kui-number__inner::placeholder,
+.kui-textarea.is-empty .kui-textarea__inner::placeholder {
+  color: var(--kui-control-text-placeholder);
+}
+
+/* 圆点加载器（按钮 / 表格 / 上传 / 图标通用） */
+.kui-spinner {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  border: 2px solid var(--kui-border-strong);
+  border-top-color: var(--kui-accent);
+  border-radius: var(--kui-radius-pill);
+  animation: kui-spin 0.8s linear infinite;
+  vertical-align: -0.1em;
+}
+
+@keyframes kui-ctl-stripes {
+  from { background-position: 0 0; }
+  to { background-position: 28px 0; }
+}
+
+@keyframes kui-ctl-pop-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -4px, 0) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes kui-ctl-pop-out {
+  from {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(0, -3px, 0) scale(0.99);
+  }
+}
+
+/* ==========================================================================
+   2. 按钮 button
+   ========================================================================== */
+
+.kui-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: var(--ctl-h, var(--kui-control-h-md));
+  padding: 0 calc(var(--ctl-px, var(--kui-control-px)) + 4px);
+  margin: 0;
+  border: 1px solid var(--kui-control-border);
+  border-radius: var(--ctl-radius, var(--kui-control-radius));
+  background: var(--kui-control-bg);
+  box-shadow: var(--kui-highlight);
+  color: var(--kui-control-text);
+  font-family: var(--kui-font-family);
+  font-size: var(--ctl-fs, var(--kui-fs-base));
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background-color var(--kui-duration-fast) var(--kui-ease),
+    border-color var(--kui-duration-fast) var(--kui-ease),
+    color var(--kui-duration-fast) var(--kui-ease),
+    box-shadow var(--kui-duration-fast) var(--kui-ease),
+    transform var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-btn:hover:not(:disabled):not(.is-disabled) {
+  background: var(--kui-control-bg-hover);
+  border-color: var(--kui-control-border-hover);
+}
+
+.kui-btn:active:not(:disabled):not(.is-disabled) {
+  background: var(--kui-control-bg-active);
+  transform: translateY(1px);
+}
+
+.kui-btn:disabled,
+.kui-btn.is-disabled {
+  background: var(--kui-control-bg-disabled);
+  border-color: var(--kui-border);
+  color: var(--kui-control-text-disabled);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.kui-btn__icon,
+.kui-btn__loading {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.kui-btn__text {
+  display: inline-block;
+}
+
+/* 主按钮：绯红渐变 + 发光
+   前景一律消费 --kui-on-* 语义 token（带 fallback）：深色主题浅字、浅色主题深字，
+   避免出现「文字颜色与背景颜色接近」的不可读状态。 */
+.kui-btn--primary {
+  border-color: var(--kui-accent);
+  background: linear-gradient(180deg, var(--kui-accent-hover), var(--kui-accent));
+  box-shadow: var(--kui-glow), var(--kui-highlight);
+  color: var(--kui-on-accent, var(--kui-text-inverse));
+}
+
+.kui-btn--primary:hover:not(:disabled):not(.is-disabled) {
+  background: linear-gradient(180deg, var(--kui-accent-hover), var(--kui-accent-hover));
+  border-color: var(--kui-accent-hover);
+  color: var(--kui-on-accent, var(--kui-text-inverse));
+  box-shadow: 0 0 18px var(--kui-accent-glow), var(--kui-highlight);
+}
+
+.kui-btn--primary:active:not(:disabled):not(.is-disabled) {
+  background: var(--kui-accent);
+  color: var(--kui-on-accent, var(--kui-text-inverse));
+  box-shadow: var(--kui-inner-glow);
+}
+
+/* 金色次要按钮 */
+.kui-btn--secondary {
+  border-color: var(--kui-accent-2);
+  background: var(--kui-accent-2-soft);
+  color: var(--kui-accent-2);
+}
+
+.kui-btn--secondary:hover:not(:disabled):not(.is-disabled) {
+  background: var(--kui-accent-2-soft);
+  border-color: var(--kui-accent-2);
+  color: var(--kui-accent-2);
+  box-shadow: 0 0 12px var(--kui-accent-2-soft);
+}
+
+/* 幽灵 / 文字 */
+.kui-btn--ghost,
+.kui-btn--text {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.kui-btn--ghost:hover:not(:disabled):not(.is-disabled),
+.kui-btn--text:hover:not(:disabled):not(.is-disabled) {
+  background: var(--kui-accent-soft);
+  border-color: transparent;
+  color: var(--kui-accent-hover);
+}
+
+/* 危险 / 成功 / 警告：悬浮、按下都必须保持自身填充。
+   基础 .kui-btn:hover 会把背景改成 control-bg-hover（深色），若不在此重新声明
+   background，填充按钮悬浮就会被"变黑"，这是第三轮反馈第 3 条的根因。 */
+.kui-btn--danger {
+  border-color: var(--kui-danger);
+  background: var(--kui-danger);
+  color: var(--kui-on-danger, var(--kui-text-inverse));
+}
+
+.kui-btn--danger:hover:not(:disabled):not(.is-disabled) {
+  background: var(--kui-danger);
+  border-color: var(--kui-danger);
+  color: var(--kui-on-danger, var(--kui-text-inverse));
+  filter: brightness(1.14) saturate(1.06);
+  box-shadow: inset 0 1px 0 var(--kui-highlight), 0 0 16px var(--kui-danger);
+}
+
+.kui-btn--danger:active:not(:disabled):not(.is-disabled) {
+  background: var(--kui-danger);
+  color: var(--kui-on-danger, var(--kui-text-inverse));
+  box-shadow: var(--kui-inner-glow);
+}
+
+.kui-btn--success {
+  border-color: var(--kui-success);
+  background: var(--kui-success);
+  color: var(--kui-on-success, var(--kui-text-inverse));
+}
+
+/* 悬浮反馈：填充按钮保持自身底色，用亮度/饱和度整体提亮来给出「悬停变色」的
+   视觉反馈（避免悬浮时文字与底色同色或对比不足）。主题里没有 *-hover 语义 token，
+   这里用 filter 做不改变色相的提亮，深浅主题都能保持 on-* 文字对比度。 */
+.kui-btn--success:hover:not(:disabled):not(.is-disabled) {
+  background: var(--kui-success);
+  border-color: var(--kui-success);
+  color: var(--kui-on-success, var(--kui-text-inverse));
+  filter: brightness(1.14) saturate(1.06);
+  box-shadow: inset 0 1px 0 var(--kui-highlight), 0 0 16px var(--kui-success);
+}
+
+.kui-btn--success:active:not(:disabled):not(.is-disabled) {
+  background: var(--kui-success);
+  color: var(--kui-on-success, var(--kui-text-inverse));
+  box-shadow: var(--kui-inner-glow);
+}
+
+.kui-btn--warning {
+  border-color: var(--kui-warning);
+  background: var(--kui-warning);
+  color: var(--kui-on-warning, var(--kui-text-inverse));
+}
+
+.kui-btn--warning:hover:not(:disabled):not(.is-disabled) {
+  background: var(--kui-warning);
+  border-color: var(--kui-warning);
+  color: var(--kui-on-warning, var(--kui-text-inverse));
+  filter: brightness(1.14) saturate(1.06);
+  box-shadow: inset 0 1px 0 var(--kui-highlight), 0 0 16px var(--kui-warning);
+}
+
+.kui-btn--warning:active:not(:disabled):not(.is-disabled) {
+  background: var(--kui-warning);
+  color: var(--kui-on-warning, var(--kui-text-inverse));
+  box-shadow: var(--kui-inner-glow);
+}
+
+/* 尺寸 / 形状修饰 */
+.kui-btn--block {
+  display: flex;
+  width: 100%;
+}
+
+.kui-btn--round {
+  border-radius: var(--kui-radius-pill);
+}
+
+.kui-btn--icon-only {
+  width: var(--ctl-h, var(--kui-control-h-md));
+  padding: 0;
+}
+
+.kui-btn.is-loading {
+  cursor: progress;
+}
+
+.kui-btn.is-loading .kui-btn__text,
+.kui-btn.is-loading > .kui-btn__icon {
+  opacity: 0.45;
+}
+
+/* ==========================================================================
+   3. 输入框 input / password
+   ========================================================================== */
+
+.kui-input {
+  display: inline-flex;
+  align-items: center;
+  width: 100%;
+  height: var(--ctl-h, var(--kui-control-h-md));
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--kui-control-border);
+  border-radius: var(--ctl-radius, var(--kui-control-radius));
+  background: var(--kui-control-bg);
+  box-shadow: var(--kui-inner-glow);
+  transition:
+    background-color var(--kui-duration-fast) var(--kui-ease),
+    border-color var(--kui-duration-fast) var(--kui-ease),
+    box-shadow var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-input:hover:not(.is-disabled):not(.is-readonly) {
+  background: var(--kui-control-bg-hover);
+  border-color: var(--kui-control-border-hover);
+}
+
+.kui-input.is-focus {
+  background: var(--kui-control-bg-active);
+  border-color: var(--kui-control-border-focus);
+}
+
+.kui-input.is-disabled,
+.kui-input.is-disabled .kui-input__inner {
+  background: var(--kui-control-bg-disabled);
+  color: var(--kui-control-text-disabled);
+  cursor: not-allowed;
+}
+
+.kui-input.is-readonly {
+  border-style: dashed;
+  background: var(--kui-bg-1);
+}
+
+.kui-input__inner {
+  flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  padding: 0 var(--ctl-px, var(--kui-control-px));
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  font-size: var(--ctl-fs, var(--kui-fs-base));
+  line-height: inherit;
+}
+
+.kui-input__inner::placeholder,
+.kui-number__inner::placeholder,
+.kui-textarea__inner::placeholder {
+  color: var(--kui-control-text-placeholder);
+  opacity: 1;
+}
+
+.kui-input__inner:disabled {
+  cursor: not-allowed;
+}
+
+/* 前后缀与内嵌图标 */
+.kui-input__prefix,
+.kui-input__suffix {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+  color: var(--kui-text-3);
+}
+
+.kui-input__prefix {
+  padding-left: var(--ctl-px, var(--kui-control-px));
+}
+
+.kui-input__suffix {
+  padding-right: 6px;
+}
+
+.kui-input__prefix-icon,
+.kui-input__suffix .kui-icon {
+  color: var(--kui-control-arrow-color);
+}
+
+.kui-input__unit,
+.kui-input__count,
+.kui-input__prefix-text,
+.kui-input__suffix-text {
+  font-size: var(--kui-fs-sm);
+  color: var(--kui-text-3);
+  white-space: nowrap;
+}
+
+.kui-input__count {
+  font-variant-numeric: tabular-nums;
+}
+
+.kui-input__clear,
+.kui-input__eye {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--kui-radius-sm);
+  background: transparent;
+  color: var(--kui-control-arrow-color);
+  cursor: pointer;
+  transition: color var(--kui-duration-fast) var(--kui-ease),
+    background-color var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-input__clear:hover,
+.kui-input__eye:hover {
+  color: var(--kui-accent);
+  background: var(--kui-accent-soft);
+}
+
+/* ==========================================================================
+   4. 文本域 textarea（含自绘 resize 角标）
+   ========================================================================== */
+
+.kui-textarea {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--kui-control-border);
+  border-radius: var(--ctl-radius, var(--kui-control-radius));
+  background: var(--kui-control-bg);
+  box-shadow: var(--kui-inner-glow);
+  transition:
+    background-color var(--kui-duration-fast) var(--kui-ease),
+    border-color var(--kui-duration-fast) var(--kui-ease),
+    box-shadow var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-textarea:hover:not(.is-disabled):not(.is-readonly) {
+  background: var(--kui-control-bg-hover);
+  border-color: var(--kui-control-border-hover);
+}
+
+.kui-textarea.is-focus {
+  background: var(--kui-control-bg-active);
+  border-color: var(--kui-control-border-focus);
+}
+
+.kui-textarea.is-disabled {
+  background: var(--kui-control-bg-disabled);
+}
+
+.kui-textarea.is-readonly {
+  border-style: dashed;
+  background: var(--kui-bg-1);
+}
+
+.kui-textarea__inner {
+  display: block;
+  width: 100%;
+  min-height: calc(var(--ctl-h, var(--kui-control-h-md)) * 2.4);
+  padding: 7px var(--ctl-px, var(--kui-control-px));
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  font-size: var(--ctl-fs, var(--kui-fs-base));
+  line-height: var(--kui-lh);
+  resize: none; /* resize 由右下角自绘角标完成 */
+}
+
+.kui-textarea__inner:disabled {
+  color: var(--kui-control-text-disabled);
+  cursor: not-allowed;
+}
+
+.kui-textarea__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-height: 20px;
+  padding: 0 10px 4px;
+  color: var(--kui-text-3);
+  font-size: var(--kui-fs-sm);
+}
+
+.kui-textarea__count {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  color: var(--kui-text-3);
+}
+
+/* 自绘 resize 角标：两层 L 形描边，与箭头同材质（currentColor + token） */
+.kui-textarea__resize {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 16px;
+  height: 16px;
+  color: var(--kui-control-arrow-color);
+  cursor: nwse-resize;
+  touch-action: none;
+}
+
+.kui-textarea__resize::before,
+.kui-textarea__resize::after {
+  content: "";
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  pointer-events: none;
+}
+
+.kui-textarea__resize::before {
+  width: 10px;
+  height: 10px;
+  border-right: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
+  opacity: 0.55;
+}
+
+.kui-textarea__resize::after {
+  width: 5px;
+  height: 5px;
+  border-right: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
+  opacity: 0.9;
+}
+
+.kui-textarea__resize:hover {
+  color: var(--kui-accent);
+}
+
+.kui-textarea.is-disabled .kui-textarea__resize,
+.kui-textarea.is-readonly .kui-textarea__resize {
+  display: none;
+}
+
+/* ==========================================================================
+   5. 数字框 number（重点：与按钮同材质的上下箭头 / 长按连加）
+   ========================================================================== */
+
+.kui-number {
+  position: relative;
+  display: inline-flex;
+  align-items: stretch;
+  width: 100%;
+  height: var(--ctl-h, var(--kui-control-h-md));
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--kui-control-border);
+  border-radius: var(--ctl-radius, var(--kui-control-radius));
+  background: var(--kui-control-bg);
+  box-shadow: var(--kui-inner-glow);
+  transition:
+    background-color var(--kui-duration-fast) var(--kui-ease),
+    border-color var(--kui-duration-fast) var(--kui-ease),
+    box-shadow var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-number:hover:not(.is-disabled):not(.is-readonly) {
+  background: var(--kui-control-bg-hover);
+  border-color: var(--kui-control-border-hover);
+}
+
+.kui-number.is-focus {
+  background: var(--kui-control-bg-active);
+  border-color: var(--kui-control-border-focus);
+}
+
+.kui-number.is-disabled {
+  background: var(--kui-control-bg-disabled);
+}
+
+.kui-number.is-readonly {
+  border-style: dashed;
+  background: var(--kui-bg-1);
+}
+
+.kui-number__inner {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  padding: 0 var(--ctl-px, var(--kui-control-px));
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  font-size: var(--ctl-fs, var(--kui-fs-base));
+  font-variant-numeric: tabular-nums;
+  line-height: inherit;
+  text-align: left;
+}
+
+.kui-number--right .kui-number__inner {
+  text-align: right;
+}
+
+.kui-number.is-disabled .kui-number__inner {
+  color: var(--kui-control-text-disabled);
+  cursor: not-allowed;
+}
+
+.kui-number__unit {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 8px 0 2px;
+  flex: none;
+  color: var(--kui-text-3);
+  font-size: var(--kui-fs-sm);
+  white-space: nowrap;
+}
+
+/* 上下箭头组：与按钮同材质（同边框/同底色/hover/active/disabled） */
+.kui-number__steps {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  width: 24px;
+  border-left: 1px solid var(--kui-control-border);
+  background: var(--kui-control-bg);
+  transition: background-color var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-number__step {
+  display: flex;
+  flex: 1 1 50%;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ctl-arrow);
+  cursor: pointer;
+  transition:
+    background-color var(--kui-duration-fast) var(--kui-ease),
+    color var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-number__step .kui-icon {
+  width: var(--ctl-arrow-size);
+  height: var(--ctl-arrow-size);
+  stroke-width: 2;
+}
+
+.kui-number__step--up {
+  border-bottom: 1px solid var(--kui-control-border);
+}
+
+.kui-number__step:hover:not(:disabled):not(.is-disabled) {
+  background: var(--kui-control-bg-hover);
+  color: var(--kui-accent);
+}
+
+.kui-number__step:active:not(:disabled):not(.is-disabled) {
+  background: var(--kui-accent-soft);
+  color: var(--kui-accent-hover);
+}
+
+.kui-number__step:disabled,
+.kui-number__step.is-disabled {
+  color: var(--kui-control-text-disabled);
+  background: var(--kui-control-bg-disabled);
+  cursor: not-allowed;
+}
+
+.kui-number.is-disabled .kui-number__steps,
+.kui-number.is-readonly .kui-number__steps {
+  background: var(--kui-control-bg-disabled);
+}
+
+.kui-number.is-readonly .kui-number__steps {
+  display: none;
+}
+
+/* ==========================================================================
+   6. 统一弹层 popup（下拉 / 多选 / 颜色 / 日期 / 时间共用）
+   ========================================================================== */
+
+.kui-popup-layer {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  max-width: calc(100vw - 16px);
+  overflow: auto;
+  border: 1px solid var(--kui-popup-border);
+  border-radius: var(--kui-popup-radius);
+  background: var(--kui-popup-bg);
+  box-shadow: var(--kui-popup-shadow);
+  color: var(--kui-control-text);
+  font-family: var(--kui-font-family);
+  font-size: var(--kui-fs-base);
+  line-height: 1.5;
+  z-index: var(--kui-popup-z);
+  opacity: 0;
+  transform: translate3d(0, -4px, 0);
+  -webkit-backdrop-filter: blur(var(--kui-glass-blur));
+  backdrop-filter: blur(var(--kui-glass-blur));
+  will-change: opacity, transform;
+  animation: kui-ctl-pop-in var(--kui-duration-fast) var(--kui-ease-out) both;
+}
+
+.kui-popup-layer.is-open {
+  opacity: 1;
+  transform: none;
+}
+
+.kui-popup-layer.is-closing {
+  animation: kui-ctl-pop-out var(--kui-duration-fast) var(--kui-ease) both;
+}
+
+.kui-popup-layer[data-placement^="top"] {
+  transform-origin: bottom center;
+}
+
+.kui-popup-layer[data-placement^="bottom"] {
+  transform-origin: top center;
+}
+
+/* ==========================================================================
+   7. 下拉 select + 选项
+   ========================================================================== */
+
+.kui-select {
+  position: relative;
+  display: inline-flex;
+  width: 100%;
+  min-width: 0;
+}
+
+.kui-select__trigger {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  height: var(--ctl-h, var(--kui-control-h-md));
+  min-width: 0;
+  padding: 0 var(--ctl-px, var(--kui-control-px));
+  border: 1px solid var(--kui-control-border);
+  border-radius: var(--ctl-radius, var(--kui-control-radius));
+  background: var(--kui-control-bg);
+  box-shadow: var(--kui-inner-glow);
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background-color var(--kui-duration-fast) var(--kui-ease),
+    border-color var(--kui-duration-fast) var(--kui-ease),
+    box-shadow var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-select__trigger:hover {
+  background: var(--kui-control-bg-hover);
+  border-color: var(--kui-control-border-hover);
+}
+
+.kui-select.is-open .kui-select__trigger {
+  background: var(--kui-control-bg-active);
+  border-color: var(--kui-control-border-focus);
+  box-shadow: var(--kui-focus-ring);
+}
+
+.kui-select.is-disabled .kui-select__trigger {
+  background: var(--kui-control-bg-disabled);
+  color: var(--kui-control-text-disabled);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.kui-select.is-readonly .kui-select__trigger {
+  background: var(--kui-bg-1);
+  border-style: dashed;
+  cursor: default;
+}
+
+.kui-select__value {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--ctl-fs, var(--kui-fs-base));
+}
+
+.kui-select.is-empty .kui-select__value {
+  color: var(--kui-control-text-placeholder);
+}
+
+.kui-select__clear,
+.kui-multiselect__clear,
+.kui-picker__clear,
+.kui-color__trigger .kui-color__clear {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--kui-radius-sm);
+  background: transparent;
+  color: var(--kui-control-arrow-color);
+  cursor: pointer;
+  transition: color var(--kui-duration-fast) var(--kui-ease),
+    background-color var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-select__clear:hover,
+.kui-multiselect__clear:hover,
+.kui-picker__clear:hover {
+  color: var(--kui-accent);
+  background: var(--kui-accent-soft);
+}
+
+/* 下拉箭头：与数字框同材质，展开时旋转并转绯红 */
+.kui-select__arrow,
+.kui-multiselect__arrow,
+.kui-color__arrow {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--ctl-arrow-size);
+  height: var(--ctl-arrow-size);
+  color: var(--ctl-arrow);
+  transition:
+    transform var(--kui-duration-base) var(--kui-ease),
+    color var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-select__arrow .kui-icon,
+.kui-multiselect__arrow .kui-icon,
+.kui-color__arrow .kui-icon {
+  width: var(--ctl-arrow-size);
+  height: var(--ctl-arrow-size);
+  stroke-width: 2;
+}
+
+.kui-select.is-open .kui-select__arrow,
+.kui-multiselect.is-open .kui-multiselect__arrow,
+.kui-color.is-open .kui-color__arrow {
+  transform: rotate(180deg);
+  color: var(--kui-accent);
+}
+
+/* 选项面板 */
+.kui-select-panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: transparent;
+}
+
+.kui-select__search {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px;
+  padding: 0 8px;
+  border: 1px solid var(--kui-control-border);
+  border-radius: var(--kui-radius-sm);
+  background: var(--kui-bg-1);
+  box-shadow: var(--kui-inner-glow);
+}
+
+.kui-select__search-icon {
+  flex: none;
+  color: var(--kui-control-arrow-color);
+  width: var(--kui-control-arrow-size);
+  height: var(--kui-control-arrow-size);
+}
+
+.kui-select__search-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--kui-control-text);
+  font-family: inherit;
+  font-size: var(--kui-fs-base);
+}
+
+.kui-select__search-input::placeholder {
+  color: var(--kui-control-text-placeholder);
+}
+
+.kui-select-list {
+  display: block;
+  max-height: 264px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 4px;
+  outline: none;
+}
+
+.kui-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+  padding: 4px 8px;
+  border-radius: var(--kui-radius-sm);
+  color: var(--kui-text-1);
+  font-size: var(--kui-fs-base);
+  line-height: 1.4;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color var(--kui-duration-fast) var(--kui-ease),
+    color var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-option:hover,
+.kui-option.is-active {
+  background: var(--kui-option-hover-bg);
+}
+
+.kui-option.is-selected {
+  background: var(--kui-option-selected-bg);
+  color: var(--kui-option-selected-text);
+}
+
+.kui-option.is-selected:hover,
+.kui-option.is-selected.is-active {
+  background: var(--kui-option-selected-bg);
+}
+
+.kui-option.is-disabled {
+  color: var(--kui-control-text-disabled);
+  cursor: not-allowed;
+  background: transparent;
+}
+
+.kui-option__check {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  color: var(--kui-accent);
+  opacity: 0;
+  transition: opacity var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-select-panel--multiple .kui-option__check {
+  opacity: 0.28;
+}
+
+.kui-option.is-selected .kui-option__check {
+  opacity: 1;
+}
+
+.kui-option__check .kui-icon {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2.2;
+}
+
+.kui-option__icon {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  color: var(--kui-text-2);
+}
+
+.kui-option__label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.kui-option__desc {
+  flex: none;
+  max-width: 45%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--kui-text-3);
+  font-size: var(--kui-fs-sm);
+}
+
+.kui-select__empty {
+  padding: 14px 10px;
+  color: var(--kui-text-3);
+  font-size: var(--kui-fs-sm);
+  text-align: center;
+}
+
+/* 面板底部：全选 / 清空 */
+.kui-select__footer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  border-top: 1px solid var(--kui-border);
+  background: var(--kui-bg-1);
+}
+
+.kui-select__footer-btn {
+  flex: 1 1 auto;
+  height: 26px;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  border-radius: var(--kui-radius-sm);
+  background: transparent;
+  color: var(--kui-text-2);
+  font-size: var(--kui-fs-sm);
+  cursor: pointer;
+  transition: background-color var(--kui-duration-fast) var(--kui-ease),
+    color var(--kui-duration-fast) var(--kui-ease),
+    border-color var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-select__footer-btn:hover {
+  border-color: var(--kui-control-border);
+  background: var(--kui-accent-soft);
+  color: var(--kui-accent-hover);
+}
+
+.kui-select__footer-btn:active {
+  background: var(--kui-option-selected-bg);
+}
+
+/* ==========================================================================
+   8. 多选 multiselect（tag / 折叠 / 溢出计数）
+   ========================================================================== */
+
+.kui-multiselect {
+  position: relative;
+  display: inline-flex;
+  width: 100%;
+  min-width: 0;
+}
+
+.kui-multiselect__trigger {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+  min-height: var(--ctl-h, var(--kui-control-h-md));
+  padding: 3px calc(var(--ctl-px, var(--kui-control-px)) - 2px);
+  border: 1px solid var(--kui-control-border);
+  border-radius: var(--ctl-radius, var(--kui-control-radius));
+  background: var(--kui-control-bg);
+  box-shadow: var(--kui-inner-glow);
+  cursor: pointer;
+  transition:
+    background-color var(--kui-duration-fast) var(--kui-ease),
+    border-color var(--kui-duration-fast) var(--kui-ease),
+    box-shadow var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-multiselect__trigger:hover {
+  background: var(--kui-control-bg-hover);
+  border-color: var(--kui-control-border-hover);
+}
+
+.kui-multiselect.is-open .kui-multiselect__trigger {
+  background: var(--kui-control-bg-active);
+  border-color: var(--kui-control-border-focus);
+  box-shadow: var(--kui-focus-ring);
+}
+
+.kui-multiselect.is-disabled .kui-multiselect__trigger {
+  background: var(--kui-control-bg-disabled);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.kui-multiselect.is-readonly .kui-multiselect__trigger {
+  border-style: dashed;
+  background: var(--kui-bg-1);
+  cursor: default;
+}
+
+.kui-multiselect__tags {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.kui-multiselect__placeholder {
+  padding: 0 2px;
+  color: var(--kui-control-text-placeholder);
+  font-size: var(--kui-fs-base);
+  white-space: nowrap;
+}
+
+/* 标签：与 tag 控件同材质，尺寸收紧适配输入框 */
+.kui-multiselect__tag.kui-tag {
+  max-width: 100%;
+  height: calc(var(--ctl-h, var(--kui-control-h-md)) - 10px);
+  padding: 0 6px;
+  border-color: var(--kui-accent-soft);
+  background: var(--kui-accent-soft);
+  color: var(--kui-text-1);
+  font-size: var(--kui-fs-sm);
+  line-height: 1;
+}
+
+.kui-multiselect__tag.kui-tag .kui-tag__text {
+  max-width: 120px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.kui-multiselect__tag.kui-tag .kui-tag__close {
+  margin-left: 2px;
+  color: var(--kui-text-2);
+}
+
+.kui-multiselect__tag.kui-tag .kui-tag__close:hover {
+  color: var(--kui-accent-hover);
+  background: var(--kui-accent-soft);
+}
+
+/* +N 折叠计数 */
+.kui-multiselect__more {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  height: calc(var(--ctl-h, var(--kui-control-h-md)) - 10px);
+  padding: 0 6px;
+  border: 1px solid var(--kui-border);
+  border-radius: var(--kui-radius-sm);
+  background: var(--kui-bg-3);
+  color: var(--kui-accent-2);
+  font-size: var(--kui-fs-sm);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.kui-multiselect__tags .kui-multiselect__clear {
+  margin-left: auto;
+}
+
+/* ==========================================================================
+   9. 颜色选择 color
+   ========================================================================== */
+
+.kui-color {
+  position: relative;
+  display: inline-flex;
+  min-width: 0;
+}
+
+.kui-color__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: var(--ctl-h, var(--kui-control-h-md));
+  padding: 0 var(--ctl-px, var(--kui-control-px));
+  border: 1px solid var(--kui-control-border);
+  border-radius: var(--ctl-radius, var(--kui-control-radius));
+  background: var(--kui-control-bg);
+  box-shadow: var(--kui-inner-glow);
+  color: var(--kui-control-text);
+  cursor: pointer;
+  transition:
+    background-color var(--kui-duration-fast) var(--kui-ease),
+    border-color var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-color__trigger:hover {
+  background: var(--kui-control-bg-hover);
+  border-color: var(--kui-control-border-hover);
+}
+
+.kui-color.is-open .kui-color__trigger {
+  border-color: var(--kui-control-border-focus);
+  box-shadow: var(--kui-focus-ring);
+}
+
+.kui-color.is-disabled .kui-color__trigger {
+  background: var(--kui-control-bg-disabled);
+  color: var(--kui-control-text-disabled);
+  cursor: not-allowed;
+}
+
+.kui-color__swatch {
+  display: inline-block;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--kui-border-strong);
+  border-radius: var(--kui-radius-sm);
+  background: transparent;
+  box-shadow: var(--kui-highlight);
+}
+
+/* 空色块：斜线填充（用 token 作渐变条纹，不写死颜色） */
+.kui-color__swatch.is-empty {
+  background-image:
+    linear-gradient(45deg, var(--kui-border) 25%, transparent 25%, transparent 75%, var(--kui-border) 75%),
+    linear-gradient(45deg, var(--kui-border) 25%, transparent 25%, transparent 75%, var(--kui-border) 75%);
+  background-size: 6px 6px;
+  background-position: 0 0, 3px 3px;
+}
+
+.kui-color__text {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--ctl-fs, var(--kui-fs-base));
+  font-variant-numeric: tabular-nums;
+}
+
+.kui-color.is-empty .kui-color__text {
+  color: var(--kui-control-text-placeholder);
+}
+
+.kui-color-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+}
+
+.kui-color__presets {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+}
+
+.kui-color__preset {
+  position: relative;
+  width: 100%;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--kui-border-strong);
+  border-radius: var(--kui-radius-sm);
+  background: transparent;
+  box-shadow: var(--kui-highlight);
+  cursor: pointer;
+  transition: transform var(--kui-duration-fast) var(--kui-ease),
+    box-shadow var(--kui-duration-fast) var(--kui-ease),
+    border-color var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-color__preset:hover {
+  transform: translateY(-1px);
+  border-color: var(--kui-accent-2);
+  box-shadow: 0 0 0 1px var(--kui-accent-2-soft), var(--kui-glow);
+}
+
+.kui-color__preset.is-active {
+  border-color: var(--kui-accent-2);
+  box-shadow: 0 0 0 2px var(--kui-accent-2-soft);
+}
+
+.kui-color__preset.is-active::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px var(--kui-popup-bg);
+}
+
+.kui-color__custom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid var(--kui-control-border);
+  border-radius: var(--kui-radius-sm);
+  background: var(--kui-bg-1);
+  color: var(--kui-text-2);
+  font-size: var(--kui-fs-sm);
+  cursor: pointer;
+  transition: border-color var(--kui-duration-fast) var(--kui-ease),
+    background-color var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-color__custom:hover {
+  border-color: var(--kui-control-border-hover);
+  background: var(--kui-control-bg-hover);
+}
+
+.kui-color__native {
+  width: 22px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid var(--kui-border-strong);
+  border-radius: var(--kui-radius-xs);
+  background: transparent;
+  cursor: pointer;
+}
+
+.kui-color__clear {
+  width: 100%;
+  height: 26px;
+  border: 1px solid transparent;
+  border-radius: var(--kui-radius-sm);
+  background: transparent;
+  color: var(--kui-text-2);
+  font-family: inherit;
+  font-size: var(--kui-fs-sm);
+  cursor: pointer;
+  transition: background-color var(--kui-duration-fast) var(--kui-ease),
+    color var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-color__clear:hover {
+  background: var(--kui-accent-soft);
+  color: var(--kui-accent-hover);
+}
+
+/* ==========================================================================
+   10. 日期 / 时间选择器（picker 触发器 + 日历面板 + 时分秒列）
+   ========================================================================== */
+
+.kui-picker {
+  position: relative;
+  display: inline-flex;
+  width: 100%;
+  min-width: 0;
+}
+
+.kui-picker__trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: var(--ctl-h, var(--kui-control-h-md));
+  min-width: 0;
+  padding: 0 var(--ctl-px, var(--kui-control-px));
+  border: 1px solid var(--kui-control-border);
+  border-radius: var(--ctl-radius, var(--kui-control-radius));
+  background: var(--kui-control-bg);
+  box-shadow: var(--kui-inner-glow);
+  color: var(--kui-control-text);
+  cursor: pointer;
+  transition:
+    background-color var(--kui-duration-fast) var(--kui-ease),
+    border-color var(--kui-duration-fast) var(--kui-ease),
+    box-shadow var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-picker__trigger:hover {
+  background: var(--kui-control-bg-hover);
+  border-color: var(--kui-control-border-hover);
+}
+
+.kui-picker.is-open .kui-picker__trigger {
+  background: var(--kui-control-bg-active);
+  border-color: var(--kui-control-border-focus);
+  box-shadow: var(--kui-focus-ring);
+}
+
+.kui-picker.is-disabled .kui-picker__trigger {
+  background: var(--kui-control-bg-disabled);
+  color: var(--kui-control-text-disabled);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.kui-picker.is-readonly .kui-picker__trigger {
+  border-style: dashed;
+  background: var(--kui-bg-1);
+  cursor: default;
+}
+
+.kui-picker__icon {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  color: var(--kui-control-arrow-color);
+  transition: color var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-picker__icon .kui-icon {
+  width: var(--kui-control-arrow-size);
+  height: var(--kui-control-arrow-size);
+}
+
+.kui-picker.is-open .kui-picker__icon {
+  color: var(--kui-accent);
+}
+
+.kui-picker__text {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--ctl-fs, var(--kui-fs-base));
+  font-variant-numeric: tabular-nums;
+}
+
+.kui-picker.is-empty .kui-picker__text {
+  color: var(--kui-control-text-placeholder);
+}
+
+/* 日期范围触发器：起 / 至 / 止 */
+.kui-daterange__part {
+  display: inline-block;
+  max-width: 45%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.kui-daterange__part.is-empty {
+  color: var(--kui-control-text-placeholder);
+}
+
+.kui-daterange__sep {
+  flex: none;
+  padding: 0 2px;
+  color: var(--kui-text-3);
+}
+
+.kui-daterange__placeholder {
+  color: var(--kui-control-text-placeholder);
+}
+
+/* 面板容器（弹层内） */
+.kui-picker-panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--kui-calendar-bg);
+  color: var(--kui-text-1);
+}
+
+.kui-date-panel,
+.kui-daterange-panel,
+.kui-month-panel,
+.kui-datetime-panel,
+.kui-time-panel {
+  padding: 0;
+}
+
+/* ------- 日历 ------- */
+.kui-date__panel {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 10px 10px;
+  user-select: none;
+}
+
+.kui-date__head {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 0 8px;
+}
+
+.kui-date__title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  padding: 0 4px;
+  color: var(--kui-text-1);
+  font-size: var(--kui-fs-base);
+  font-weight: 600;
+  text-align: center;
+  letter-spacing: 0.02em;
+}
+
+/* 年月切换箭头：与数字框/下拉箭头同材质 */
+.kui-date__nav {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--kui-radius-sm);
+  background: transparent;
+  color: var(--kui-control-arrow-color);
+  cursor: pointer;
+  transition:
+    background-color var(--kui-duration-fast) var(--kui-ease),
+    border-color var(--kui-duration-fast) var(--kui-ease),
+    color var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-date__nav .kui-icon {
+  width: var(--kui-control-arrow-size);
+  height: var(--kui-control-arrow-size);
+  stroke-width: 2;
+}
+
+/* 双箭头（年切换）：两个 chevron 叠放 */
+.kui-date__nav-second {
+  margin-left: -7px;
+  opacity: 0.55;
+}
+
+.kui-date__nav:hover {
+  border-color: var(--kui-control-border);
+  background: var(--kui-control-bg-hover);
+  color: var(--kui-accent);
+}
+
+.kui-date__nav:active {
+  background: var(--kui-accent-soft);
+  color: var(--kui-accent-hover);
+}
+
+.kui-date__weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  padding: 4px 0;
+  border-top: 1px solid var(--kui-divider);
+  border-bottom: 1px solid var(--kui-divider);
+  background: var(--kui-calendar-head-bg);
+  border-radius: var(--kui-radius-sm);
+}
+
+.kui-date__weekday {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  color: var(--kui-text-2);
+  font-size: var(--kui-fs-sm);
+  font-weight: 600;
+}
+
+.kui-date__weekday.is-weekend {
+  color: var(--kui-accent-2);
+}
+
+.kui-date__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  padding-top: 6px;
+}
+
+/* 日期格 */
+.kui-date__cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--kui-radius-sm);
+  background: transparent;
+  color: var(--kui-text-1);
+  font-family: inherit;
+  font-size: var(--kui-fs-base);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition:
+    background-color var(--kui-duration-fast) var(--kui-ease),
+    border-color var(--kui-duration-fast) var(--kui-ease),
+    color var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-date__day {
+  display: inline-block;
+  line-height: 1;
+}
+
+.kui-date__cell:hover:not(.is-disabled) {
+  border-color: var(--kui-control-border);
+  background: var(--kui-control-bg-hover);
+}
+
+.kui-date__cell.is-outside {
+  color: var(--kui-text-3);
+  opacity: 0.55;
+}
+
+.kui-date__cell.is-weekend:not(.is-selected) {
+  color: var(--kui-accent-2);
+}
+
+.kui-date__cell.is-outside.is-weekend {
+  color: var(--kui-text-3);
+}
+
+.kui-date__cell.is-today {
+  border-color: var(--kui-calendar-today);
+  color: var(--kui-calendar-today);
+  font-weight: 700;
+}
+
+.kui-date__cell.is-today::after {
+  content: "";
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  width: 3px;
+  height: 3px;
+  margin-left: -1.5px;
+  border-radius: var(--kui-radius-pill);
+  background: var(--kui-calendar-today);
+}
+
+.kui-date__cell.is-selected {
+  border-color: var(--kui-accent);
+  background: var(--kui-accent);
+  box-shadow: var(--kui-glow);
+  /* 实心填充一律用 on-* 前景 token：浅主色主题下 text-1 会与 accent 底同色 */
+  color: var(--kui-on-accent, var(--kui-text-inverse));
+  font-weight: 600;
+}
+
+.kui-date__cell.is-selected.is-today {
+  color: var(--kui-on-accent, var(--kui-text-inverse));
+}
+
+.kui-date__cell.is-selected::after {
+  background: var(--kui-on-accent, var(--kui-text-inverse));
+}
+
+.kui-date__cell.is-in-range {
+  border-color: transparent;
+  background: var(--kui-accent-soft);
+  color: var(--kui-text-1);
+  border-radius: 0;
+}
+
+.kui-date__cell.is-range-start,
+.kui-date__cell.is-range-end {
+  border-color: var(--kui-accent);
+  background: var(--kui-accent);
+  box-shadow: none;
+  color: var(--kui-on-accent, var(--kui-text-inverse));
+}
+
+.kui-date__cell.is-range-start {
+  border-top-left-radius: var(--kui-radius-sm);
+  border-bottom-left-radius: var(--kui-radius-sm);
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.kui-date__cell.is-range-end {
+  border-top-right-radius: var(--kui-radius-sm);
+  border-bottom-right-radius: var(--kui-radius-sm);
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.kui-date__cell.is-range-single {
+  border-radius: var(--kui-radius-sm);
+}
+
+.kui-date__cell.is-disabled,
+.kui-date__cell:disabled {
+  color: var(--kui-control-text-disabled);
+  background: transparent;
+  opacity: 0.45;
+  text-decoration: line-through;
+  cursor: not-allowed;
+}
+
+.kui-date__cell.is-disabled:hover {
+  border-color: transparent;
+  background: transparent;
+}
+
+/* 月份选择 */
+.kui-month__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  padding: 6px 10px 10px;
+}
+
+.kui-month-panel .kui-date__head {
+  padding: 10px 10px 6px;
+}
+
+.kui-month__cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--kui-radius-sm);
+  background: transparent;
+  color: var(--kui-text-1);
+  font-family: inherit;
+  font-size: var(--kui-fs-base);
+  cursor: pointer;
+  transition:
+    background-color var(--kui-duration-fast) var(--kui-ease),
+    border-color var(--kui-duration-fast) var(--kui-ease),
+    color var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-month__cell:hover:not(.is-disabled) {
+  border-color: var(--kui-control-border);
+  background: var(--kui-control-bg-hover);
+}
+
+.kui-month__cell.is-selected {
+  border-color: var(--kui-accent);
+  background: var(--kui-accent);
+  box-shadow: var(--kui-glow);
+  color: var(--kui-on-accent, var(--kui-text-inverse));
+  font-weight: 600;
+}
+
+.kui-month__cell.is-today {
+  color: var(--kui-calendar-today);
+  font-weight: 700;
+}
+
+.kui-month__cell.is-disabled,
+.kui-month__cell:disabled {
+  color: var(--kui-control-text-disabled);
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 日期范围：双面板 */
+.kui-daterange__panels {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+}
+
+.kui-daterange__panels > .kui-date__panel {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.kui-daterange__panels > .kui-date__panel + .kui-date__panel {
+  border-left: 1px solid var(--kui-divider);
+}
+
+/* 面板底部操作条 */
+.kui-picker__footer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  border-top: 1px solid var(--kui-border);
+  background: var(--kui-bg-1);
+}
+
+.kui-picker__footer-btn {
+  height: 26px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: var(--kui-radius-sm);
+  background: transparent;
+  color: var(--kui-text-2);
+  font-family: inherit;
+  font-size: var(--kui-fs-sm);
+  cursor: pointer;
+  transition:
+    background-color var(--kui-duration-fast) var(--kui-ease),
+    border-color var(--kui-duration-fast) var(--kui-ease),
+    color var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-picker__footer-btn:hover {
+  border-color: var(--kui-control-border);
+  background: var(--kui-control-bg-hover);
+  color: var(--kui-text-1);
+}
+
+.kui-picker__footer-btn:active {
+  background: var(--kui-option-selected-bg);
+}
+
+.kui-picker__footer-btn--today,
+.kui-picker__footer-btn--now {
+  color: var(--kui-accent-2);
+}
+
+.kui-picker__footer-btn--today:hover,
+.kui-picker__footer-btn--now:hover {
+  color: var(--kui-accent-2);
+  border-color: var(--kui-accent-2);
+  background: var(--kui-accent-2-soft);
+}
+
+.kui-picker__footer-btn--clear {
+  margin-right: auto;
+  color: var(--kui-text-3);
+}
+
+.kui-picker__footer-btn--clear:hover {
+  color: var(--kui-danger);
+  border-color: var(--kui-danger);
+  background: transparent;
+}
+
+.kui-picker__footer-btn--primary {
+  margin-left: auto;
+  border-color: var(--kui-accent);
+  background: var(--kui-accent);
+  color: var(--kui-on-accent, var(--kui-text-inverse));
+  box-shadow: var(--kui-glow);
+}
+
+.kui-picker__footer-btn--primary:hover {
+  border-color: var(--kui-accent-hover);
+  background: var(--kui-accent-hover);
+  color: var(--kui-text-1);
+}
+
+/* ------- 时 / 分 / 秒三列选择器 ------- */
+.kui-time__cols {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 10px;
+}
+
+.kui-time__col {
+  position: relative;
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  align-items: stretch;
+  min-width: 0;
+  max-width: 72px;
+  border: 1px solid var(--kui-control-border);
+  border-radius: var(--kui-radius-sm);
+  background: var(--kui-bg-1);
+  box-shadow: var(--kui-inner-glow);
+  overflow: hidden;
+}
+
+/* 列内部上下箭头：与数字框箭头同材质 */
+.kui-time__arrow {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  height: 22px;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: var(--kui-control-bg);
+  color: var(--kui-control-arrow-color);
+  cursor: pointer;
+  transition:
+    background-color var(--kui-duration-fast) var(--kui-ease),
+    color var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-time__arrow .kui-icon {
+  width: var(--kui-control-arrow-size);
+  height: var(--kui-control-arrow-size);
+  stroke-width: 2;
+}
+
+.kui-time__arrow--up {
+  border-bottom: 1px solid var(--kui-control-border);
+}
+
+.kui-time__arrow--down {
+  border-top: 1px solid var(--kui-control-border);
+}
+
+.kui-time__arrow:hover {
+  background: var(--kui-control-bg-hover);
+  color: var(--kui-accent);
+}
+
+.kui-time__arrow:active {
+  background: var(--kui-accent-soft);
+  color: var(--kui-accent-hover);
+}
+
+.kui-time__list {
+  position: relative;
+  flex: 1 1 auto;
+  height: 168px;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 2px 0;
+  outline: none;
+  scroll-behavior: smooth;
+}
+
+.kui-time__option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 28px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--kui-radius-sm);
+  background: transparent;
+  color: var(--kui-text-2);
+  font-family: var(--kui-font-mono);
+  font-size: var(--kui-fs-base);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition:
+    background-color var(--kui-duration-fast) var(--kui-ease),
+    color var(--kui-duration-fast) var(--kui-ease),
+    border-color var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-time__option:hover {
+  background: var(--kui-option-hover-bg);
+  color: var(--kui-text-1);
+}
+
+.kui-time__option.is-selected {
+  border-color: var(--kui-accent);
+  background: var(--kui-option-selected-bg);
+  color: var(--kui-option-selected-text);
+  font-weight: 600;
+  box-shadow: var(--kui-glow);
+}
+
+/* 时间选择器 + 日期时间组合的禁用态 */
+.kui-time__cols.is-disabled {
+  opacity: 0.6;
+}
+
+.kui-time__cols.is-disabled .kui-time__arrow,
+.kui-time__cols.is-disabled .kui-time__option {
+  cursor: not-allowed;
+}
+
+.kui-time-panel .kui-picker__footer,
+.kui-datetime-panel .kui-picker__footer {
+  margin-top: 0;
+}
+
+/* 日期时间：日历 + 时间列 */
+.kui-datetime__time {
+  border-top: 1px solid var(--kui-divider);
+  background: var(--kui-bg-1);
+}
+
+.kui-datetime__section-label {
+  padding: 8px 10px 0;
+  color: var(--kui-text-3);
+  font-size: var(--kui-fs-sm);
+  letter-spacing: 0.08em;
+}
+
+/* ==========================================================================
+   11. 复选 / 单选 / 开关
+   ========================================================================== */
+
+.kui-checkbox-wrap,
+.kui-radio-wrap {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.kui-checkbox,
+.kui-radio {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--ctl-h, var(--kui-control-h-md));
+  padding: 0 2px;
+  color: var(--kui-control-text);
+  font-size: var(--ctl-fs, var(--kui-fs-base));
+  line-height: 1.4;
+  cursor: pointer;
+  user-select: none;
+}
+
+.kui-checkbox.is-disabled,
+.kui-radio.is-disabled {
+  color: var(--kui-control-text-disabled);
+  cursor: not-allowed;
+}
+
+.kui-checkbox.is-readonly,
+.kui-radio.is-readonly {
+  cursor: default;
+}
+
+/* 隐藏原生控件但保持可聚焦/可访问 */
+.kui-checkbox__input,
+.kui-radio__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* 自绘方框 */
+.kui-checkbox__box {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--kui-control-border);
+  border-radius: var(--kui-radius-xs);
+  background: var(--kui-control-bg);
+  box-shadow: var(--kui-inner-glow);
+  transition:
+    background-color var(--kui-duration-fast) var(--kui-ease),
+    border-color var(--kui-duration-fast) var(--kui-ease),
+    box-shadow var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-checkbox:hover:not(.is-disabled) .kui-checkbox__box {
+  border-color: var(--kui-control-border-hover);
+}
+
+.kui-checkbox__tick {
+  width: 12px;
+  height: 12px;
+  color: var(--kui-text-1);
+  stroke-width: 3;
+  opacity: 0;
+  transform: scale(0.6);
+  transition:
+    opacity var(--kui-duration-fast) var(--kui-ease),
+    transform var(--kui-duration-fast) var(--kui-ease-bounce);
+}
+
+.kui-checkbox.is-checked .kui-checkbox__box,
+.kui-checkbox__input:checked + .kui-checkbox__box {
+  border-color: var(--kui-accent);
+  background: linear-gradient(180deg, var(--kui-accent-hover), var(--kui-accent));
+  box-shadow: var(--kui-glow);
+}
+
+.kui-checkbox.is-checked .kui-checkbox__tick,
+.kui-checkbox__input:checked + .kui-checkbox__box .kui-checkbox__tick {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* 半选：dash */
+.kui-checkbox.is-indeterminate .kui-checkbox__box {
+  border-color: var(--kui-accent);
+  background: var(--kui-accent-soft);
+}
+
+.kui-checkbox.is-indeterminate .kui-checkbox__tick {
+  color: var(--kui-accent);
+  opacity: 0.9;
+  transform: scale(0.7);
+}
+
+.kui-checkbox.is-disabled .kui-checkbox__box {
+  border-color: var(--kui-border);
+  background: var(--kui-control-bg-disabled);
+  box-shadow: none;
+}
+
+.kui-checkbox.is-disabled.is-checked .kui-checkbox__box {
+  border-color: var(--kui-border-strong);
+  background: var(--kui-control-bg-disabled);
+  box-shadow: none;
+}
+
+.kui-checkbox.is-disabled .kui-checkbox__tick {
+  color: var(--kui-control-text-disabled);
+}
+
+.kui-checkbox__label,
+.kui-radio__label {
+  min-width: 0;
+}
+
+/* 自绘单选：外框 + 内点 */
+.kui-radio__box {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--kui-control-border);
+  border-radius: var(--kui-radius-pill);
+  background: var(--kui-control-bg);
+  box-shadow: var(--kui-inner-glow);
+  transition:
+    background-color var(--kui-duration-fast) var(--kui-ease),
+    border-color var(--kui-duration-fast) var(--kui-ease),
+    box-shadow var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-radio:hover:not(.is-disabled) .kui-radio__box {
+  border-color: var(--kui-control-border-hover);
+}
+
+.kui-radio__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--kui-radius-pill);
+  background: var(--kui-accent);
+  box-shadow: 0 0 8px var(--kui-accent-glow);
+  opacity: 0;
+  transform: scale(0.3);
+  transition:
+    opacity var(--kui-duration-fast) var(--kui-ease),
+    transform var(--kui-duration-fast) var(--kui-ease-bounce);
+}
+
+.kui-radio.is-checked .kui-radio__box,
+.kui-radio__input:checked + .kui-radio__box {
+  border-color: var(--kui-accent);
+  background: var(--kui-bg-2);
+  box-shadow: var(--kui-focus-ring);
+}
+
+.kui-radio.is-checked .kui-radio__dot,
+.kui-radio__input:checked + .kui-radio__box .kui-radio__dot {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.kui-radio.is-disabled .kui-radio__box {
+  border-color: var(--kui-border);
+  background: var(--kui-control-bg-disabled);
+  box-shadow: none;
+}
+
+.kui-radio.is-disabled .kui-radio__dot {
+  background: var(--kui-control-text-disabled);
+  box-shadow: none;
+}
+
+/* 复选 / 单选组 */
+.kui-checkbox-group,
+.kui-radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 18px;
+  min-width: 0;
+}
+
+.kui-checkbox-group--inline,
+.kui-radio-group--inline {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+}
+
+.kui-checkbox-group--sm .kui-checkbox,
+.kui-radio-group--sm .kui-radio,
+.kui-checkbox-group--sm .kui-radio,
+.kui-radio-group--sm .kui-checkbox {
+  min-height: var(--kui-control-h-sm);
+  font-size: var(--kui-fs-sm);
+}
+
+.kui-checkbox-group--lg .kui-checkbox,
+.kui-radio-group--lg .kui-radio,
+.kui-checkbox-group--lg .kui-radio,
+.kui-radio-group--lg .kui-checkbox {
+  min-height: var(--kui-control-h-lg);
+  font-size: var(--kui-fs-md);
+}
+
+.kui-checkbox-group.is-disabled,
+.kui-radio-group.is-disabled {
+  opacity: 0.85;
+}
+
+/* 开关 */
+.kui-switch {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.kui-switch__inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--kui-control-text);
+  font-family: inherit;
+  font-size: var(--ctl-fs, var(--kui-fs-base));
+  cursor: pointer;
+  user-select: none;
+}
+
+.kui-switch__rail {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  width: 40px;
+  height: 20px;
+  padding: 2px;
+  border: 1px solid var(--kui-control-border);
+  border-radius: var(--kui-radius-pill);
+  background: var(--kui-control-bg);
+  box-shadow: var(--kui-inner-glow);
+  transition:
+    background-color var(--kui-duration-base) var(--kui-ease),
+    border-color var(--kui-duration-base) var(--kui-ease),
+    box-shadow var(--kui-duration-base) var(--kui-ease);
+}
+
+.kui-switch__thumb {
+  display: block;
+  width: 14px;
+  height: 14px;
+  border-radius: var(--kui-radius-pill);
+  background: var(--kui-text-3);
+  box-shadow: var(--kui-shadow-1);
+  transform: translateX(0);
+  transition:
+    transform var(--kui-duration-base) var(--kui-ease-bounce),
+    background-color var(--kui-duration-base) var(--kui-ease),
+    box-shadow var(--kui-duration-base) var(--kui-ease);
+}
+
+.kui-switch.is-checked .kui-switch__rail {
+  border-color: var(--kui-accent);
+  background: linear-gradient(180deg, var(--kui-accent-hover), var(--kui-accent));
+  box-shadow: var(--kui-glow);
+}
+
+.kui-switch.is-checked .kui-switch__thumb {
+  background: var(--kui-text-1);
+  box-shadow: var(--kui-shadow-2), 0 0 10px var(--kui-accent-glow);
+  transform: translateX(20px);
+}
+
+.kui-switch__inner:hover .kui-switch__rail {
+  border-color: var(--kui-control-border-hover);
+}
+
+.kui-switch.is-checked .kui-switch__inner:hover .kui-switch__rail {
+  border-color: var(--kui-accent-hover);
+}
+
+.kui-switch.is-disabled .kui-switch__inner {
+  cursor: not-allowed;
+  color: var(--kui-control-text-disabled);
+}
+
+.kui-switch.is-disabled .kui-switch__rail {
+  border-color: var(--kui-border);
+  background: var(--kui-control-bg-disabled);
+  box-shadow: none;
+}
+
+.kui-switch.is-disabled.is-checked .kui-switch__rail {
+  border-color: var(--kui-border-strong);
+  background: var(--kui-control-bg-disabled);
+  box-shadow: none;
+}
+
+.kui-switch.is-disabled .kui-switch__thumb {
+  background: var(--kui-control-text-disabled);
+  box-shadow: none;
+}
+
+.kui-switch.is-readonly {
+  cursor: default;
+}
+
+.kui-switch.is-readonly .kui-switch__inner {
+  cursor: default;
+}
+
+.kui-switch.is-loading .kui-switch__rail {
+  opacity: 0.7;
+}
+
+.kui-switch__label {
+  color: var(--kui-text-2);
+  font-size: var(--kui-fs-sm);
+  white-space: nowrap;
+}
+
+.kui-switch.is-checked .kui-switch__label {
+  color: var(--kui-accent-2);
+}
+
+.kui-switch--sm .kui-switch__rail {
+  width: 34px;
+  height: 18px;
+}
+
+.kui-switch--sm .kui-switch__thumb {
+  width: 12px;
+  height: 12px;
+}
+
+.kui-switch--sm.is-checked .kui-switch__thumb {
+  transform: translateX(16px);
+}
+
+.kui-switch--lg .kui-switch__rail {
+  width: 48px;
+  height: 24px;
+}
+
+.kui-switch--lg .kui-switch__thumb {
+  width: 18px;
+  height: 18px;
+}
+
+.kui-switch--lg.is-checked .kui-switch__thumb {
+  transform: translateX(24px);
+}
+
+/* ==========================================================================
+   12. 滑块 slider
+   ========================================================================== */
+
+.kui-slider {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+  height: var(--ctl-h, var(--kui-control-h-md));
+}
+
+.kui-slider__rail {
+  position: relative;
+  flex: 1 1 auto;
+  height: 6px;
+  margin: 0 7px;
+  border-radius: var(--kui-radius-pill);
+  background: var(--kui-control-bg-active);
+  box-shadow: var(--kui-inner-glow);
+  cursor: pointer;
+}
+
+.kui-slider__fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  border-radius: var(--kui-radius-pill);
+  background: linear-gradient(90deg, var(--kui-accent), var(--kui-accent-hover));
+  box-shadow: 0 0 10px var(--kui-accent-glow);
+  transition: width var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-slider__thumb {
+  position: absolute;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  margin-left: -8px;
+  border: 2px solid var(--kui-accent);
+  border-radius: var(--kui-radius-pill);
+  background: var(--kui-bg-2);
+  box-shadow: var(--kui-shadow-1), 0 0 0 3px var(--kui-accent-soft);
+  transform: translateY(-50%);
+  cursor: grab;
+  transition:
+    transform var(--kui-duration-fast) var(--kui-ease),
+    box-shadow var(--kui-duration-fast) var(--kui-ease),
+    border-color var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-slider__thumb:hover {
+  border-color: var(--kui-accent-hover);
+  box-shadow: var(--kui-shadow-2), 0 0 0 5px var(--kui-accent-soft);
+}
+
+.kui-slider__thumb:active,
+.kui-slider__thumb.is-dragging,
+.kui-slider.is-dragging .kui-slider__thumb {
+  cursor: grabbing;
+  transform: translateY(-50%) scale(1.12);
+  box-shadow: var(--kui-glow), 0 0 0 6px var(--kui-accent-soft);
+}
+
+/* 气泡提示：默认隐藏，hover/拖动出现 */
+.kui-slider__tip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  padding: 2px 6px;
+  border: 1px solid var(--kui-popup-border);
+  border-radius: var(--kui-radius-sm);
+  background: var(--kui-popup-bg);
+  box-shadow: var(--kui-shadow-1);
+  color: var(--kui-text-1);
+  font-size: var(--kui-fs-sm);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-slider__thumb:hover .kui-slider__tip,
+.kui-slider.is-dragging .kui-slider__tip {
+  opacity: 1;
+}
+
+.kui-slider__value {
+  flex: none;
+  min-width: 34px;
+  color: var(--kui-text-2);
+  font-size: var(--kui-fs-sm);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.kui-slider.is-disabled .kui-slider__rail {
+  background: var(--kui-control-bg-disabled);
+  cursor: not-allowed;
+}
+
+.kui-slider.is-disabled .kui-slider__fill {
+  background: var(--kui-control-text-disabled);
+  box-shadow: none;
+}
+
+.kui-slider.is-disabled .kui-slider__thumb {
+  border-color: var(--kui-border-strong);
+  background: var(--kui-control-bg-disabled);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.kui-slider.is-readonly .kui-slider__rail {
+  cursor: default;
+}
+
+.kui-slider.is-readonly .kui-slider__thumb {
+  cursor: default;
+  box-shadow: none;
+}
+
+/* ==========================================================================
+   13. 进度条 progress
+   ========================================================================== */
+
+.kui-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+}
+
+.kui-progress__track {
+  position: relative;
+  flex: 1 1 auto;
+  height: 8px;
+  overflow: hidden;
+  border-radius: var(--kui-radius-pill);
+  background: var(--kui-control-bg-active);
+  box-shadow: var(--kui-inner-glow);
+}
+
+.kui-progress__fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--kui-accent), var(--kui-accent-hover));
+  box-shadow: 0 0 10px var(--kui-accent-glow);
+  transition: width var(--kui-duration-base) var(--kui-ease);
+}
+
+.kui-progress__text {
+  flex: none;
+  min-width: 38px;
+  color: var(--kui-text-2);
+  font-size: var(--kui-fs-sm);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* 状态色 */
+.kui-progress--success .kui-progress__fill {
+  background: linear-gradient(90deg, var(--kui-success), var(--kui-success));
+  box-shadow: 0 0 10px var(--kui-success);
+}
+
+.kui-progress--warning .kui-progress__fill {
+  background: linear-gradient(90deg, var(--kui-warning), var(--kui-warning));
+  box-shadow: 0 0 10px var(--kui-warning);
+}
+
+.kui-progress--danger .kui-progress__fill,
+.kui-progress--error .kui-progress__fill {
+  background: linear-gradient(90deg, var(--kui-danger), var(--kui-danger));
+  box-shadow: 0 0 10px var(--kui-danger);
+}
+
+/* 条纹 */
+.kui-progress.is-striped .kui-progress__fill {
+  background-image:
+    linear-gradient(45deg, var(--kui-accent-2-soft) 25%, transparent 25%, transparent 50%, var(--kui-accent-2-soft) 50%, var(--kui-accent-2-soft) 75%, transparent 75%, transparent),
+    linear-gradient(90deg, var(--kui-accent), var(--kui-accent-hover));
+  background-size: 14px 14px, 100% 100%;
+}
+
+.kui-progress--success.is-striped .kui-progress__fill {
+  background-image:
+    linear-gradient(45deg, var(--kui-highlight) 25%, transparent 25%, transparent 50%, var(--kui-highlight) 50%, var(--kui-highlight) 75%, transparent 75%, transparent),
+    linear-gradient(90deg, var(--kui-success), var(--kui-success));
+  background-size: 14px 14px, 100% 100%;
+}
+
+.kui-progress.is-animated .kui-progress__fill {
+  animation: kui-ctl-stripes 900ms linear infinite;
+}
+
+/* 内嵌文字 */
+.kui-progress.is-text-inside {
+  gap: 0;
+}
+
+.kui-progress.is-text-inside .kui-progress__text {
+  position: absolute;
+  transform: none;
+}
+
+.kui-progress.is-text-inside {
+  position: relative;
+}
+
+.kui-progress.is-text-inside .kui-progress__text {
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--kui-text-1);
+  text-shadow: 0 1px 2px var(--kui-bg-0);
+}
+
+.kui-progress--sm .kui-progress__track {
+  height: 5px;
+}
+
+.kui-progress--lg .kui-progress__track {
+  height: 12px;
+}
+
+/* ==========================================================================
+   14. 评分 rating
+   ========================================================================== */
+
+.kui-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  color: var(--kui-text-3);
+}
+
+.kui-rating__star {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--kui-radius-sm);
+  background: transparent;
+  color: var(--kui-text-3);
+  cursor: pointer;
+  transition:
+    transform var(--kui-duration-fast) var(--kui-ease-bounce),
+    color var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-rating__star .kui-icon {
+  width: 20px;
+  height: 20px;
+  fill: transparent;
+  stroke: currentColor;
+  transition:
+    fill var(--kui-duration-fast) var(--kui-ease),
+    stroke var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-rating__star:hover {
+  transform: translateY(-1px) scale(1.08);
+  color: var(--kui-accent-2);
+}
+
+.kui-rating__star.is-active {
+  color: var(--kui-accent-2);
+}
+
+.kui-rating__star.is-active .kui-icon {
+  fill: var(--kui-accent-2);
+  stroke: var(--kui-accent-2);
+  filter: drop-shadow(0 0 5px var(--kui-accent-2-soft));
+}
+
+.kui-rating__star.is-half .kui-icon {
+  fill: var(--kui-accent-2);
+  stroke: var(--kui-accent-2);
+  opacity: 0.5;
+}
+
+.kui-rating__text {
+  margin-left: 8px;
+  color: var(--kui-accent-2);
+  font-size: var(--kui-fs-sm);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.kui-rating.is-disabled {
+  opacity: 0.65;
+}
+
+.kui-rating.is-disabled .kui-rating__star {
+  cursor: not-allowed;
+  transform: none;
+}
+
+.kui-rating.is-readonly .kui-rating__star {
+  cursor: default;
+}
+
+.kui-rating--sm .kui-rating__star {
+  width: 20px;
+  height: 20px;
+}
+
+.kui-rating--sm .kui-rating__star .kui-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.kui-rating--lg .kui-rating__star {
+  width: 32px;
+  height: 32px;
+}
+
+.kui-rating--lg .kui-rating__star .kui-icon {
+  width: 26px;
+  height: 26px;
+}
+
+/* ==========================================================================
+   15. 标签 / 徽标 / 分割线 / 链接 / 图标 / 文本 / 提示条
+   ========================================================================== */
+
+/* tag */
+.kui-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  height: calc(var(--ctl-h, var(--kui-control-h-md)) - 2px);
+  padding: 0 8px;
+  border: 1px solid var(--kui-border);
+  border-radius: var(--kui-radius-sm);
+  background: var(--kui-bg-3);
+  color: var(--kui-text-2);
+  font-size: var(--kui-fs-sm);
+  line-height: 1;
+  white-space: nowrap;
+  vertical-align: middle;
+  transition:
+    background-color var(--kui-duration-fast) var(--kui-ease),
+    border-color var(--kui-duration-fast) var(--kui-ease),
+    color var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-tag__text {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.kui-tag__icon {
+  flex: none;
+  width: 12px;
+  height: 12px;
+}
+
+.kui-tag.is-round {
+  border-radius: var(--kui-radius-pill);
+  padding: 0 10px;
+}
+
+.kui-tag.is-closable {
+  padding-right: 4px;
+}
+
+.kui-tag__close {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--kui-radius-pill);
+  background: transparent;
+  color: inherit;
+  opacity: 0.65;
+  cursor: pointer;
+  transition:
+    background-color var(--kui-duration-fast) var(--kui-ease),
+    color var(--kui-duration-fast) var(--kui-ease),
+    opacity var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-tag__close-icon {
+  width: 10px;
+  height: 10px;
+  stroke-width: 2.4;
+}
+
+.kui-tag__close:hover {
+  background: var(--kui-accent-soft);
+  color: var(--kui-accent-hover);
+  opacity: 1;
+}
+
+.kui-tag.is-closed {
+  display: none;
+}
+
+/* tag 类型色 */
+.kui-tag--default {
+  background: var(--kui-bg-3);
+  border-color: var(--kui-border);
+  color: var(--kui-text-2);
+}
+
+.kui-tag--primary {
+  border-color: var(--kui-accent);
+  background: var(--kui-accent-soft);
+  color: var(--kui-accent-hover);
+}
+
+.kui-tag--secondary {
+  border-color: var(--kui-accent-2);
+  background: var(--kui-accent-2-soft);
+  color: var(--kui-accent-2);
+}
+
+.kui-tag--success {
+  border-color: var(--kui-success);
+  background: transparent;
+  color: var(--kui-success);
+}
+
+.kui-tag--warning {
+  border-color: var(--kui-warning);
+  background: transparent;
+  color: var(--kui-warning);
+}
+
+.kui-tag--danger,
+.kui-tag--error {
+  border-color: var(--kui-danger);
+  background: transparent;
+  color: var(--kui-danger);
+}
+
+.kui-tag--info {
+  border-color: var(--kui-info);
+  background: transparent;
+  color: var(--kui-info);
+}
+
+/* 朴素写法：只描边不填充 */
+.kui-tag.is-plain {
+  background: transparent;
+}
+
+/* 自定义颜色（由脚本写 style.color；这里保证边框跟随当前色） */
+.kui-tag.is-custom-color {
+  border-color: currentColor;
+  background: transparent;
+}
+
+/* badge */
+.kui-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border: 1px solid var(--kui-popup-bg);
+  border-radius: var(--kui-radius-pill);
+  background: var(--kui-danger);
+  box-shadow: var(--kui-shadow-1);
+  /* 徽标是实心填充：前景必须用 on-* 语义 token，避免浅主色主题下文字与底色同色 */
+  color: var(--kui-on-danger, var(--kui-text-inverse));
+  font-size: var(--kui-fs-xs);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.kui-badge__text {
+  display: inline-block;
+  line-height: 1;
+}
+
+.kui-badge.is-dot {
+  min-width: 8px;
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border-width: 0;
+}
+
+.kui-badge.is-empty {
+  display: none;
+}
+
+.kui-badge--danger,
+.kui-badge--error {
+  background: var(--kui-danger);
+  color: var(--kui-on-danger, var(--kui-text-inverse));
+}
+
+.kui-badge--success {
+  background: var(--kui-success);
+  color: var(--kui-on-success, var(--kui-text-inverse));
+}
+
+.kui-badge--warning {
+  background: var(--kui-warning);
+  color: var(--kui-on-warning, var(--kui-text-inverse));
+}
+
+.kui-badge--info {
+  background: var(--kui-info);
+  color: var(--kui-on-info, var(--kui-text-inverse));
+}
+
+.kui-badge--primary,
+.kui-badge--accent {
+  background: var(--kui-accent);
+  color: var(--kui-on-accent, var(--kui-text-inverse));
+}
+
+.kui-badge--secondary {
+  background: var(--kui-accent-2);
+  /* 金色底无独立 on-accent-2 token，沿用同材质的 on-warning 深色前景 */
+  color: var(--kui-on-warning, var(--kui-text-inverse));
+}
+
+.kui-badge--default {
+  background: var(--kui-bg-4);
+  color: var(--kui-text-2);
+  border-color: var(--kui-border);
+}
+
+/* divider */
+.kui-divider {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin: 12px 0;
+  border: 0;
+  border-top: 1px solid var(--kui-divider);
+  color: var(--kui-text-3);
+  font-size: var(--kui-fs-sm);
+  white-space: nowrap;
+}
+
+.kui-divider.is-horizontal {
+  flex-direction: row;
+}
+
+.kui-divider.is-vertical {
+  display: inline-block;
+  width: 1px;
+  height: 1em;
+  margin: 0 10px;
+  border-top: 0;
+  border-left: 1px solid var(--kui-divider);
+  vertical-align: middle;
+}
+
+.kui-divider.is-dashed {
+  border-top-style: dashed;
+}
+
+.kui-divider.is-vertical.is-dashed {
+  border-top-style: none;
+  border-left-style: dashed;
+}
+
+.kui-divider__line {
+  flex: 1 1 auto;
+  border-top: 1px solid var(--kui-divider);
+}
+
+.kui-divider.is-dashed .kui-divider__line {
+  border-top-style: dashed;
+}
+
+.kui-divider__text {
+  flex: none;
+  padding: 0 12px;
+  color: var(--kui-text-2);
+}
+
+.kui-divider--text-left .kui-divider__text {
+  padding-left: 0;
+}
+
+.kui-divider--text-right .kui-divider__text {
+  padding-right: 0;
+}
+
+.kui-divider--line {
+  border-top: 1px solid var(--kui-divider);
+}
+
+.kui-divider.is-plain .kui-divider__text {
+  color: var(--kui-text-3);
+}
+
+.kui-divider.is-plain-line {
+  border-color: var(--kui-border);
+}
+
+/* link */
+.kui-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  border-radius: var(--kui-radius-xs);
+  color: var(--kui-accent);
+  font-size: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    color var(--kui-duration-fast) var(--kui-ease),
+    opacity var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-link:hover {
+  color: var(--kui-accent-hover);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.kui-link.is-underline {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.kui-link__text {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.kui-link__icon {
+  flex: none;
+  width: 14px;
+  height: 14px;
+}
+
+.kui-link--default {
+  color: var(--kui-text-1);
+}
+
+.kui-link--primary {
+  color: var(--kui-accent);
+}
+
+.kui-link--secondary {
+  color: var(--kui-accent-2);
+}
+
+.kui-link--success {
+  color: var(--kui-success);
+}
+
+.kui-link--warning {
+  color: var(--kui-warning);
+}
+
+.kui-link--danger {
+  color: var(--kui-danger);
+}
+
+.kui-link--info {
+  color: var(--kui-info);
+}
+
+.kui-link.is-disabled {
+  color: var(--kui-control-text-disabled);
+  cursor: not-allowed;
+  text-decoration: none;
+  opacity: 0.8;
+}
+
+/* 图标图标盒 */
+.kui-iconbox {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  color: currentColor;
+  line-height: 1;
+}
+
+.kui-iconbox__svg {
+  width: var(--kui-icon-size);
+  height: var(--kui-icon-size);
+}
+
+.kui-iconbox--sm {
+  --kui-icon-size: 14px;
+}
+
+.kui-iconbox--md {
+  --kui-icon-size: var(--kui-icon-size);
+}
+
+.kui-iconbox--lg {
+  --kui-icon-size: 20px;
+}
+
+.kui-iconbox.is-spin .kui-iconbox__svg {
+  animation: kui-spin 1s linear infinite;
+}
+
+/* text */
+.kui-text {
+  display: inline-block;
+  max-width: 100%;
+  color: var(--kui-text-1);
+  font-family: var(--kui-font-family);
+  font-size: var(--kui-fs-base);
+  line-height: var(--kui-lh);
+  vertical-align: baseline;
+}
+
+.kui-text__inner {
+  display: inline;
+}
+
+.kui-text__code {
+  display: inline;
+  padding: 1px 5px;
+  border: 1px solid var(--kui-border);
+  border-radius: var(--kui-radius-xs);
+  background: var(--kui-bg-3);
+  color: var(--kui-accent-2);
+  font-family: var(--kui-font-mono);
+  font-size: 0.92em;
+}
+
+.kui-text--primary { color: var(--kui-text-1); }
+.kui-text--secondary { color: var(--kui-text-2); }
+.kui-text--muted { color: var(--kui-text-3); }
+.kui-text--success { color: var(--kui-success); }
+.kui-text--warning { color: var(--kui-warning); }
+.kui-text--danger { color: var(--kui-danger); }
+.kui-text--info { color: var(--kui-info); }
+.kui-text--accent { color: var(--kui-accent); }
+.kui-text--accent-2 { color: var(--kui-accent-2); }
+
+.kui-text--xs { font-size: var(--kui-fs-xs); }
+.kui-text--sm { font-size: var(--kui-fs-sm); }
+.kui-text--lg { font-size: var(--kui-fs-lg); }
+.kui-text--xl { font-size: var(--kui-fs-xl); }
+.kui-text--2xl { font-size: var(--kui-fs-2xl); }
+
+.kui-text.is-weight-300 { font-weight: 300; }
+.kui-text.is-weight-400 { font-weight: 400; }
+.kui-text.is-weight-500 { font-weight: 500; }
+.kui-text.is-weight-600 { font-weight: 600; }
+.kui-text.is-weight-700 { font-weight: 700; }
+
+.kui-text.is-truncate {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.kui-text.is-multiline {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--kui-line-clamp, 2);
+}
+
+/* alert */
+.kui-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--kui-border);
+  border-left-width: 3px;
+  border-radius: var(--kui-radius-sm);
+  background: var(--kui-bg-3);
+  box-shadow: var(--kui-highlight);
+  color: var(--kui-text-2);
+  font-size: var(--kui-fs-base);
+  line-height: var(--kui-lh);
+}
+
+.kui-alert__icon {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+.kui-alert__icon-svg {
+  width: 16px;
+  height: 16px;
+}
+
+.kui-alert__content {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.kui-alert__title {
+  color: var(--kui-text-1);
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.kui-alert__desc {
+  color: var(--kui-text-2);
+  font-size: var(--kui-fs-sm);
+  line-height: 1.5;
+}
+
+.kui-alert__title + .kui-alert__desc {
+  margin-top: 2px;
+}
+
+.kui-alert__close {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--kui-radius-sm);
+  background: transparent;
+  color: var(--kui-text-3);
+  cursor: pointer;
+  transition:
+    background-color var(--kui-duration-fast) var(--kui-ease),
+    color var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-alert__close-icon {
+  width: 12px;
+  height: 12px;
+}
+
+.kui-alert__close:hover {
+  background: var(--kui-accent-soft);
+  color: var(--kui-accent-hover);
+}
+
+.kui-alert--info {
+  border-color: var(--kui-info);
+  border-left-color: var(--kui-info);
+  color: var(--kui-text-2);
+}
+
+.kui-alert--info .kui-alert__icon-svg { color: var(--kui-info); }
+
+.kui-alert--success {
+  border-color: var(--kui-success);
+  border-left-color: var(--kui-success);
+}
+
+.kui-alert--success .kui-alert__icon-svg { color: var(--kui-success); }
+
+.kui-alert--warning {
+  border-color: var(--kui-warning);
+  border-left-color: var(--kui-warning);
+}
+
+.kui-alert--warning .kui-alert__icon-svg { color: var(--kui-warning); }
+
+.kui-alert--danger,
+.kui-alert--error {
+  border-color: var(--kui-danger);
+  border-left-color: var(--kui-danger);
+}
+
+.kui-alert--danger .kui-alert__icon-svg,
+.kui-alert--error .kui-alert__icon-svg { color: var(--kui-danger); }
+
+.kui-alert.is-banner {
+  border-radius: 0;
+  border-left-width: 1px;
+  border-right: 0;
+  border-top: 0;
+  padding: 10px 16px;
+}
+
+.kui-alert.is-closed {
+  display: none;
+}
+
+/* ==========================================================================
+   16. 表格 table
+   ========================================================================== */
+
+.kui-table {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  color: var(--kui-text-1);
+  font-size: var(--kui-fs-base);
+}
+
+.kui-table__wrap {
+  width: 100%;
+  max-height: 100%;
+  overflow: auto;
+  border: 1px solid var(--kui-border);
+  border-radius: var(--kui-control-radius);
+  background: var(--kui-control-bg);
+}
+
+.kui-table__table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+}
+
+.kui-table__head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.kui-table__head-row {
+  background: var(--kui-bg-3);
+}
+
+.kui-table__th {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--kui-border);
+  background: var(--kui-bg-3);
+  color: var(--kui-text-2);
+  font-size: var(--kui-fs-sm);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kui-table__th.is-left { text-align: left; }
+.kui-table__th.is-center { text-align: center; }
+.kui-table__th.is-right { text-align: right; }
+
+.kui-table__td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--kui-divider);
+  color: var(--kui-text-1);
+  text-align: left;
+  vertical-align: middle;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kui-table__td.is-left { text-align: left; }
+.kui-table__td.is-center { text-align: center; }
+.kui-table__td.is-right { text-align: right; }
+
+.kui-table__row {
+  transition: background-color var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-table.is-hoverable .kui-table__row:hover {
+  background: var(--kui-option-hover-bg);
+}
+
+.kui-table.is-striped .kui-table__row:nth-child(even) {
+  background: var(--kui-bg-2);
+}
+
+.kui-table.is-striped .kui-table__row:nth-child(even):hover {
+  background: var(--kui-option-hover-bg);
+}
+
+.kui-table__row:focus-visible {
+  outline: 1px solid var(--kui-control-border-focus);
+  outline-offset: -1px;
+}
+
+.kui-table__row:last-child .kui-table__td {
+  border-bottom: 0;
+}
+
+.kui-table.is-bordered .kui-table__table {
+  border: 1px solid var(--kui-border);
+}
+
+.kui-table.is-bordered .kui-table__th,
+.kui-table.is-bordered .kui-table__td {
+  border-right: 1px solid var(--kui-divider);
+}
+
+.kui-table.is-bordered .kui-table__th:last-child,
+.kui-table.is-bordered .kui-table__td:last-child {
+  border-right: 0;
+}
+
+/* 空态 */
+.kui-table__empty-row > .kui-table__empty {
+  padding: 26px 12px;
+  color: var(--kui-text-3);
+  font-size: var(--kui-fs-sm);
+  text-align: center;
+}
+
+/* 加载遮罩 */
+.kui-table__loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--kui-mask);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+  color: var(--kui-text-2);
+  font-size: var(--kui-fs-sm);
+  z-index: 2;
+}
+
+.kui-table__spinner {
+  width: 18px;
+  height: 18px;
+  color: var(--kui-accent);
+  animation: kui-spin 1s linear infinite;
+}
+
+/* 尺寸 */
+.kui-table--sm .kui-table__th,
+.kui-table--sm .kui-table__td {
+  padding: 6px 9px;
+  font-size: var(--kui-fs-sm);
+}
+
+.kui-table--lg .kui-table__th,
+.kui-table--lg .kui-table__td {
+  padding: 12px 16px;
+  font-size: var(--kui-fs-md);
+}
+
+/* ==========================================================================
+   17. 分页 pagination
+   ========================================================================== */
+
+.kui-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  width: auto;
+  color: var(--kui-text-2);
+  font-size: var(--kui-fs-base);
+  user-select: none;
+}
+
+.kui-pagination__total {
+  margin-right: 4px;
+  color: var(--kui-text-3);
+  font-size: var(--kui-fs-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.kui-pagination__btn,
+.kui-pagination__item {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 6px;
+  border: 1px solid transparent;
+  border-radius: var(--kui-radius-sm);
+  background: transparent;
+  color: var(--kui-text-2);
+  font-family: inherit;
+  font-size: var(--kui-fs-base);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background-color var(--kui-duration-fast) var(--kui-ease),
+    border-color var(--kui-duration-fast) var(--kui-ease),
+    color var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-pagination__btn:hover:not(:disabled):not(.is-disabled),
+.kui-pagination__item:hover:not(:disabled):not(.is-disabled) {
+  border-color: var(--kui-control-border);
+  background: var(--kui-control-bg-hover);
+  color: var(--kui-text-1);
+}
+
+.kui-pagination__item.is-active {
+  border-color: var(--kui-accent);
+  background: var(--kui-accent);
+  box-shadow: var(--kui-glow);
+  color: var(--kui-on-accent, var(--kui-text-inverse));
+  font-weight: 600;
+}
+
+.kui-pagination__btn:disabled,
+.kui-pagination__btn.is-disabled {
+  color: var(--kui-control-text-disabled);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.kui-pagination__arrow {
+  width: var(--kui-control-arrow-size);
+  height: var(--kui-control-arrow-size);
+}
+
+.kui-pagination__pages {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.kui-pagination__ellipsis {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 28px;
+  color: var(--kui-text-3);
+}
+
+.kui-pagination__more-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.kui-pagination__simple-text {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--kui-border);
+  border-radius: var(--kui-radius-sm);
+  background: var(--kui-control-bg);
+  color: var(--kui-text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.kui-pagination__sizer {
+  height: 28px;
+  padding: 0 6px;
+  border: 1px solid var(--kui-control-border);
+  border-radius: var(--kui-radius-sm);
+  background: var(--kui-control-bg);
+  color: var(--kui-text-2);
+  font-family: inherit;
+  font-size: var(--kui-fs-sm);
+  outline: none;
+  cursor: pointer;
+}
+
+.kui-pagination__sizer:hover {
+  border-color: var(--kui-control-border-hover);
+}
+
+.kui-pagination__sizer:focus-visible {
+  border-color: var(--kui-control-border-focus);
+  box-shadow: var(--kui-focus-ring);
+}
+
+.kui-pagination__jumper {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--kui-text-3);
+  font-size: var(--kui-fs-sm);
+}
+
+.kui-pagination__input {
+  width: 44px;
+  height: 28px;
+  padding: 0 6px;
+  border: 1px solid var(--kui-control-border);
+  border-radius: var(--kui-radius-sm);
+  background: var(--kui-control-bg);
+  color: var(--kui-text-1);
+  font-family: inherit;
+  font-size: var(--kui-fs-sm);
+  text-align: center;
+  outline: none;
+  transition: border-color var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-pagination__input:focus {
+  border-color: var(--kui-control-border-focus);
+  box-shadow: var(--kui-focus-ring);
+}
+
+.kui-pagination__jumper-text {
+  white-space: nowrap;
+}
+
+.kui-pagination.is-disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.kui-pagination--sm .kui-pagination__btn,
+.kui-pagination--sm .kui-pagination__item,
+.kui-pagination--lg .kui-pagination__btn,
+.kui-pagination--lg .kui-pagination__item {
+  min-width: 26px;
+  height: 26px;
+}
+
+.kui-pagination--lg .kui-pagination__btn,
+.kui-pagination--lg .kui-pagination__item {
+  min-width: 32px;
+  height: 32px;
+  font-size: var(--kui-fs-md);
+}
+
+/* ==========================================================================
+   18. 上传 upload（拖拽区 + 文件列表 + 进度）
+   ========================================================================== */
+
+.kui-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+
+.kui-upload__area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 96px;
+  padding: 16px 12px;
+  border: 1px dashed var(--kui-control-border);
+  border-radius: var(--kui-control-radius);
+  background: var(--kui-control-bg);
+  box-shadow: var(--kui-inner-glow);
+  color: var(--kui-text-2);
+  text-align: center;
+  cursor: pointer;
+  transition:
+    background-color var(--kui-duration-base) var(--kui-ease),
+    border-color var(--kui-duration-base) var(--kui-ease),
+    box-shadow var(--kui-duration-base) var(--kui-ease);
+}
+
+.kui-upload__area:hover,
+.kui-upload.is-dragover .kui-upload__area {
+  border-color: var(--kui-accent);
+  background: var(--kui-accent-soft);
+  box-shadow: var(--kui-glow);
+  color: var(--kui-text-1);
+}
+
+.kui-upload.is-dragover .kui-upload__area {
+  border-style: solid;
+}
+
+.kui-upload.is-disabled .kui-upload__area {
+  background: var(--kui-control-bg-disabled);
+  color: var(--kui-control-text-disabled);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.kui-upload__trigger-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--kui-control-border);
+  border-radius: var(--kui-radius-pill);
+  background: var(--kui-bg-3);
+  color: var(--kui-accent);
+}
+
+.kui-upload__upload-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.kui-upload__trigger-text {
+  color: var(--kui-text-2);
+  font-size: var(--kui-fs-base);
+}
+
+.kui-upload.is-click-only .kui-upload__area {
+  flex-direction: row;
+  justify-content: flex-start;
+  min-height: var(--ctl-h, var(--kui-control-h-md));
+  padding: 0 10px;
+  gap: 8px;
+  text-align: left;
+}
+
+.kui-upload.is-click-only .kui-upload__trigger-icon {
+  width: 20px;
+  height: 20px;
+  border: 0;
+  background: transparent;
+}
+
+.kui-upload__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.kui-upload__tip {
+  color: var(--kui-text-3);
+  font-size: var(--kui-fs-sm);
+  line-height: 1.5;
+}
+
+.kui-upload__list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kui-upload.is-empty .kui-upload__list {
+  display: none;
+}
+
+.kui-upload__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border: 1px solid var(--kui-border);
+  border-radius: var(--kui-radius-sm);
+  background: var(--kui-bg-2);
+  color: var(--kui-text-2);
+  font-size: var(--kui-fs-sm);
+  transition:
+    background-color var(--kui-duration-fast) var(--kui-ease),
+    border-color var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-upload__item:hover {
+  border-color: var(--kui-control-border);
+  background: var(--kui-control-bg-hover);
+}
+
+.kui-upload__file-icon {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--kui-radius-sm);
+  background: var(--kui-bg-4);
+  color: var(--kui-text-2);
+}
+
+.kui-upload__file-svg {
+  width: 14px;
+  height: 14px;
+}
+
+.kui-upload__info {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.kui-upload__name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--kui-text-1);
+  font-size: var(--kui-fs-sm);
+}
+
+.kui-upload__meta {
+  color: var(--kui-text-3);
+  font-size: var(--kui-fs-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.kui-upload__progress {
+  flex: none;
+  width: 90px;
+  height: 4px;
+  overflow: hidden;
+  border-radius: var(--kui-radius-pill);
+  background: var(--kui-control-bg-active);
+}
+
+.kui-upload__bar {
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--kui-accent), var(--kui-accent-2));
+  box-shadow: 0 0 8px var(--kui-accent-glow);
+  transition: width var(--kui-duration-base) var(--kui-ease);
+}
+
+.kui-upload__item.is-uploading .kui-upload__name {
+  color: var(--kui-accent-2);
+}
+
+.kui-upload__item.is-success {
+  border-color: var(--kui-success);
+}
+
+.kui-upload__item.is-success .kui-upload__meta {
+  color: var(--kui-success);
+}
+
+.kui-upload__item.is-error {
+  border-color: var(--kui-danger);
+}
+
+.kui-upload__item.is-error .kui-upload__meta {
+  color: var(--kui-danger);
+}
+
+.kui-upload__remove {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--kui-radius-sm);
+  background: transparent;
+  color: var(--kui-text-3);
+  cursor: pointer;
+  transition:
+    background-color var(--kui-duration-fast) var(--kui-ease),
+    color var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-upload__remove-icon {
+  width: 11px;
+  height: 11px;
+}
+
+.kui-upload__remove:hover {
+  background: var(--kui-accent-soft);
+  color: var(--kui-danger);
+}
+
+/* ==========================================================================
+   19. 字段包装 field（表单与独立渲染共用）
+   ========================================================================== */
+
+.kui-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+}
+
+.kui-field__label {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+  width: var(--kui-field-label-width, auto);
+  min-width: var(--kui-field-label-width, 0);
+  min-height: var(--kui-control-h-md);
+  padding-top: 4px;
+  color: var(--kui-text-2);
+  font-size: var(--kui-fs-base);
+  line-height: 1.4;
+  text-align: right;
+}
+
+.kui-field__label-text {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.kui-field__required {
+  flex: none;
+  margin-left: 2px;
+  color: var(--kui-danger);
+  font-style: normal;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.kui-field__main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.kui-field__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.kui-field__row > .kui-control__box,
+.kui-field__row > .kui-field {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.kui-field__suffix {
+  flex: none;
+  color: var(--kui-text-3);
+  font-size: var(--kui-fs-sm);
+  white-space: nowrap;
+}
+
+.kui-field__foot {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 0;
+  padding-top: 2px;
+  font-size: var(--kui-fs-sm);
+  line-height: 1.4;
+}
+
+.kui-field__error {
+  display: none;
+  color: var(--kui-danger);
+}
+
+.kui-field__help {
+  color: var(--kui-text-3);
+}
+
+/* 有 help 时保留行高，避免表单跳动 */
+.kui-field__foot:empty {
+  padding-top: 0;
+}
+
+.is-error > .kui-field__label,
+.kui-field.is-error .kui-field__label {
+  color: var(--kui-danger);
+}
+
+.kui-field.is-error .kui-field__error,
+.kui-form__item.is-error .kui-field__error {
+  display: block;
+}
+
+.kui-field.is-error .kui-field__help,
+.kui-form__item.is-error .kui-field__help {
+  display: none;
+}
+
+.kui-field.is-hidden,
+.kui-form__item.is-hidden {
+  display: none !important;
+}
+
+/* 标签位置 */
+.kui-field--top {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+}
+
+.kui-field--top .kui-field__label {
+  justify-content: flex-start;
+  width: auto;
+  min-width: 0;
+  min-height: 0;
+  padding-top: 0;
+  text-align: left;
+}
+
+.kui-field--right {
+  flex-direction: row-reverse;
+}
+
+.kui-field--right .kui-field__label {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.kui-field--no-label .kui-field__label {
+  display: none;
+}
+
+/* 单位后缀 */
+.kui-field__row .kui-input__unit + .kui-field__suffix,
+.kui-field__row .kui-field__suffix:only-child {
+  display: none;
+}
+
+/* ==========================================================================
+   20. 表单 form
+   ========================================================================== */
+
+.kui-form-host {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.kui-form {
+  display: grid;
+  grid-template-columns: repeat(var(--kui-form-columns, 1), minmax(0, 1fr));
+  gap: var(--kui-form-gap, 16px 20px);
+  width: 100%;
+  min-width: 0;
+  color: var(--kui-text-1);
+  font-family: var(--kui-font-family);
+  font-size: var(--kui-fs-base);
+}
+
+.kui-form--bordered {
+  padding: 16px;
+  border: 1px solid var(--kui-border);
+  border-radius: var(--kui-radius-lg);
+  background: var(--kui-control-bg);
+  box-shadow: var(--kui-inner-glow);
+}
+
+.kui-form__item {
+  grid-column: span 1;
+  min-width: 0;
+}
+
+.kui-form__item > .kui-control,
+.kui-form__item > .kui-control__box {
+  width: 100%;
+}
+
+/* 纯内容行（divider / alert / text / tag / icon / link 等）不需要行内拉伸 */
+.kui-form__item--divider,
+.kui-form__item--alert,
+.kui-form__item--text,
+.kui-form__item--link,
+.kui-form__item--tag,
+.kui-form__item--badge,
+.kui-form__item--icon {
+  align-self: center;
+}
+
+/* divider 在网格里跨满整行更符合直觉 */
+.kui-form__item--divider {
+  grid-column: 1 / -1;
+}
+
+.kui-form__item--plain {
+  grid-column: 1 / -1;
+}
+
+/* 表单底部按钮区 */
+.kui-form__footer {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px solid var(--kui-divider);
+  margin-top: 2px;
+}
+
+.kui-form__footer--left {
+  justify-content: flex-start;
+}
+
+.kui-form__footer--center {
+  justify-content: center;
+}
+
+.kui-form__footer--right {
+  justify-content: flex-end;
+}
+
+.kui-form__footer > .kui-form__item {
+  grid-column: auto;
+}
+
+.kui-form__submit,
+.kui-form__reset {
+  min-width: 84px;
+}
+
+/* 标签位置与表单级标签宽度 */
+.kui-form--label-top .kui-field {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+}
+
+.kui-form--label-top .kui-field__label {
+  justify-content: flex-start;
+  width: auto;
+  min-width: 0;
+  min-height: 0;
+  padding-top: 0;
+  text-align: left;
+}
+
+.kui-form--label-left .kui-field__label,
+.kui-form--label-right .kui-field__label {
+  width: var(--kui-field-label-width, auto);
+}
+
+.kui-form--label-right .kui-field {
+  flex-direction: row-reverse;
+}
+
+.kui-form--label-right .kui-field__label {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+/* 窄屏：单列 + 顶部标签，避免横向挤压 */
+@media (max-width: 640px) {
+  .kui-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .kui-form__item {
+    grid-column: 1 / -1 !important;
+  }
+
+  .kui-field {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+  }
+
+  .kui-field__label {
+    justify-content: flex-start;
+    width: auto;
+    min-width: 0;
+    min-height: 0;
+    padding-top: 0;
+    text-align: left;
+  }
+
+  .kui-picker__trigger,
+  .kui-select__trigger {
+    width: 100%;
+  }
+}
+
+/* ==========================================================================
+   21. 滚动条统一（webkit + firefox）
+   ========================================================================== */
+
+.kui-popup-layer,
+.kui-select-list,
+.kui-time__list,
+.kui-table__wrap,
+.kui-textarea__inner,
+.kui-upload__list,
+.kui-options-scroll,
+.kui-form {
+  scrollbar-width: thin;
+  scrollbar-color: var(--kui-scrollbar-thumb) var(--kui-scrollbar-track);
+}
+
+.kui-popup-layer::-webkit-scrollbar,
+.kui-select-list::-webkit-scrollbar,
+.kui-time__list::-webkit-scrollbar,
+.kui-table__wrap::-webkit-scrollbar,
+.kui-textarea__inner::-webkit-scrollbar,
+.kui-upload__list::-webkit-scrollbar,
+.kui-form::-webkit-scrollbar {
+  width: var(--kui-scrollbar-size);
+  height: var(--kui-scrollbar-size);
+}
+
+.kui-popup-layer::-webkit-scrollbar-track,
+.kui-select-list::-webkit-scrollbar-track,
+.kui-time__list::-webkit-scrollbar-track,
+.kui-table__wrap::-webkit-scrollbar-track,
+.kui-textarea__inner::-webkit-scrollbar-track,
+.kui-upload__list::-webkit-scrollbar-track,
+.kui-form::-webkit-scrollbar-track {
+  background: var(--kui-scrollbar-track);
+  border-radius: var(--kui-radius-pill);
+}
+
+.kui-popup-layer::-webkit-scrollbar-thumb,
+.kui-select-list::-webkit-scrollbar-thumb,
+.kui-time__list::-webkit-scrollbar-thumb,
+.kui-table__wrap::-webkit-scrollbar-thumb,
+.kui-textarea__inner::-webkit-scrollbar-thumb,
+.kui-upload__list::-webkit-scrollbar-thumb,
+.kui-form::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: var(--kui-radius-pill);
+  background: var(--kui-scrollbar-thumb);
+  background-clip: content-box;
+}
+
+.kui-popup-layer::-webkit-scrollbar-thumb:hover,
+.kui-select-list::-webkit-scrollbar-thumb:hover,
+.kui-time__list::-webkit-scrollbar-thumb:hover,
+.kui-table__wrap::-webkit-scrollbar-thumb:hover,
+.kui-textarea__inner::-webkit-scrollbar-thumb:hover,
+.kui-upload__list::-webkit-scrollbar-thumb:hover,
+.kui-form::-webkit-scrollbar-thumb:hover {
+  background: var(--kui-scrollbar-thumb-hover);
+  background-clip: content-box;
+}
+
+/* 滚动条不需要按钮 */
+.kui-popup-layer::-webkit-scrollbar-button,
+.kui-select-list::-webkit-scrollbar-button,
+.kui-time__list::-webkit-scrollbar-button,
+.kui-table__wrap::-webkit-scrollbar-button,
+.kui-textarea__inner::-webkit-scrollbar-button,
+.kui-upload__list::-webkit-scrollbar-button,
+.kui-form::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.kui-popup-layer::-webkit-scrollbar-corner,
+.kui-table__wrap::-webkit-scrollbar-corner,
+.kui-time__list::-webkit-scrollbar-corner,
+.kui-select-list::-webkit-scrollbar-corner {
+  background: var(--kui-scrollbar-track);
+}
+
+/* ==========================================================================
+   22. 其它工具类与无障碍
+   ========================================================================== */
+
+.kui-control[hidden],
+.is-hidden,
+[hidden].kui-control {
+  display: none !important;
+}
+
+.kui-control .is-nodrag {
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+/* 减少动效偏好 */
+@media (prefers-reduced-motion: reduce) {
+  .kui-control *,
+  .kui-control *::before,
+  .kui-control *::after,
+  .kui-popup-layer,
+  .kui-popup-layer * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    transition-delay: 0ms !important;
+  }
+
+  .kui-spinner,
+  .kui-progress.is-animated .kui-progress__fill {
+    animation-duration: 1.2s !important;
+  }
+}
+
+/* 打印：去掉装饰阴影，保持可读 */
+@media print {
+  .kui-popup-layer {
+    display: none !important;
+  }
+
+  .kui-control,
+  .kui-form {
+    box-shadow: none !important;
+  }
+}
+
+
+/* ===== v1.3.0：必填星号只在字段 required 时显示（未必填字段不再出现星号） ===== */
+.kui-field__required { display: none; }
+.kui-field.is-required:not(.is-required-optional) .kui-field__required { display: inline-block; color: var(--kui-danger); }

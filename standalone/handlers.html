@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <!-- 主题预置：首帧前写入当前主题 token，防 FOUC 闪烁（由 .tools/patch-theme-boot.js 注入） -->
+  <script src="../src/core/theme-boot.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>handlers · JSON 驱动业务函数 | KurumiUI</title>
+<!-- 独立渲染：本页没有任何业务逻辑代码，按钮动作全部写在 JSON 里 -->
+<link rel="stylesheet" href="../src/styles/base.css">
+<link rel="stylesheet" href="../src/styles/components.css">
+<link rel="stylesheet" href="../src/styles/tooltip.css">
+<style>
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--kui-bg-0, #08050a);
+    color: var(--kui-text-1, #f5e9ee);
+    font-family: var(--kui-font-family, "Microsoft YaHei", "PingFang SC", sans-serif);
+  }
+  .demo-bar {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: 10px 18px; border-bottom: 1px solid var(--kui-border, #2a1f26);
+    background: var(--kui-bg-1, #141018); flex-wrap: wrap;
+  }
+  .demo-bar__title { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+  .demo-bar__title strong { font-size: 16px; letter-spacing: .04em; }
+  .demo-tag {
+    padding: 2px 8px; border-radius: 999px; font-size: 11px;
+    color: var(--kui-accent-2, #d4af37); border: 1px solid var(--kui-accent-2, #d4af37);
+    opacity: .9;
+  }
+  .demo-bar__ops { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .demo-bar select {
+    background: var(--kui-control-bg, #1b141c); color: var(--kui-text-1, #f5e9ee);
+    border: 1px solid var(--kui-control-border, #3a2b33); border-radius: 6px;
+    height: 30px; padding: 0 8px; outline: none;
+  }
+  .demo-nav { display: flex; gap: 6px; flex-wrap: wrap; }
+  .demo-nav a {
+    color: var(--kui-text-2, #cbb8c0); text-decoration: none; font-size: 12px;
+    padding: 4px 9px; border-radius: 999px; border: 1px solid transparent;
+  }
+  .demo-nav a:hover { color: var(--kui-text-1); border-color: var(--kui-accent); }
+  .demo-nav a.is-current { color: var(--kui-text-1); border-color: var(--kui-accent); background: var(--kui-accent-soft); font-weight: 600; }
+  .demo-main { padding: 18px; display: grid; gap: 14px; }
+  .demo-hero {
+    background: var(--kui-bg-1, #141018); border: 1px solid var(--kui-border, #2a1f26);
+    border-radius: var(--kui-radius-lg, 10px); padding: 16px 18px;
+  }
+  .demo-hero h1 { margin: 0 0 6px; font-size: 18px; letter-spacing: .04em; }
+  .demo-hero p { margin: 0; font-size: 12px; line-height: 1.8; color: var(--kui-text-2, #cbb8c0); }
+  .demo-hero code, .demo-card code {
+    font-family: var(--kui-font-mono, Consolas, monospace); font-size: 11px;
+    color: var(--kui-accent-3, #8ee6d6); background: var(--kui-bg-2, #1d141d);
+    padding: 1px 5px; border-radius: 4px;
+  }
+  .demo-groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 14px; }
+  .demo-card {
+    background: var(--kui-bg-1, #141018); border: 1px solid var(--kui-border, #2a1f26);
+    border-radius: var(--kui-radius-md, 6px); padding: 14px;
+  }
+  .demo-card h3 { margin: 0 0 6px; font-size: 13px; color: var(--kui-text-1, #f5e9ee); }
+  .demo-card .demo-desc { margin: 0 0 10px; font-size: 12px; line-height: 1.7; color: var(--kui-text-2, #cbb8c0); }
+  .demo-ops { display: flex; gap: 8px; flex-wrap: wrap; }
+  .demo-inline { margin-top: 12px; display: grid; grid-template-columns: 232px minmax(0, 1fr); gap: 12px; align-items: start; }
+  .demo-inline > .kui-tabs { min-height: 240px; }
+  .demo-log {
+    margin: 0; padding: 10px 12px; min-height: 90px; max-height: 200px; overflow: auto;
+    background: var(--kui-bg-0, #08050a); border: 1px dashed var(--kui-border, #2a1f26);
+    border-radius: 6px; font-family: var(--kui-font-mono, Consolas, monospace);
+    font-size: 11px; line-height: 1.7; color: var(--kui-text-2, #cbb8c0); white-space: pre-wrap;
+  }
+  .demo-log .is-err { color: var(--kui-danger, #ff5c7a); }
+  .demo-error { color: var(--kui-danger, #ff5c7a); font-size: 12px; padding: 10px; }
+  @media (max-width: 900px) { .demo-groups { grid-template-columns: 1fr; } .demo-inline { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body data-kui-auto="false">
+<header class="demo-bar">
+  <div class="demo-bar__title">
+    <span class="demo-tag">独立渲染</span>
+    <strong>handlers</strong>
+    <span>JSON 只存函数名与入参 · 实现放在各组件 handlers.js</span>
+  </div>
+  <div class="demo-bar__ops">
+    <nav class="demo-nav" id="demoNav"></nav>
+    <label>主题
+      <select data-kui-native id="kuiThemeSwitch"><option value="kurumi">绯红刻刻帝</option></select>
+    </label>
+  </div>
+</header>
+<main class="demo-main">
+  <section class="demo-hero">
+    <h1>JSON 不能写函数，于是我们让 JSON 只写「函数名 + 入参」</h1>
+    <p>
+      本页所有按钮的动作都来自 <code>config/demos/handlers.json</code>，文件里没有任何 JS。
+      例如：<code>{ "fn": "toast.success", "args": { "text": "保存成功" } }</code>；
+      也支持动作数组 <code>{ "actions": [ … ] }</code>、动作与函数混写、以及
+      <code>{ "action": "handlers.run", "params": { "fn": "...", "args": {} } }</code>。
+      函数实现分散在 <code>src/components/handlers/*.handlers.js</code>，按组件拆开，可按需加载。
+    </p>
+  </section>
+  <section class="demo-groups" id="groupHost">
+    <div class="demo-error">正在加载 config/demos/handlers.json …</div>
+  </section>
+  <section class="demo-card">
+    <h3>执行日志</h3>
+    <p class="demo-desc">业务函数被调用时的记录（配置 JSON 仍然保持纯数据）。</p>
+    <pre class="demo-log" id="demoLog">// 操作日志</pre>
+  </section>
+</main>
+<script src="embedded.js"></script>
+<script src="../src/core/kui-all.js" data-kui-profile="standalone"></script>
+<script>
+(function () {
+  'use strict';
+  var KUI = window.KUI;
+  var logEl = document.getElementById('demoLog');
+  var host = document.getElementById('groupHost');
+  var PAGES = [
+    ['menu', 'menu'], ['menunav', 'menunav'], ['tabs', 'tabs'], ['dialog', 'dialog'],
+    ['toast', 'toast'], ['form', 'form'], ['controls', 'controls'], ['theme', 'theme'],
+    ['handlers', 'handlers'], ['no-shell', 'no-shell']
+  ];
+  var CURRENT = 'handlers';
+
+  function log(text, isError) {
+    var line = document.createElement('div');
+    if (isError) { line.className = 'is-err'; }
+    line.textContent = '[' + new Date().toLocaleTimeString() + '] ' + text;
+    logEl.appendChild(line);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function nav() {
+    var box = document.getElementById('demoNav');
+    for (var i = 0; i < PAGES.length; i++) {
+      var a = document.createElement('a');
+      a.href = PAGES[i][0] + '.html';
+      a.textContent = PAGES[i][1];
+      if (PAGES[i][0] === CURRENT) { a.className = 'is-current'; }
+      box.appendChild(a);
+    }
+  }
+
+  function fillThemeSelect() {
+    var sel = document.getElementById('kuiThemeSwitch');
+    var list = (KUI.theme && KUI.theme.list) ? KUI.theme.list() : [];
+    if (!list.length) { return; }
+    sel.innerHTML = '';
+    for (var i = 0; i < list.length; i++) {
+      var opt = document.createElement('option');
+      opt.value = list[i].id;
+      opt.textContent = list[i].name + '（' + list[i].id + '）';
+      sel.appendChild(opt);
+    }
+    sel.value = (KUI.theme.currentId && KUI.theme.currentId()) || list[0].id;
+    sel.onchange = function () { KUI.theme.apply(sel.value); log('主题 → ' + sel.value); };
+  }
+
+  function initTheme() {
+    KUI.config.load('themes').then(function (data) {
+      if (data && data.themes && KUI.theme.init) {
+        KUI.theme.init(data, { fallbackId: 'kurumi', storageKey: 'kui-demo-theme', persist: true, silent: true });
+      }
+      fillThemeSelect();
+      render();
+    })['catch'](function (err) {
+      log('主题加载失败：' + (err && err.message ? err.message : err), true);
+      fillThemeSelect();
+      render();
+    });
+  }
+
+  function countHandlers() {
+    if (!KUI.handlers) { return 'KUI.handlers 未加载'; }
+    var scopes = KUI.handlers.scopes ? KUI.handlers.scopes() : [];
+    return '已注册业务函数 ' + KUI.handlers.count() + ' 个，scope：' + scopes.join(' / ');
+  }
+
+  function renderGroup(group) {
+    var card = document.createElement('section');
+    card.className = 'demo-card';
+    var h3 = document.createElement('h3');
+    h3.textContent = group.title || group.id;
+    card.appendChild(h3);
+    if (group.desc) {
+      var desc = document.createElement('p');
+      desc.className = 'demo-desc';
+      desc.textContent = group.desc;
+      card.appendChild(desc);
+    }
+    var ops = document.createElement('div');
+    ops.className = 'demo-ops';
+    card.appendChild(ops);
+    if (group.id === 'menu') {
+      var inline = document.createElement('div');
+      inline.className = 'demo-inline';
+      card.appendChild(inline);
+      ops.__kuiInline = inline;
+    }
+    if (group.id === 'tabs') {
+      card._tabsHolder = true;
+    }
+    card.__group = group;
+    return card;
+  }
+
+  function render() {
+    host.innerHTML = '';
+    KUI.config.load('demos/handlers').then(function (data) {
+      if (!data || !data.groups || !data.groups.length) {
+        host.innerHTML = '<div class="demo-error">未找到 config/demos/handlers.json。请先运行 npm run build:config（file:// 下需要 config/bundle.js）。</div>';
+        return;
+      }
+      var groups = data.groups;
+      for (var i = 0; i < groups.length; i++) {
+        var group = groups[i];
+        var card = renderGroup(group);
+        host.appendChild(card);
+        var ops = card.querySelector('.demo-ops');
+        var inline = card.querySelector('.demo-inline');
+        var nodes = group.nodes || [];
+        for (var j = 0; j < nodes.length; j++) {
+          var node = nodes[j];
+          var el = null;
+          try {
+            el = KUI.renderNode(node, null);
+          } catch (err) {
+            log('渲染失败：' + (err && err.message ? err.message : err), true);
+          }
+          if (!el) { continue; }
+          if (!inline) { ops.appendChild(el); continue; }
+          if (node.type === 'menu') { inline.appendChild(el); }
+          else { ops.appendChild(el); }
+        }
+      }
+      log('已从 JSON 渲染 ' + groups.length + ' 组演示 · ' + countHandlers());
+      // 把内嵌 menu / tabs 实例登记给业务函数：加载后即可被 menu.* / tabs.* 操作
+      var menuEl = host.querySelector('[data-kui-id="demo-menu"], .kui-menu');
+      var tabsEl = host.querySelector('.kui-tabs');
+      if (menuEl && menuEl.__kuiInstance) { KUI.demoMenu = menuEl.__kuiInstance; }
+      if (tabsEl && tabsEl.__kuiInstance) { KUI.demoTabs = tabsEl.__kuiInstance; }
+      if (KUI.demoMenu) { log('内嵌 menu 实例已就绪（menu.* 可操作它）'); }
+      if (KUI.demoTabs) { log('内嵌 tabs 实例已就绪（tabs.* 可操作它）'); }
+    })['catch'](function (err) {
+      host.innerHTML = '<div class="demo-error">加载失败：' + (err && err.message ? err.message : err) + '</div>';
+      log('加载失败：' + (err && err.message ? err.message : err), true);
+    });
+  }
+
+  // 业务函数调用记录：包装 KUI.handlers.invoke，仅用于演示日志
+  if (KUI.handlers && typeof KUI.handlers.invoke === 'function') {
+    var origInvoke = KUI.handlers.invoke;
+    KUI.handlers.invoke = function (name, ctx, args) {
+      log('业务函数 → ' + name + ' ' + (args ? JSON.stringify(args) : ''));
+      return origInvoke.call(KUI.handlers, name, ctx, args);
+    };
+  }
+
+  nav();
+  initTheme();
+})();
+</script>
+</body>
+</html>
+

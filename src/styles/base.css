@@ -1,0 +1,1422 @@
+/* 头像组件样式（v1.2.0 起由 base.css 统一引入，页面无需再改 HTML） */
+@import url("avatar.css");
+
+/* ==========================================================================
+   KurumiUI base.css —— 视觉地基（reset / token 兜底 / 排版 / 滚动条 / 动画 /
+   工具类 / 应用布局骨架 / 装饰层 .kui-art）
+   --------------------------------------------------------------------------
+   契约：docs/00-contract.md §10 CSS Token 契约、§11 图标、§13 主题 JSON、§16 视觉方向
+   原则：
+   1. 本文件只做"地基"：所有 --kui-* 变量必须在这里给出默认值（kurumi 主题兜底），
+      主题 JSON 只覆盖 token，不允许新增主题专属 CSS 选择器（禁止 .theme-xxx ...）。
+   2. 颜色/尺寸一律走 var(--kui-*)，不写死主题值。
+   3. 装饰层（.kui-art / .kui-art__layer--*）按"层类型"写样式，具体参数
+      （位置/大小/透明度/颜色）全部由 theme-art.js 从 themes.json 注入 CSS 变量。
+   4. 零外部资源：无图片、无字体文件、无 CDN；质感全部用 CSS 渐变 / data-URI SVG。
+   加载顺序：base.css → controls.css → components.css
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. 重置与盒模型
+   -------------------------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  /* 默认暗色主题；浅色主题由 theme.js 把 documentElement.style.colorScheme 设为 light */
+  color-scheme: dark;
+}
+
+:root[data-kui-scheme="light"] {
+  color-scheme: light;
+}
+
+:root[data-kui-scheme="dark"] {
+  color-scheme: dark;
+}
+
+body,
+h1, h2, h3, h4, h5, h6,
+p, figure, blockquote, dl, dd, ul, ol, pre {
+  margin: 0;
+}
+
+ul, ol {
+  padding: 0;
+  list-style: none;
+}
+
+body {
+  min-height: 100%;
+  margin: 0;
+  background-color: var(--kui-bg-0);
+  color: var(--kui-text-1);
+  font-family: var(--kui-font-family);
+  font-size: var(--kui-fs-base);
+  line-height: var(--kui-lh);
+  letter-spacing: var(--kui-letter-spacing);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow-wrap: break-word;
+}
+
+/* 中文排版优化：中文正文不做全局断词，只在长串英文/URL 处断行；标题更紧凑 */
+[lang="zh-CN"] body,
+body[lang="zh-CN"] {
+  letter-spacing: var(--kui-letter-spacing);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--kui-font-display);
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+}
+
+p {
+  margin: 0;
+}
+
+small {
+  font-size: var(--kui-fs-sm);
+}
+
+strong, b {
+  font-weight: 600;
+}
+
+hr {
+  height: 0;
+  border: 0;
+  border-top: var(--kui-border-width) solid var(--kui-divider);
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+img, svg, video, canvas {
+  display: block;
+  max-width: 100%;
+}
+
+iframe {
+  display: block;
+  border: 0;
+  background: transparent;
+}
+
+a {
+  color: var(--kui-accent);
+  text-decoration: none;
+  transition: color var(--kui-duration-fast) var(--kui-ease);
+}
+
+a:hover {
+  color: var(--kui-accent-hover);
+}
+
+a:active {
+  color: var(--kui-accent);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+}
+
+button {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+input,
+textarea {
+  margin: 0;
+}
+
+textarea {
+  resize: vertical;
+}
+
+fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+legend {
+  padding: 0;
+}
+
+code,
+kbd,
+samp,
+pre {
+  font-family: var(--kui-font-mono);
+  font-size: 0.92em;
+}
+
+pre {
+  overflow: auto;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* --------------------------------------------------------------------------
+   2. Token 定义（§10 契约全集；kurumi 主题值作为全局兜底）
+   -------------------------------------------------------------------------- */
+
+:root {
+  /* ===== 2.1 基础色板：暗夜玻璃 / 绯红 / 金 ===== */
+  --kui-bg-0: #08050a;
+  --kui-bg-1: #0d080f;
+  --kui-bg-2: #130d17;
+  --kui-bg-3: #1a1220;
+  --kui-bg-4: #241a2c;
+
+  --kui-text-1: #f4eef3;
+  --kui-text-2: #bfaebd;
+  --kui-text-3: #85748a;
+  --kui-text-inverse: #0a060c;
+
+  --kui-accent: #c8102e;
+  --kui-accent-hover: #e22040;
+  --kui-accent-soft: rgba(200, 16, 46, 0.16);
+  --kui-accent-glow: rgba(200, 16, 46, 0.48);
+
+  --kui-accent-2: #d4af37;
+  --kui-accent-2-soft: rgba(212, 175, 55, 0.16);
+  --kui-accent-3: #a58fc7;
+
+  --kui-success: #57b98c;
+  --kui-warning: #e0a63c;
+  --kui-danger: #e33b4e;
+  --kui-info: #7098c9;
+
+  /* 语义填充色上的可读前景色（填充按钮/标签/badge/徽标用）：
+     保证与对应背景的 WCAG 对比度 ≥ 4.5:1；深色主题多为深字压在亮色块上，
+     浅色主题按背景明度在深/浅之间取反。控件应写
+     var(--kui-on-success, var(--kui-text-inverse)) 这类带兜底的引用。 */
+  --kui-on-accent: #f4eef3;
+  --kui-on-success: #0a060c;
+  --kui-on-warning: #0a060c;
+  --kui-on-danger: #0a060c;
+
+  --kui-border: rgba(244, 238, 243, 0.1);
+  --kui-border-strong: rgba(244, 238, 243, 0.22);
+  --kui-divider: rgba(244, 238, 243, 0.07);
+
+  --kui-mask: rgba(4, 2, 6, 0.74);
+  --kui-mask-strong: rgba(4, 2, 6, 0.92);
+
+  --kui-selection-bg: rgba(200, 16, 46, 0.38);
+  --kui-selection-text: #fff4f7;
+
+  /* ===== 2.2 字体（纯离线系统字体，零网络字体） ===== */
+  --kui-font-family: "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Source Han Sans SC", "WenQuanYi Micro Hei", sans-serif;
+  /* 展示字体：拉丁数字/罗马数字用衬线（刻刻帝表盘质感），中文回落到黑体保证清晰 */
+  --kui-font-display: "Georgia", "Cambria", "Times New Roman", "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", "Noto Sans SC", serif;
+  --kui-font-mono: "Cascadia Mono", "Cascadia Code", "Consolas", "SF Mono", "Menlo", "Courier New", monospace;
+
+  --kui-fs-xs: 11px;
+  --kui-fs-sm: 12px;
+  --kui-fs-base: 13px;
+  --kui-fs-md: 14px;
+  --kui-fs-lg: 16px;
+  --kui-fs-xl: 20px;
+  --kui-fs-2xl: 26px;
+  --kui-lh: 1.6;
+  --kui-letter-spacing: 0.01em;
+
+  /* ===== 2.3 形状 / 阴影 / 动效 ===== */
+  --kui-radius-xs: 2px;
+  --kui-radius-sm: 4px;
+  --kui-radius-md: 6px;
+  --kui-radius-lg: 10px;
+  --kui-radius-xl: 14px;
+  --kui-radius-pill: 999px;
+  --kui-border-width: 1px;
+
+  --kui-shadow-1: 0 2px 8px rgba(0, 0, 0, 0.38);
+  --kui-shadow-2: 0 10px 28px rgba(0, 0, 0, 0.5);
+  --kui-shadow-3: 0 22px 56px rgba(0, 0, 0, 0.62);
+
+  --kui-glow: 0 0 14px rgba(200, 16, 46, 0.42);
+  --kui-inner-glow: inset 0 0 0 1px rgba(212, 175, 55, 0.08), inset 0 0 18px rgba(200, 16, 46, 0.1);
+  /* 顶部内高光：让面板/控件像一块被光切过的玻璃 */
+  --kui-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+  --kui-duration-fast: 120ms;
+  --kui-duration-base: 200ms;
+  --kui-duration-slow: 320ms;
+  --kui-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --kui-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --kui-ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* ===== 2.4 控件 ===== */
+  --kui-control-h-sm: 26px;
+  --kui-control-h-md: 32px;
+  --kui-control-h-lg: 38px;
+
+  --kui-control-bg: rgba(19, 13, 23, 0.72);
+  --kui-control-bg-hover: rgba(26, 18, 32, 0.88);
+  --kui-control-bg-active: rgba(36, 26, 44, 0.92);
+  --kui-control-bg-disabled: rgba(13, 8, 15, 0.55);
+
+  --kui-control-border: rgba(244, 238, 243, 0.12);
+  --kui-control-border-hover: rgba(212, 175, 55, 0.38);
+  --kui-control-border-focus: rgba(200, 16, 46, 0.72);
+
+  --kui-control-text: #f4eef3;
+  --kui-control-text-placeholder: #85748a;
+  --kui-control-text-disabled: #5f5265;
+
+  --kui-control-radius: var(--kui-radius-sm);
+  --kui-control-px: 10px;
+  --kui-control-arrow-color: rgba(244, 238, 243, 0.55);
+  --kui-control-arrow-size: 12px;
+
+  --kui-scrollbar-size: 8px;
+  --kui-scrollbar-thumb: rgba(244, 238, 243, 0.16);
+  --kui-scrollbar-thumb-hover: rgba(200, 16, 46, 0.62);
+  --kui-scrollbar-track: rgba(8, 5, 10, 0.4);
+
+  --kui-popup-bg: rgba(17, 11, 21, 0.97);
+  --kui-popup-border: rgba(212, 175, 55, 0.22);
+  --kui-popup-shadow: 0 18px 48px rgba(0, 0, 0, 0.62), 0 0 0 1px rgba(200, 16, 46, 0.08);
+  --kui-popup-radius: var(--kui-radius-md);
+  --kui-popup-z: 1000;
+
+  --kui-option-hover-bg: rgba(200, 16, 46, 0.14);
+  --kui-option-selected-bg: rgba(200, 16, 46, 0.26);
+  --kui-option-selected-text: #ffeaf0;
+
+  --kui-calendar-bg: rgba(17, 11, 21, 0.97);
+  --kui-calendar-head-bg: rgba(200, 16, 46, 0.1);
+  --kui-calendar-today: #d4af37;
+
+  /* ===== 2.5 扩展 token（契约未列出，base.css 骨架与工具类专用；
+     主题 JSON 可覆盖，其他人可选使用，不属于 §10 强制清单） ===== */
+  --kui-icon-size: 16px;
+
+  /* 焦点环：内圈用背景色"挖"出一圈空隙，外圈绯红辉光 */
+  --kui-focus-ring: 0 0 0 1px var(--kui-bg-0), 0 0 0 3px var(--kui-accent-glow);
+
+  /* 布局骨架（§16：菜单 252 / 折叠 68 / header 56 / 标签栏 38 / iframe 圆角 6） */
+  --kui-menu-width: 252px;
+  --kui-menu-width-collapsed: 68px;
+  --kui-header-height: 56px;
+  --kui-tabbar-height: 38px;
+  --kui-frame-radius: 6px;
+  --kui-app-gap: 10px;
+
+  /* 层级 */
+  --kui-z-art: 0;
+  --kui-z-content: 1;
+  --kui-z-header: 100;
+  --kui-z-mask: 1900;
+  --kui-z-dialog: 2000;
+  --kui-z-toast: 3000;
+  --kui-z-fullscreen: 4000;
+
+  /* 装饰层/质感 */
+  --kui-corner-size: 10px;
+  --kui-noise-opacity: 0.035;
+  --kui-vignette-opacity: 0.55;
+  /* 暗夜玻璃面板（左侧菜单/顶栏用；浅色主题在 themes.json 里覆盖） */
+  --kui-glass-bg: rgba(16, 10, 20, 0.66);
+  --kui-glass-bg-strong: rgba(19, 13, 23, 0.86);
+  --kui-glass-border: rgba(244, 238, 243, 0.08);
+  --kui-glass-blur: 16px;
+}
+
+/* --------------------------------------------------------------------------
+   3. 排版细节
+   -------------------------------------------------------------------------- */
+
+/* 3.1 中文标点/数字混排：数字用等宽数字，避免跳动 */
+.kui-app,
+.kui-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* 3.2 三级文字层级 */
+.kui-text-1 { color: var(--kui-text-1); }
+.kui-text-2 { color: var(--kui-text-2); }
+.kui-text-3 { color: var(--kui-text-3); }
+.kui-text-accent { color: var(--kui-accent); }
+.kui-text-accent-2 { color: var(--kui-accent-2); }
+.kui-text-danger { color: var(--kui-danger); }
+.kui-text-success { color: var(--kui-success); }
+.kui-text-warning { color: var(--kui-warning); }
+
+/* 3.3 绯红 → 金色 的文字渐变（品牌标题/装饰性标题） */
+.kui-text-gradient {
+  background-image: linear-gradient(96deg, var(--kui-accent), var(--kui-accent-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+/* --------------------------------------------------------------------------
+   4. 表单元素继承 / 滚动条 / 选中色 / 焦点环
+   -------------------------------------------------------------------------- */
+
+::selection {
+  background-color: var(--kui-selection-bg);
+  color: var(--kui-selection-text);
+}
+
+::-moz-selection {
+  background-color: var(--kui-selection-bg);
+  color: var(--kui-selection-text);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--kui-control-text-placeholder);
+  opacity: 1;
+}
+
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* 4.1 全局滚动条：Chromium/Edge（::-webkit-scrollbar）+ Firefox（scrollbar-*） */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--kui-scrollbar-thumb) var(--kui-scrollbar-track);
+}
+
+::-webkit-scrollbar {
+  width: var(--kui-scrollbar-size);
+  height: var(--kui-scrollbar-size);
+}
+
+::-webkit-scrollbar-track {
+  background-color: var(--kui-scrollbar-track);
+  border-radius: var(--kui-radius-pill);
+}
+
+::-webkit-scrollbar-thumb {
+  min-height: 32px;
+  background-color: var(--kui-scrollbar-thumb);
+  background-clip: padding-box;
+  border: 2px solid transparent;
+  border-radius: var(--kui-radius-pill);
+  transition: background-color var(--kui-duration-base) var(--kui-ease);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--kui-scrollbar-thumb-hover);
+}
+
+::-webkit-scrollbar-corner {
+  background-color: transparent;
+}
+
+/* 4.2 焦点环：鼠标点击不出、键盘 Tab 出（:focus-visible） */
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--kui-control-border-focus);
+  outline-offset: 2px;
+}
+
+/* 组件里希望获得"贴边发光"式焦点环时套这个类 */
+.kui-focus-ring:focus-visible,
+.kui-focus-ring.is-focus {
+  outline: none;
+  box-shadow: var(--kui-focus-ring);
+}
+
+/* --------------------------------------------------------------------------
+   5. 图标（§11：内联 SVG symbol，stroke 当前色）
+   -------------------------------------------------------------------------- */
+
+.kui-icon {
+  display: inline-block;
+  width: var(--kui-icon-size);
+  height: var(--kui-icon-size);
+  flex: none;
+  vertical-align: -0.16em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.kui-icon--xs { --kui-icon-size: 12px; }
+.kui-icon--sm { --kui-icon-size: 14px; }
+.kui-icon--lg { --kui-icon-size: 20px; }
+.kui-icon--xl { --kui-icon-size: 26px; }
+
+.kui-icon--spin {
+  animation: kui-spin 1s linear infinite;
+}
+
+/* --------------------------------------------------------------------------
+   6. 动画 keyframes（120/200/320ms 节奏；装饰动画可更慢）
+   -------------------------------------------------------------------------- */
+
+@keyframes kui-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes kui-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes kui-fade-in-up {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes kui-fade-in-down {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -8px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes kui-fade-in-left {
+  from {
+    opacity: 0;
+    transform: translate3d(-10px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes kui-fade-in-right {
+  from {
+    opacity: 0;
+    transform: translate3d(10px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes kui-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes kui-scale-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+
+@keyframes kui-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes kui-spin-reverse {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+/* 呼吸微光：装饰层/品牌徽记 */
+@keyframes kui-glow-pulse {
+  0%, 100% {
+    opacity: 0.72;
+    filter: brightness(1);
+  }
+  50% {
+    opacity: 1;
+    filter: brightness(1.25);
+  }
+}
+
+/* 光标式闪烁（终端/时间文本） */
+@keyframes kui-blink {
+  0%, 45% { opacity: 1; }
+  50%, 95% { opacity: 0.15; }
+  100% { opacity: 1; }
+}
+
+/* 指针跳动（刻刻帝秒针） */
+@keyframes kui-tick {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 漂浮/漂移（羽毛、光点） */
+@keyframes kui-drift {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(var(--f-rot, 0deg)); }
+  35% { transform: translate3d(6px, -14px, 0) rotate(calc(var(--f-rot, 0deg) + 6deg)); }
+  70% { transform: translate3d(-8px, -6px, 0) rotate(calc(var(--f-rot, 0deg) - 5deg)); }
+}
+
+@keyframes kui-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes kui-shimmer {
+  0% { background-position: -120% 0; }
+  100% { background-position: 220% 0; }
+}
+
+/* 扫描线缓慢下移（HUD） */
+@keyframes kui-scan-drift {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(0, var(--art-size, 3px), 0); }
+}
+
+/* 星点闪烁 */
+@keyframes kui-twinkle {
+  0%, 100% { opacity: 0.18; transform: scale(0.7); }
+  50% { opacity: 0.95; transform: scale(1); }
+}
+
+/* 樱花瓣飘落：从顶部落到屏幕底部并自转 */
+@keyframes kui-sakura-fall {
+  0% {
+    transform: translate3d(0, -12vh, 0) rotate(0deg);
+    opacity: 0;
+  }
+  8% { opacity: var(--p-o, 0.7); }
+  50% {
+    transform: translate3d(var(--p-sway, 40px), 46vh, 0) rotate(220deg);
+  }
+  92% { opacity: var(--p-o, 0.7); }
+  100% {
+    transform: translate3d(var(--p-sway-2, -20px), 112vh, 0) rotate(540deg);
+    opacity: 0;
+  }
+}
+
+/* 刻刻帝表盘非常缓慢地转（齿轮感） */
+@keyframes kui-clock-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* 通用进出场工具类（组件可复用，避免各写一套） */
+.kui-anim-fade-in { animation: kui-fade-in var(--kui-duration-base) var(--kui-ease-out) both; }
+.kui-anim-fade-in-up { animation: kui-fade-in-up var(--kui-duration-slow) var(--kui-ease-out) both; }
+.kui-anim-fade-in-down { animation: kui-fade-in-down var(--kui-duration-slow) var(--kui-ease-out) both; }
+.kui-anim-scale-in { animation: kui-scale-in var(--kui-duration-base) var(--kui-ease-out) both; }
+.kui-anim-fade-out { animation: kui-fade-out var(--kui-duration-fast) var(--kui-ease) both; }
+.kui-anim-spin { animation: kui-spin 1s linear infinite; }
+.kui-anim-blink { animation: kui-blink 1.4s steps(1, end) infinite; }
+.kui-anim-float { animation: kui-float 3.6s ease-in-out infinite; }
+.kui-anim-pulse { animation: kui-glow-pulse 3.2s ease-in-out infinite; }
+
+/* 6.1 reduce-motion：系统要求减少动态时，全部动效近零；装饰层动画直接停 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .kui-art__layer--sakura .kui-sakura__petal,
+  .kui-art__layer--feather .kui-feather,
+  .kui-art__layer--stars .kui-star,
+  .kui-art__layer--scanline,
+  .kui-art__layer--clock,
+  .kui-clock__gear {
+    animation: none !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   7. 原子工具类（少量；复杂布局交给 components.css / app-shell）
+   -------------------------------------------------------------------------- */
+
+.kui-flex { display: flex; }
+.kui-flex-col { display: flex; flex-direction: column; }
+.kui-flex-1 { flex: 1 1 auto; min-width: 0; min-height: 0; }
+.kui-items-center { align-items: center; }
+.kui-items-start { align-items: flex-start; }
+.kui-items-end { align-items: flex-end; }
+.kui-justify-center { justify-content: center; }
+.kui-justify-between { justify-content: space-between; }
+.kui-justify-end { justify-content: flex-end; }
+.kui-gap-4 { gap: 4px; }
+.kui-gap-8 { gap: 8px; }
+.kui-gap-12 { gap: 12px; }
+.kui-gap-16 { gap: 16px; }
+.kui-relative { position: relative; }
+.kui-absolute-fill { position: absolute; inset: 0; }
+.kui-hide { display: none !important; }
+.kui-block { display: block; }
+.kui-nowrap { white-space: nowrap; }
+
+/* 单行截断 */
+.kui-truncate {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+/* 多行截断（默认 2 行，可通过 style="--kui-line-clamp:3" 改） */
+.kui-truncate-2,
+.kui-truncate-lines {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--kui-line-clamp, 2);
+  line-clamp: var(--kui-line-clamp, 2);
+}
+
+.kui-scroll-y {
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.kui-scroll-x {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 无障碍：只读给屏幕阅读器 */
+.kui-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* --------------------------------------------------------------------------
+   8. 主应用布局骨架（供 Lead 的 app-shell.js 直接使用）
+   ┌───────────────────────────┐
+   │ left   │      header      │
+   │        ├──────────────────┤
+   │        │      center      │
+   └───────────────────────────┘
+   -------------------------------------------------------------------------- */
+
+.kui-app {
+  position: relative;
+  display: grid;
+  /* 单行网格：左侧菜单通栏 + 右侧 main（header/center 在 main 内部竖向排列） */
+  grid-template-columns: var(--kui-menu-width) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-areas: "left main";
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  /* 背景透明：露出 body 的 --kui-bg-0 与 .kui-art 装饰层 */
+  background-color: transparent;
+  color: var(--kui-text-1);
+  font-family: var(--kui-font-family);
+  font-size: var(--kui-fs-base);
+  line-height: var(--kui-lh);
+  isolation: isolate;
+  z-index: var(--kui-z-content);
+}
+
+.kui-app__left {
+  grid-area: left;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  z-index: 2;
+  background-color: var(--kui-glass-bg);
+  border-right: var(--kui-border-width) solid var(--kui-glass-border);
+  -webkit-backdrop-filter: blur(var(--kui-glass-blur)) saturate(120%);
+  backdrop-filter: blur(var(--kui-glass-blur)) saturate(120%);
+}
+
+.kui-app__main {
+  grid-area: main;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  z-index: 1;
+}
+
+.kui-app__header {
+  grid-area: auto;
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 12px;
+  height: var(--kui-header-height);
+  min-width: 0;
+  padding: 0 14px;
+  z-index: 3;
+  background-color: var(--kui-glass-bg-strong);
+  border-bottom: var(--kui-border-width) solid var(--kui-glass-border);
+  -webkit-backdrop-filter: blur(var(--kui-glass-blur)) saturate(120%);
+  backdrop-filter: blur(var(--kui-glass-blur)) saturate(120%);
+}
+
+/* 主体区（标签栏 + iframe 容器，通常再内含 .kui-tabs 结构） */
+.kui-app__center {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  padding: var(--kui-app-gap);
+}
+
+/* 折叠态：只改网格列宽，不动组件内部 */
+.kui-app--collapsed,
+.kui-app.is-menu-collapsed {
+  grid-template-columns: var(--kui-menu-width-collapsed) minmax(0, 1fr);
+}
+
+/* 头部/菜单里常用的品牌区（组件也可自行实现，这里给个兜底） */
+.kui-app__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 0 14px;
+  height: var(--kui-header-height);
+  border-bottom: var(--kui-border-width) solid var(--kui-divider);
+}
+
+.kui-app__brand-title {
+  font-family: var(--kui-font-display);
+  font-size: var(--kui-fs-lg);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kui-app__brand-subtitle {
+  font-size: var(--kui-fs-xs);
+  color: var(--kui-text-3);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* iframe 主体铺满 */
+.kui-app__center > iframe,
+.kui-app__center > .kui-tab-pane {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--kui-frame-radius);
+}
+
+/* --------------------------------------------------------------------------
+   9. 装饰层 .kui-art（主题 art 配置 → DOM）
+   --------------------------------------------------------------------------
+   结构（由 src/core/theme-art.js 生成）：
+   <div class="kui-art" aria-hidden="true">
+     <div class="kui-art__layer kui-art__layer--glow" style="--art-x:85%;--art-y:8%;...">
+   </div>
+   所有层参数（位置/尺寸/透明度/颜色/混合模式）来自 themes.json 的 art.layers，
+   本文件只定义"层类型"的渲染方式。
+   -------------------------------------------------------------------------- */
+
+.kui-art {
+  position: fixed;
+  inset: 0;
+  z-index: var(--kui-z-art);
+  overflow: hidden;
+  pointer-events: none;
+  -webkit-user-select: none;
+  user-select: none;
+  contain: strict;
+}
+
+/* 嵌在某个容器里（而不是整页）时加这个修饰类 */
+.kui-art--inline {
+  position: absolute;
+  contain: layout paint;
+}
+
+.kui-art__layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: var(--art-opacity, 0.1);
+  color: var(--art-color, var(--kui-accent));
+  mix-blend-mode: var(--art-blend, normal);
+}
+
+/* 9.1 glow —— 径向光晕：size 为直径，x/y 为光心 */
+.kui-art__layer--glow {
+  background-image: radial-gradient(
+    circle var(--art-r, 40vmax) at var(--art-x, 50%) var(--art-y, 50%),
+    currentColor 0%,
+    transparent 70%
+  );
+}
+
+/* 9.2 grid —— HUD 细网格：size 为单元格边长（px） */
+.kui-art__layer--grid {
+  background-image:
+    linear-gradient(to right, currentColor 1px, transparent 1px),
+    linear-gradient(to bottom, currentColor 1px, transparent 1px);
+  background-size: var(--art-size, 44px) var(--art-size, 44px);
+  background-position: center center;
+  -webkit-mask-image: radial-gradient(ellipse 85% 78% at 50% 42%, #000 0%, rgba(0, 0, 0, 0.55) 62%, transparent 100%);
+  mask-image: radial-gradient(ellipse 85% 78% at 50% 42%, #000 0%, rgba(0, 0, 0, 0.55) 62%, transparent 100%);
+}
+
+/* flat：不做径向淡出，铺满 */
+.kui-art__layer--grid.is-flat {
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+/* 9.3 rays —— 放射光（丁达尔/圣光），由表盘或屏幕外某点发散 */
+.kui-art__layer--rays {
+  background-image: repeating-conic-gradient(
+    from var(--art-rotate, 0deg) at var(--art-x, 50%) var(--art-y, 50%),
+    currentColor 0deg var(--art-ray-w, 1.2deg),
+    transparent var(--art-ray-w, 1.2deg) var(--art-ray-gap, 12deg)
+  );
+  -webkit-mask-image: radial-gradient(
+    circle at var(--art-x, 50%) var(--art-y, 50%),
+    #000 0%,
+    rgba(0, 0, 0, 0.55) 34%,
+    transparent 72%
+  );
+  mask-image: radial-gradient(
+    circle at var(--art-x, 50%) var(--art-y, 50%),
+    #000 0%,
+    rgba(0, 0, 0, 0.55) 34%,
+    transparent 72%
+  );
+}
+
+/* 9.4 scanline —— 扫描线：size 为线距，angle 为方向，speed 为滚过一格的时间 */
+.kui-art__layer--scanline {
+  top: -20%;
+  bottom: -20%;
+  height: 140%;
+  background-image: repeating-linear-gradient(
+    var(--art-angle, 0deg),
+    currentColor 0,
+    currentColor 1px,
+    transparent 1px,
+    transparent var(--art-size, 3px)
+  );
+  animation: kui-scan-drift var(--art-speed, 7s) linear infinite;
+}
+
+/* 9.5 noise —— 颗粒噪点（内联 SVG feTurbulence，零外部资源） */
+.kui-art__layer--noise {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
+  background-size: var(--art-size, 160px) var(--art-size, 160px);
+  mix-blend-mode: var(--art-blend, overlay);
+}
+
+/* 9.6 vignette —— 暗角：从中心透明到边缘变暗 */
+.kui-art__layer--vignette {
+  background-image: radial-gradient(
+    ellipse at 50% 46%,
+    transparent 42%,
+    var(--art-color, #000) 100%
+  );
+  mix-blend-mode: var(--art-blend, multiply);
+}
+
+/* 9.7 moon —— 血月/月轮：size 为直径，glow 为外发光半径 */
+.kui-art__layer--moon {
+  overflow: visible;
+}
+
+.kui-art__layer--moon .kui-moon {
+  position: absolute;
+  left: var(--art-x, 78%);
+  top: var(--art-y, 20%);
+  width: var(--art-size, 320px);
+  height: var(--art-size, 320px);
+  margin-left: calc(var(--art-size, 320px) / -2);
+  margin-top: calc(var(--art-size, 320px) / -2);
+  border-radius: 50%;
+  background-image: radial-gradient(
+    circle at 36% 32%,
+    currentColor 0%,
+    currentColor 46%,
+    rgba(255, 255, 255, 0.06) 58%,
+    transparent 70%
+  );
+  box-shadow: 0 0 var(--art-glow, 160px) currentColor;
+}
+
+.kui-art__layer--moon .kui-moon.is-ring::after {
+  content: "";
+  position: absolute;
+  inset: calc(var(--art-size, 320px) * -0.12);
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  opacity: 0.45;
+}
+
+/* 9.8 stars —— 星点：由 JS 按 count 生成 .kui-star */
+.kui-art__layer--stars {
+  overflow: hidden;
+}
+
+.kui-star {
+  position: absolute;
+  left: var(--s-x, 50%);
+  top: var(--s-y, 50%);
+  width: var(--s-w, 2px);
+  height: var(--s-w, 2px);
+  margin-left: calc(var(--s-w, 2px) / -2);
+  margin-top: calc(var(--s-w, 2px) / -2);
+  border-radius: 50%;
+  background-color: currentColor;
+  box-shadow: 0 0 calc(var(--s-w, 2px) * 3) currentColor;
+  animation: kui-twinkle var(--s-dur, 5s) ease-in-out var(--s-delay, 0s) infinite;
+}
+
+.kui-star.is-bright {
+  --s-w: 3px;
+}
+
+/* 9.9 sakura —— 飘落樱花瓣：由 JS 按 count 生成 .kui-sakura__petal */
+.kui-art__layer--sakura {
+  overflow: hidden;
+}
+
+.kui-sakura__petal {
+  position: absolute;
+  top: -10%;
+  left: var(--p-x, 50%);
+  width: var(--p-w, 10px);
+  height: var(--p-h, 8px);
+  background-color: currentColor;
+  border-radius: 100% 0 100% 0;
+  opacity: var(--p-o, 0.6);
+  animation: kui-sakura-fall var(--p-dur, 14s) linear var(--p-delay, 0s) infinite;
+}
+
+/* 9.10 feather —— 羽毛：由 JS 生成 .kui-feather，CSS 画羽片+羽轴 */
+.kui-art__layer--feather {
+  overflow: hidden;
+}
+
+.kui-feather {
+  position: absolute;
+  left: var(--f-x, 50%);
+  top: var(--f-y, 40%);
+  width: var(--f-w, 22px);
+  height: var(--f-h, 120px);
+  margin-left: calc(var(--f-w, 22px) / -2);
+  margin-top: calc(var(--f-h, 120px) / -2);
+  transform: rotate(var(--f-rot, 0deg));
+  animation: kui-drift var(--f-drift, 18s) ease-in-out var(--f-delay, 0s) infinite;
+}
+
+/* 羽片：中间留缝形成羽轴；clip-path 勾出羽片轮廓 */
+.kui-feather__vane {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(
+    to right,
+    currentColor 0%,
+    currentColor 42%,
+    transparent 43%,
+    transparent 57%,
+    currentColor 58%,
+    currentColor 100%
+  );
+  -webkit-clip-path: polygon(
+    50% 0%, 66% 8%, 80% 24%, 87% 44%,
+    83% 64%, 68% 83%, 50% 100%, 32% 83%,
+    17% 64%, 13% 44%, 20% 24%, 34% 8%
+  );
+  clip-path: polygon(
+    50% 0%, 66% 8%, 80% 24%, 87% 44%,
+    83% 64%, 68% 83%, 50% 100%, 32% 83%,
+    17% 64%, 13% 44%, 20% 24%, 34% 8%
+  );
+}
+
+/* 羽根：底部一点小圆点，强调羽毛的"根" */
+.kui-feather__root {
+  position: absolute;
+  left: 50%;
+  bottom: 2%;
+  width: calc(var(--f-w, 22px) * 0.16);
+  height: calc(var(--f-w, 22px) * 0.16);
+  margin-left: calc(var(--f-w, 22px) * -0.08);
+  border-radius: 50%;
+  background-color: currentColor;
+}
+
+/* 9.11 clock —— 刻刻帝：罗马数字表盘 + 刻度 + 指针（纯 DOM/CSS） */
+.kui-art__layer--clock {
+  overflow: visible;
+}
+
+.kui-clock {
+  position: absolute;
+  left: var(--art-x, 88%);
+  top: var(--art-y, 82%);
+  width: var(--art-size, 560px);
+  height: var(--art-size, 560px);
+  margin-left: calc(var(--art-size, 560px) / -2);
+  margin-top: calc(var(--art-size, 560px) / -2);
+  color: inherit;
+  border-radius: 50%;
+  transform: rotate(var(--art-rotate, 0deg));
+  animation: kui-glow-pulse var(--art-pulse, 12s) ease-in-out infinite;
+  font-family: var(--kui-font-display);
+}
+
+.kui-clock__ring {
+  position: absolute;
+  inset: 0;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+}
+
+.kui-clock__ring--inner {
+  inset: 6%;
+  opacity: 0.7;
+}
+
+.kui-clock__ring--dashed {
+  inset: 12%;
+  border-style: dashed;
+  opacity: 0.5;
+}
+
+.kui-clock__ticks,
+.kui-clock__numerals,
+.kui-clock__gears,
+.kui-clock__hands {
+  position: absolute;
+  inset: 0;
+}
+
+/* 刻度：每根刻度用一个铺满表盘的旋转容器 + 顶部短线，避免复杂 origin 计算 */
+.kui-clock__mark {
+  position: absolute;
+  inset: 0;
+  transform: rotate(var(--rot, 0deg));
+}
+
+.kui-clock__mark::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 1.6%;
+  width: 2px;
+  height: 3.4%;
+  margin-left: -1px;
+  background-color: currentColor;
+}
+
+.kui-clock__mark.is-minor::before {
+  width: 1px;
+  height: 1.8%;
+  opacity: 0.55;
+}
+
+/* 罗马数字：旋转容器定位 + 反向旋转保持文字竖直 */
+.kui-clock__num {
+  position: absolute;
+  inset: 0;
+  transform: rotate(var(--rot, 0deg));
+}
+
+.kui-clock__num > span {
+  position: absolute;
+  left: 50%;
+  top: 7.5%;
+  transform: translateX(-50%) rotate(calc(-1 * var(--rot, 0deg)));
+  font-size: calc(var(--art-size, 560px) * 0.046);
+  line-height: 1;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+/* 指针：全部从表盘底部中心出发（bottom:50% + origin 100%） */
+.kui-clock__hand {
+  position: absolute;
+  left: 50%;
+  bottom: 50%;
+  transform-origin: 50% 100%;
+  background-color: currentColor;
+  border-radius: 1px;
+  transform: translateX(-50%) rotate(var(--rot, 0deg));
+}
+
+.kui-clock__hand--hour {
+  width: calc(var(--art-size, 560px) * 0.007);
+  height: calc(var(--art-size, 560px) * 0.24);
+}
+
+.kui-clock__hand--minute {
+  width: calc(var(--art-size, 560px) * 0.0045);
+  height: calc(var(--art-size, 560px) * 0.34);
+}
+
+.kui-clock__hand--second {
+  width: calc(var(--art-size, 560px) * 0.0018);
+  height: calc(var(--art-size, 560px) * 0.4);
+  animation: kui-clock-spin 60s steps(60, end) infinite;
+}
+
+.kui-clock__hand--second::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: 100%;
+  height: calc(var(--art-size, 560px) * 0.07);
+  margin-left: 0;
+  background-color: currentColor;
+  transform: translateX(-50%);
+}
+
+.kui-clock__pivot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(var(--art-size, 560px) * 0.026);
+  height: calc(var(--art-size, 560px) * 0.026);
+  margin-left: calc(var(--art-size, 560px) * -0.013);
+  margin-top: calc(var(--art-size, 560px) * -0.013);
+  border-radius: 50%;
+  background-color: currentColor;
+  box-shadow: 0 0 calc(var(--art-size, 560px) * 0.02) currentColor;
+}
+
+/* 齿轮：圆环 + repeating-conic-gradient 齿形，两种转向 */
+.kui-clock__gear {
+  position: absolute;
+  width: var(--gear-size, 16%);
+  height: var(--gear-size, 16%);
+  margin-left: calc(var(--gear-size, 16%) / -2);
+  margin-top: calc(var(--gear-size, 16%) / -2);
+  border-radius: 50%;
+  background-image: repeating-conic-gradient(
+    currentColor 0deg 7deg,
+    transparent 7deg 20deg
+  );
+  -webkit-mask-image: radial-gradient(circle, transparent 0 44%, #000 45% 100%);
+  mask-image: radial-gradient(circle, transparent 0 44%, #000 45% 100%);
+  animation: kui-clock-spin var(--gear-speed, 40s) linear infinite;
+}
+
+.kui-clock__gear.is-reverse {
+  animation-name: kui-spin-reverse;
+}
+
+/* --------------------------------------------------------------------------
+   10. 通用质感工具类
+   -------------------------------------------------------------------------- */
+
+/* 10.1 暗夜玻璃面板 */
+.kui-glass {
+  background-color: var(--kui-glass-bg);
+  border: var(--kui-border-width) solid var(--kui-glass-border);
+  -webkit-backdrop-filter: blur(var(--kui-glass-blur)) saturate(120%);
+  backdrop-filter: blur(var(--kui-glass-blur)) saturate(120%);
+}
+
+.kui-glass--strong {
+  background-color: var(--kui-glass-bg-strong);
+}
+
+/* 10.2 颗粒噪点（任意容器上叠一层） */
+.kui-noise {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: var(--kui-noise-opacity);
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+}
+
+/* 10.3 暗角 */
+.kui-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: var(--kui-vignette-opacity);
+  mix-blend-mode: multiply;
+  background-image: radial-gradient(ellipse at 50% 46%, transparent 42%, #000 100%);
+}
+
+/* 10.4 斜切角（clip-path）。默认切右上 + 左下，不对称更"设计感" */
+.kui-corner-cut {
+  -webkit-clip-path: polygon(
+    0 0,
+    calc(100% - var(--kui-corner-size)) 0,
+    100% var(--kui-corner-size),
+    100% 100%,
+    var(--kui-corner-size) 100%,
+    0 calc(100% - var(--kui-corner-size))
+  );
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--kui-corner-size)) 0,
+    100% var(--kui-corner-size),
+    100% 100%,
+    var(--kui-corner-size) 100%,
+    0 calc(100% - var(--kui-corner-size))
+  );
+}
+
+.kui-corner-cut--tr {
+  -webkit-clip-path: polygon(0 0, calc(100% - var(--kui-corner-size)) 0, 100% var(--kui-corner-size), 100% 100%, 0 100%);
+  clip-path: polygon(0 0, calc(100% - var(--kui-corner-size)) 0, 100% var(--kui-corner-size), 100% 100%, 0 100%);
+}
+
+.kui-corner-cut--tl {
+  -webkit-clip-path: polygon(var(--kui-corner-size) 0, 100% 0, 100% 100%, 0 100%, 0 var(--kui-corner-size));
+  clip-path: polygon(var(--kui-corner-size) 0, 100% 0, 100% 100%, 0 100%, 0 var(--kui-corner-size));
+}
+
+.kui-corner-cut--br {
+  -webkit-clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--kui-corner-size)), calc(100% - var(--kui-corner-size)) 100%, 0 100%);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--kui-corner-size)), calc(100% - var(--kui-corner-size)) 100%, 0 100%);
+}
+
+.kui-corner-cut--bl {
+  -webkit-clip-path: polygon(0 0, 100% 0, 100% 100%, var(--kui-corner-size) 100%, 0 calc(100% - var(--kui-corner-size)));
+  clip-path: polygon(0 0, 100% 0, 100% 100%, var(--kui-corner-size) 100%, 0 calc(100% - var(--kui-corner-size)));
+}
+
+/* 10.5 细描边 + 内发光的 HUD 卡片质感 */
+.kui-hud {
+  position: relative;
+  background-color: var(--kui-bg-1);
+  border: var(--kui-border-width) solid var(--kui-border);
+  border-radius: var(--kui-radius-md);
+  box-shadow: var(--kui-inner-glow), var(--kui-highlight);
+}
+
+/* 10.6 选中项目左侧绯红光条（菜单/列表通用装饰，可选） */
+.kui-rail-left::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 2px;
+  height: 0;
+  background-image: linear-gradient(to bottom, var(--kui-accent), var(--kui-accent-2));
+  box-shadow: 0 0 8px var(--kui-accent-glow);
+  transform: translateY(-50%);
+  transition: height var(--kui-duration-base) var(--kui-ease);
+}
+
+.kui-rail-left.is-active::before,
+.kui-rail-left:hover::before {
+  height: 64%;
+}
+
+/* --------------------------------------------------------------------------
+   11. 主题切换过渡（theme.js 切换主题时短暂给 <html> 加 .kui-theme-transition）
+   -------------------------------------------------------------------------- */
+
+.kui-theme-transition,
+.kui-theme-transition *,
+.kui-theme-transition *::before,
+.kui-theme-transition *::after {
+  transition-property: background-color, border-color, color, box-shadow, fill, stroke, outline-color;
+  transition-duration: var(--kui-duration-slow);
+  transition-timing-function: var(--kui-ease);
+}
+
+/* --------------------------------------------------------------------------
+   12. 滚动条细节：可滚动容器在内容溢出时才显示轨道（避免静态页面出现槽）
+   -------------------------------------------------------------------------- */
+
+.kui-scroll-y::-webkit-scrollbar-track,
+.kui-scroll-x::-webkit-scrollbar-track,
+.kui-scrollable::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+.kui-scroll-y:hover::-webkit-scrollbar-track,
+.kui-scroll-x:hover::-webkit-scrollbar-track {
+  background-color: var(--kui-scrollbar-track);
+}
+
+/* 13. 打印：隐藏装饰层 */
+@media print {
+  .kui-art,
+  .kui-noise,
+  .kui-vignette {
+    display: none !important;
+  }
+}

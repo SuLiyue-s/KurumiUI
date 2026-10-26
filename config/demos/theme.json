@@ -1,0 +1,121 @@
+{
+  "title": "主题 · theme",
+  "desc": "6 套灵装主题卡片。卡片只提供元数据与预览色，真实色板以 src/themes.json 为准；点击卡片通过 theme.apply 动作实时换装。",
+  "default": "kurumi",
+  "themes": [
+    {
+      "id": "kurumi",
+      "name": "绯红刻刻帝",
+      "desc": "暗夜绯红 + 鎏金，默认狂三本体皮肤。",
+      "scheme": "dark",
+      "icon": "clock",
+      "preview": {
+        "bg": "#08050a",
+        "accent": "#c8102e",
+        "accent2": "#d4af37",
+        "text": "#f5e9ee"
+      },
+      "action": {
+        "action": "theme.apply",
+        "params": {
+          "id": "kurumi"
+        }
+      }
+    },
+    {
+      "id": "kurumi-angel",
+      "name": "白羽灵装",
+      "desc": "银白 + 淡金 + 一抹血色，灵装形态的冷冽白。",
+      "scheme": "light",
+      "icon": "feather",
+      "preview": {
+        "bg": "#f4f2f5",
+        "accent": "#a3172f",
+        "accent2": "#c9a86a",
+        "text": "#241d22"
+      },
+      "action": {
+        "action": "theme.apply",
+        "params": {
+          "id": "kurumi-angel"
+        }
+      }
+    },
+    {
+      "id": "starry",
+      "name": "星夜观测",
+      "desc": "深空蓝紫 + 星辉青，观测回廊的夜航模式。",
+      "scheme": "dark",
+      "icon": "moon",
+      "preview": {
+        "bg": "#070a14",
+        "accent": "#4f7cff",
+        "accent2": "#2ee6d6",
+        "text": "#e6ebff"
+      },
+      "action": {
+        "action": "theme.apply",
+        "params": {
+          "id": "starry"
+        }
+      }
+    },
+    {
+      "id": "sakura",
+      "name": "樱雾通灵",
+      "desc": "粉紫 + 玫瑰金，灵装契约的柔和变奏。",
+      "scheme": "dark",
+      "icon": "heart",
+      "preview": {
+        "bg": "#140a12",
+        "accent": "#e05a9b",
+        "accent2": "#e8b48a",
+        "text": "#ffe9f3"
+      },
+      "action": {
+        "action": "theme.apply",
+        "params": {
+          "id": "sakura"
+        }
+      }
+    },
+    {
+      "id": "abyss",
+      "name": "深渊刻印",
+      "desc": "墨绿黑 + 青铜，刻印结界的重量感。",
+      "scheme": "dark",
+      "icon": "shield",
+      "preview": {
+        "bg": "#050a08",
+        "accent": "#2f9e7a",
+        "accent2": "#b08d57",
+        "text": "#e2f0e9"
+      },
+      "action": {
+        "action": "theme.apply",
+        "params": {
+          "id": "abyss"
+        }
+      }
+    },
+    {
+      "id": "dawn",
+      "name": "黎明绯光",
+      "desc": "暖白 + 绯红 + 金，白昼形态的轻量界面。",
+      "scheme": "light",
+      "icon": "sun",
+      "preview": {
+        "bg": "#fbf7f2",
+        "accent": "#c8102e",
+        "accent2": "#b8860b",
+        "text": "#2a1e1a"
+      },
+      "action": {
+        "action": "theme.apply",
+        "params": {
+          "id": "dawn"
+        }
+      }
+    }
+  ]
+}

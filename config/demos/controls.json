@@ -1,0 +1,931 @@
+{
+  "title": "控件 · controls",
+  "desc": "契约 §6 全部 33 种控件的陈列馆：字段即控件，controls 独立渲染可直接消费本文件。每个条目用 field 容器包裹，同时演示 field 自身的用法。",
+  "groups": [
+    {
+      "id": "input",
+      "title": "输入类",
+      "icon": "edit",
+      "desc": "input / password / textarea / number",
+      "nodes": [
+        {
+          "type": "field",
+          "props": {
+            "label": "input · 文本输入",
+            "help": "clearable + prefixIcon + maxlength",
+            "children": [
+              {
+                "type": "input",
+                "props": {
+                  "placeholder": "输入灵装回路名称",
+                  "clearable": true,
+                  "prefixIcon": "feather",
+                  "maxlength": 20
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "field",
+          "props": {
+            "label": "input · 带单位",
+            "children": [
+              {
+                "type": "input",
+                "props": {
+                  "placeholder": "100",
+                  "suffix": "秒",
+                  "align": "right"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "field",
+          "props": {
+            "label": "password · 灵装密钥",
+            "children": [
+              {
+                "type": "password",
+                "props": {
+                  "placeholder": "输入密钥",
+                  "toggleable": true,
+                  "maxlength": 32
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "field",
+          "props": {
+            "label": "textarea · 备注",
+            "children": [
+              {
+                "type": "textarea",
+                "props": {
+                  "placeholder": "记录这次时间跳跃的观测结果…",
+                  "rows": 3,
+                  "autosize": true,
+                  "maxlength": 200,
+                  "showCount": true
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "field",
+          "props": {
+            "label": "number · 子弹数量",
+            "help": "min 1 / max 12 / step 1 / unit 发",
+            "children": [
+              {
+                "type": "number",
+                "props": {
+                  "value": 3,
+                  "min": 1,
+                  "max": 12,
+                  "step": 1,
+                  "unit": "发",
+                  "controls": true
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "choice",
+      "title": "选择类",
+      "icon": "list",
+      "desc": "select / multiselect / checkbox / checkbox-group / radio / radio-group / switch / slider",
+      "nodes": [
+        {
+          "type": "field",
+          "props": {
+            "label": "select · 下拉选择",
+            "children": [
+              {
+                "type": "select",
+                "props": {
+                  "placeholder": "选择时间模式",
+                  "clearable": true,
+                  "options": [
+                    {
+                      "label": "时间线",
+                      "value": "timeline"
+                    },
+                    {
+                      "label": "封印",
+                      "value": "seal"
+                    },
+                    {
+                      "label": "自定义",
+                      "value": "custom"
+                    },
+                    {
+                      "label": "归档（禁用）",
+                      "value": "archived",
+                      "disabled": true
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "field",
+          "props": {
+            "label": "multiselect · 战术标签",
+            "children": [
+              {
+                "type": "multiselect",
+                "props": {
+                  "placeholder": "可多选",
+                  "value": [
+                    "演算",
+                    "观测"
+                  ],
+                  "maxTagCount": 2,
+                  "clearable": true,
+                  "options": [
+                    {
+                      "label": "演算",
+                      "value": "演算"
+                    },
+                    {
+                      "label": "观测",
+                      "value": "观测"
+                    },
+                    {
+                      "label": "封印",
+                      "value": "封印"
+                    },
+                    {
+                      "label": "回溯",
+                      "value": "回溯"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "field",
+          "props": {
+            "label": "checkbox · 单个勾选",
+            "children": [
+              {
+                "type": "checkbox",
+                "props": {
+                  "text": "启用灵装回路",
+                  "value": true
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "field",
+          "props": {
+            "label": "checkbox-group · 观测方式",
+            "children": [
+              {
+                "type": "checkbox-group",
+                "props": {
+                  "value": [
+                    "auto",
+                    "alert"
+                  ],
+                  "options": [
+                    {
+                      "label": "自动观测",
+                      "value": "auto"
+                    },
+                    {
+                      "label": "人工复核",
+                      "value": "manual"
+                    },
+                    {
+                      "label": "定时回溯",
+                      "value": "cron"
+                    },
+                    {
+                      "label": "异常告警",
+                      "value": "alert"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "field",
+          "props": {
+            "label": "radio · 单个单选",
+            "children": [
+              {
+                "type": "radio",
+                "props": {
+                  "text": "默认选中此项",
+                  "value": true
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "field",
+          "props": {
+            "label": "radio-group · 优先级",
+            "children": [
+              {
+                "type": "radio-group",
+                "props": {
+                  "value": "normal",
+                  "options": [
+                    {
+                      "label": "低",
+                      "value": "low"
+                    },
+                    {
+                      "label": "标准",
+                      "value": "normal"
+                    },
+                    {
+                      "label": "高",
+                      "value": "high"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "field",
+          "props": {
+            "label": "switch · 开关",
+            "children": [
+              {
+                "type": "switch",
+                "props": {
+                  "value": true,
+                  "activeText": "开启",
+                  "inactiveText": "关闭"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "field",
+          "props": {
+            "label": "slider · 双端范围",
+            "children": [
+              {
+                "type": "slider",
+                "props": {
+                  "range": true,
+                  "value": [
+                    20,
+                    70
+                  ],
+                  "min": 0,
+                  "max": 100,
+                  "step": 5,
+                  "showTooltip": true
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "date",
+      "title": "日期与时间",
+      "icon": "calendar",
+      "desc": "date / daterange / time / datetime / month",
+      "nodes": [
+        {
+          "type": "field",
+          "props": {
+            "label": "date · 日期",
+            "children": [
+              {
+                "type": "date",
+                "props": {
+                  "placeholder": "选择刻印日期",
+                  "format": "YYYY-MM-DD",
+                  "valueFormat": "YYYY-MM-DD",
+                  "clearable": true
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "field",
+          "props": {
+            "label": "daterange · 日期范围",
+            "children": [
+              {
+                "type": "daterange",
+                "props": {
+                  "startPlaceholder": "开始",
+                  "endPlaceholder": "结束",
+                  "separator": " ~ ",
+                  "clearable": true
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "field",
+          "props": {
+            "label": "time · 时刻",
+            "children": [
+              {
+                "type": "time",
+                "props": {
+                  "format": "HH:mm:ss",
+                  "valueFormat": "HH:mm:ss",
+                  "showSeconds": true,
+                  "clearable": true
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "field",
+          "props": {
+            "label": "datetime · 日期时间",
+            "children": [
+              {
+                "type": "datetime",
+                "props": {
+                  "showSeconds": true,
+                  "clearable": true
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "field",
+          "props": {
+            "label": "month · 月份",
+            "children": [
+              {
+                "type": "month",
+                "props": {
+                  "format": "YYYY-MM",
+                  "valueFormat": "YYYY-MM",
+                  "clearable": true
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "display",
+      "title": "展示与反馈",
+      "icon": "info",
+      "desc": "tag / badge / link / icon / text / divider / alert / progress / rating / color",
+      "nodes": [
+        {
+          "type": "field",
+          "props": {
+            "label": "tag · 标签",
+            "children": [
+              {
+                "type": "tag",
+                "props": {
+                  "text": "绯红刻刻帝",
+                  "type": "primary",
+                  "effect": "light",
+                  "round": true
+                }
+              },
+              {
+                "type": "tag",
+                "props": {
+                  "text": "可关闭",
+                  "type": "danger",
+                  "closable": true,
+                  "effect": "dark"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "field",
+          "props": {
+            "label": "badge · 徽标",
+            "children": [
+              {
+                "type": "badge",
+                "props": {
+                  "value": 8,
+                  "type": "danger"
+                }
+              },
+              {
+                "type": "badge",
+                "props": {
+                  "value": 128,
+                  "max": 99,
+                  "type": "warning"
+                }
+              },
+              {
+                "type": "badge",
+                "props": {
+                  "value": "",
+                  "dot": true,
+                  "type": "success"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "field",
+          "props": {
+            "label": "link · 链接",
+            "children": [
+              {
+                "type": "link",
+                "props": {
+                  "text": "配置参考 docs/02",
+                  "href": "docs/02-config-reference.md",
+                  "target": "_blank",
+                  "icon": "external-link"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "field",
+          "props": {
+            "label": "icon · 图标（只允许契约 §11 图标名）",
+            "children": [
+              {
+                "type": "icon",
+                "props": {
+                  "name": "clock"
+                }
+              },
+              {
+                "type": "icon",
+                "props": {
+                  "name": "palette"
+                }
+              },
+              {
+                "type": "icon",
+                "props": {
+                  "name": "shield"
+                }
+              },
+              {
+                "type": "icon",
+                "props": {
+                  "name": "spinner",
+                  "spin": true
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "field",
+          "props": {
+            "label": "text · 文本",
+            "children": [
+              {
+                "type": "text",
+                "props": {
+                  "text": "普通文本",
+                  "strong": true
+                }
+              },
+              {
+                "type": "text",
+                "props": {
+                  "text": "次要文本（type: secondary）",
+                  "type": "secondary"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "field",
+          "props": {
+            "label": "divider · 分割线",
+            "children": [
+              {
+                "type": "divider",
+                "props": {
+                  "text": "时间结界",
+                  "position": "left",
+                  "dashed": true
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "field",
+          "props": {
+            "label": "alert · 通告",
+            "children": [
+              {
+                "type": "alert",
+                "props": {
+                  "type": "warning",
+                  "title": "结界提示",
+                  "message": "第三时区出现 0.8s 时间偏移。",
+                  "closable": true,
+                  "showIcon": true
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "field",
+          "props": {
+            "label": "progress · 进度条",
+            "children": [
+              {
+                "type": "progress",
+                "props": {
+                  "value": 68,
+                  "showText": true,
+                  "striped": true
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "field",
+          "props": {
+            "label": "progress · 环形",
+            "children": [
+              {
+                "type": "progress",
+                "props": {
+                  "value": 72,
+                  "type": "circle",
+                  "showText": true
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "field",
+          "props": {
+            "label": "rating · 评分",
+            "children": [
+              {
+                "type": "rating",
+                "props": {
+                  "value": 4,
+                  "max": 5,
+                  "showText": true
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "field",
+          "props": {
+            "label": "color · 颜色",
+            "children": [
+              {
+                "type": "color",
+                "props": {
+                  "value": "#c8102e",
+                  "format": "hex",
+                  "showInput": true
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "data",
+      "title": "数据与文件",
+      "icon": "database",
+      "desc": "table / pagination / upload",
+      "nodes": [
+        {
+          "type": "field",
+          "props": {
+            "label": "table · 数据表格",
+            "children": [
+              {
+                "type": "table",
+                "props": {
+                  "stripe": true,
+                  "border": false,
+                  "columns": [
+                    {
+                      "prop": "name",
+                      "label": "结界",
+                      "width": 160
+                    },
+                    {
+                      "prop": "level",
+                      "label": "等级",
+                      "width": 90,
+                      "align": "center"
+                    },
+                    {
+                      "prop": "owner",
+                      "label": "刻印者",
+                      "width": 120
+                    },
+                    {
+                      "prop": "score",
+                      "label": "稳定度",
+                      "width": 100,
+                      "align": "right",
+                      "type": "number"
+                    }
+                  ],
+                  "data": [
+                    {
+                      "name": "一之弹 · 时之结界",
+                      "level": "S",
+                      "owner": "时崎狂三",
+                      "score": 98
+                    },
+                    {
+                      "name": "三之弹 · 刻印回廊",
+                      "level": "A",
+                      "owner": "时崎狂三",
+                      "score": 91
+                    },
+                    {
+                      "name": "十二之弹 · 终末",
+                      "level": "SS",
+                      "owner": "刻刻帝",
+                      "score": 76
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "field",
+          "props": {
+            "label": "pagination · 分页",
+            "children": [
+              {
+                "type": "pagination",
+                "props": {
+                  "page": 1,
+                  "pageSize": 10,
+                  "total": 128,
+                  "sizes": [
+                    10,
+                    20,
+                    50,
+                    100
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "field",
+          "props": {
+            "label": "upload · 上传",
+            "children": [
+              {
+                "type": "upload",
+                "props": {
+                  "multiple": true,
+                  "maxCount": 3,
+                  "dragger": true,
+                  "listType": "text",
+                  "tip": "支持 PNG / SVG / JSON，最多 3 个文件"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "button",
+      "title": "按钮",
+      "icon": "target",
+      "desc": "button 的 variant / size / 状态 / 图标组合",
+      "nodes": [
+        {
+          "type": "button",
+          "props": {
+            "text": "默认",
+            "variant": "default"
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "主要",
+            "variant": "primary"
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "次要",
+            "variant": "secondary"
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "幽灵",
+            "variant": "ghost"
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "文字",
+            "variant": "text"
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "危险",
+            "variant": "danger"
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "成功",
+            "variant": "success"
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "警告",
+            "variant": "warning"
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "小号 sm",
+            "size": "sm",
+            "variant": "primary"
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "大号 lg",
+            "size": "lg",
+            "variant": "primary"
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "加载中",
+            "loading": true,
+            "variant": "primary"
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "禁用",
+            "disabled": true,
+            "variant": "primary"
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "圆角",
+            "round": true,
+            "variant": "secondary"
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "icon": "plus",
+            "iconOnly": true,
+            "round": true,
+            "variant": "primary"
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "右图标",
+            "iconRight": "arrow-right",
+            "variant": "ghost"
+          }
+        }
+      ]
+    },
+    {
+      "id": "container",
+      "title": "布局与容器",
+      "icon": "grid",
+      "desc": "field / form",
+      "nodes": [
+        {
+          "type": "field",
+          "props": {
+            "label": "field · 字段容器",
+            "help": "field 是 label + help + 子控件的容器",
+            "required": true,
+            "children": [
+              {
+                "type": "input",
+                "props": {
+                  "placeholder": "包在 field 里的 input",
+                  "clearable": true
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "field",
+          "props": {
+            "label": "form · 内嵌迷你表单",
+            "children": [
+              {
+                "type": "form",
+                "props": {
+                  "title": "迷你表单",
+                  "layout": {
+                    "columns": 1,
+                    "gap": 10,
+                    "labelWidth": 72,
+                    "labelPosition": "left"
+                  },
+                  "data": {
+                    "loopName": "刻刻帝 · 一之弹",
+                    "enabled": true
+                  },
+                  "nodes": [
+                    {
+                      "id": "loopName",
+                      "type": "input",
+                      "label": "回路名",
+                      "props": {
+                        "placeholder": "内嵌 form 的输入框"
+                      }
+                    },
+                    {
+                      "id": "enabled",
+                      "type": "switch",
+                      "label": "启用"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

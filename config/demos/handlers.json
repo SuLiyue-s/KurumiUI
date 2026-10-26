@@ -1,0 +1,572 @@
+{
+  "schema": "kurumi-demo/1",
+  "id": "handlers",
+  "title": "JSON 驱动业务函数",
+  "subtitle": "配置里只写「函数名 + 入参」，函数实现放在每个框架组件独立的 handlers.js 里",
+  "note": "本页没有任何业务逻辑代码：所有按钮都由 providers 里的 KUI.handlers 执行。",
+  "groups": [
+    {
+      "id": "toast",
+      "title": "提醒信息 · toast.*",
+      "desc": "JSON：{ \"fn\": \"toast.success\", \"args\": { \"text\": \"保存成功\" } }",
+      "nodes": [
+        {
+          "type": "button",
+          "id": "h-toast-success",
+          "props": {
+            "text": "成功提醒",
+            "variant": "primary",
+            "icon": "success"
+          },
+          "on": {
+            "click": {
+              "fn": "toast.success",
+              "args": {
+                "text": "保存成功：配置已写入 localStorage"
+              }
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "h-toast-info",
+          "props": {
+            "text": "提示信息",
+            "icon": "info"
+          },
+          "on": {
+            "click": {
+              "fn": "toast.info",
+              "args": {
+                "text": "这是一条纯 JSON 驱动的提示信息"
+              }
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "h-toast-warning",
+          "props": {
+            "text": "警告",
+            "icon": "warning"
+          },
+          "on": {
+            "click": {
+              "fn": "toast.warning",
+              "args": {
+                "text": "注意：该操作会影响当前会话"
+              }
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "h-toast-error",
+          "props": {
+            "text": "错误",
+            "icon": "error"
+          },
+          "on": {
+            "click": {
+              "fn": "toast.error",
+              "args": {
+                "text": "错误示例：写入失败，请稍后重试"
+              }
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "h-toast-demo",
+          "props": {
+            "text": "轮播演示",
+            "icon": "spinner"
+          },
+          "on": {
+            "click": {
+              "fn": "toast.demo",
+              "args": {
+                "delay": 220
+              }
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "h-toast-clear",
+          "props": {
+            "text": "清空提醒",
+            "icon": "close"
+          },
+          "on": {
+            "click": {
+              "fn": "toast.clear"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "dialog",
+      "title": "弹窗 · dialog.*",
+      "desc": "弹窗是独立 iframe；这里点开的弹窗由父级 dialog 组件渲染，动作也由父级执行。",
+      "nodes": [
+        {
+          "type": "button",
+          "id": "h-dialog-alert",
+          "props": {
+            "text": "提醒弹窗",
+            "variant": "primary",
+            "icon": "bell"
+          },
+          "on": {
+            "click": {
+              "fn": "dialog.alert",
+              "args": {
+                "title": "刻刻帝提醒",
+                "text": "这是一条由 JSON 触发的提醒弹窗，确定后关闭。"
+              }
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "h-dialog-confirm",
+          "props": {
+            "text": "确认弹窗",
+            "icon": "question"
+          },
+          "on": {
+            "click": {
+              "fn": "dialog.confirm",
+              "args": {
+                "title": "确认操作",
+                "text": "确认要执行演示操作吗？"
+              }
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "h-dialog-prompt",
+          "props": {
+            "text": "输入弹窗",
+            "icon": "edit"
+          },
+          "on": {
+            "click": {
+              "fn": "dialog.prompt",
+              "args": {
+                "title": "输入名称",
+                "text": "请输入演示名称",
+                "value": "刻刻帝"
+              }
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "h-dialog-close",
+          "props": {
+            "text": "关闭全部弹窗",
+            "icon": "close"
+          },
+          "on": {
+            "click": {
+              "fn": "dialog.closeAll"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "app",
+      "title": "应用外壳 · app.* / 主题",
+      "desc": "主题切换、菜单折叠、打开标签、提醒，全部由 JSON 描述。",
+      "nodes": [
+        {
+          "type": "button",
+          "id": "h-app-theme-angel",
+          "props": {
+            "text": "切到白羽灵装",
+            "variant": "primary",
+            "icon": "feather"
+          },
+          "on": {
+            "click": {
+              "fn": "app.setTheme",
+              "args": {
+                "id": "kurumi-angel"
+              }
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "h-app-theme-kurumi",
+          "props": {
+            "text": "切回绯红刻刻帝",
+            "icon": "clock"
+          },
+          "on": {
+            "click": {
+              "fn": "app.setTheme",
+              "args": {
+                "id": "kurumi"
+              }
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "h-app-theme-random",
+          "props": {
+            "text": "随机主题",
+            "icon": "palette"
+          },
+          "on": {
+            "click": {
+              "fn": "app.randomTheme"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "h-app-theme-picker",
+          "props": {
+            "text": "打开主题选择弹窗",
+            "icon": "palette"
+          },
+          "on": {
+            "click": {
+              "fn": "app.pickTheme"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "h-app-menu",
+          "props": {
+            "text": "折叠 / 展开左侧菜单",
+            "icon": "menu"
+          },
+          "on": {
+            "click": {
+              "fn": "app.toggleMenu"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "h-app-home",
+          "props": {
+            "text": "打开总览标签",
+            "icon": "home"
+          },
+          "on": {
+            "click": {
+              "fn": "app.openHome"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "menu",
+      "title": "菜单 · menu.*（本页内嵌一个独立菜单实例）",
+      "desc": "下方菜单与按钮共享同一个 menu 实例，按钮动作由 JSON 指定。",
+      "nodes": [
+        {
+          "type": "button",
+          "id": "h-menu-collapse",
+          "props": {
+            "text": "折叠菜单",
+            "icon": "collapse"
+          },
+          "on": {
+            "click": {
+              "fn": "menu.toggleCollapse"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "h-menu-cycle",
+          "props": {
+            "text": "循环选中下一项",
+            "icon": "refresh"
+          },
+          "on": {
+            "click": {
+              "fn": "menu.cycleActive"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "h-menu-badge",
+          "props": {
+            "text": "给「表单实验室」加徽标",
+            "icon": "plus"
+          },
+          "on": {
+            "click": {
+              "fn": "menu.setBadge",
+              "args": {
+                "id": "form-lab",
+                "text": "NEW",
+                "type": "success"
+              }
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "h-menu-clear",
+          "props": {
+            "text": "清除全部徽标",
+            "icon": "close"
+          },
+          "on": {
+            "click": {
+              "fn": "menu.clearBadges"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "tabs",
+      "title": "标签页 · tabs.*（本页内嵌一个独立标签实例）",
+      "desc": "标签保活：切换只切显示，不重建 iframe。",
+      "nodes": [
+        {
+          "type": "button",
+          "id": "h-tabs-open",
+          "props": {
+            "text": "打开「总览」标签",
+            "variant": "primary",
+            "icon": "plus"
+          },
+          "on": {
+            "click": {
+              "fn": "tabs.open",
+              "args": {
+                "id": "h-home",
+                "title": "总览",
+                "url": "../pages/home.html",
+                "icon": "home"
+              }
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "h-tabs-next",
+          "props": {
+            "text": "下一个标签",
+            "icon": "arrow-right"
+          },
+          "on": {
+            "click": {
+              "fn": "tabs.activateNext"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "h-tabs-refresh",
+          "props": {
+            "text": "刷新当前标签",
+            "icon": "refresh"
+          },
+          "on": {
+            "click": {
+              "fn": "tabs.refreshActive"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "h-tabs-close",
+          "props": {
+            "text": "关闭当前标签",
+            "icon": "close"
+          },
+          "on": {
+            "click": {
+              "fn": "tabs.closeActive"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "compose",
+      "title": "组合写法 · 动作数组 / 动作与函数混写",
+      "desc": "同一个 click 可以是一串动作，也可以混写 action 与 fn。",
+      "nodes": [
+        {
+          "type": "button",
+          "id": "h-compose-chain",
+          "props": {
+            "text": "提醒 + 切主题 + 再提醒",
+            "variant": "primary",
+            "icon": "layers"
+          },
+          "on": {
+            "click": {
+              "actions": [
+                {
+                  "fn": "toast.info",
+                  "args": {
+                    "text": "第一步：准备切换主题…"
+                  }
+                },
+                {
+                  "fn": "app.setTheme",
+                  "args": {
+                    "id": "sakura",
+                    "silent": true
+                  }
+                },
+                {
+                  "fn": "toast.success",
+                  "args": {
+                    "text": "第二步：已切到樱雾通灵"
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "h-compose-mixed",
+          "props": {
+            "text": "混写：action + fn",
+            "icon": "code"
+          },
+          "on": {
+            "click": {
+              "actions": [
+                {
+                  "action": "app.info"
+                },
+                {
+                  "fn": "menu.cycleActive"
+                },
+                {
+                  "fn": "toast.info",
+                  "args": {
+                    "text": "混写执行完毕"
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "h-compose-run",
+          "props": {
+            "text": "显式 handlers.run",
+            "icon": "terminal"
+          },
+          "on": {
+            "click": {
+              "action": "handlers.run",
+              "params": {
+                "fn": "toast.warning",
+                "args": {
+                  "text": "由 handlers.run 直接调用"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "menu-instance",
+      "title": "本页内嵌的 menu 实例（供 menu.* 业务函数操作）",
+      "nodes": [
+        {
+          "type": "menu",
+          "id": "demo-menu",
+          "props": {
+            "brand": {
+              "title": "业务函数演示",
+              "subtitle": "standalone · handlers",
+              "logoIcon": "code",
+              "logoText": "FN"
+            },
+            "collapsed": false,
+            "collapsible": true,
+            "defaultActive": "form-lab",
+            "items": [
+              {
+                "type": "group",
+                "id": "g-handlers",
+                "label": "函数演示",
+                "icon": "terminal",
+                "children": [
+                  {
+                    "type": "item",
+                    "id": "overview",
+                    "label": "总览",
+                    "icon": "home",
+                    "badge": "1",
+                    "badgeType": "accent"
+                  },
+                  {
+                    "type": "item",
+                    "id": "form-lab",
+                    "label": "表单实验室",
+                    "icon": "gear"
+                  },
+                  {
+                    "type": "item",
+                    "id": "notify",
+                    "label": "提醒演示",
+                    "icon": "bell"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "tabs-instance",
+      "title": "本页内嵌的 tabs 实例（供 tabs.* 业务函数操作）",
+      "nodes": [
+        {
+          "type": "tabs",
+          "id": "demo-tabs",
+          "props": {
+            "closable": true,
+            "keepAlive": true,
+            "height": 260,
+            "home": {
+              "id": "init-home",
+              "title": "总览",
+              "url": "../pages/home.html",
+              "icon": "home",
+              "pinned": true
+            },
+            "initial": [
+              {
+                "id": "init-profile",
+                "title": "未保存数据验证",
+                "url": "../pages/profile.html",
+                "icon": "shield"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <!-- 主题预置：首帧前写入当前主题 token，防 FOUC 闪烁（由 .tools/patch-theme-boot.js 注入） -->
+  <script src="../src/core/theme-boot.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>主题灵装 · theme | KurumiUI</title>
+<link rel="stylesheet" href="../src/styles/base.css">
+<link rel="stylesheet" href="../src/styles/controls.css">
+<link rel="stylesheet" href="../src/styles/components.css">
+<link rel="stylesheet" href="../src/styles/tooltip.css">
+<style>
+  html, body { margin: 0; min-height: 100%; }
+  body { background: var(--kui-bg-0, #08050a); color: var(--kui-text-1, #f5e9ee); font-family: var(--kui-font-family, "Microsoft YaHei", "PingFang SC", sans-serif); font-size: 13px; line-height: 1.7; transition: background .2s ease, color .2s ease; }
+  .page { max-width: 1120px; margin: 0 auto; padding: 6px 24px 44px; }
+  .page__head { display: flex; align-items: flex-start; gap: 14px; flex-wrap: wrap; margin-bottom: 14px; }
+  .page__title { margin: 0; font-size: 19px; letter-spacing: .05em; }
+  .page__desc { margin: 4px 0 0; font-size: 12px; color: var(--kui-text-2, #cbb8c0); }
+  .page__meta { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip { font-size: 11px; color: var(--kui-text-2, #cbb8c0); border: 1px solid var(--kui-border, #2a1f26); background: var(--kui-bg-1, #141018); border-radius: 999px; padding: 3px 10px; }
+  .chip--gold { color: var(--kui-accent-2, #d4af37); border-color: var(--kui-accent-2, #d4af37); }
+  .tip { border: 1px solid var(--kui-accent-2, #d4af37); background: linear-gradient(120deg, var(--kui-bg-1, #141018), var(--kui-bg-2, #1d141d)); border-radius: 10px; padding: 12px 16px; margin-bottom: 14px; font-size: 12px; color: var(--kui-text-2, #cbb8c0); }
+  .tip b { color: var(--kui-accent-2, #d4af37); }
+  .tip code { font-family: var(--kui-font-mono, Consolas, monospace); font-size: 11px; color: var(--kui-accent-3, #8ee6d6); }
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+  .theme-card { position: relative; display: flex; flex-direction: column; gap: 8px; text-align: left; cursor: pointer; min-height: 140px; padding: 15px; border-radius: 12px; border: 1px solid var(--kui-border, #2a1f26); overflow: hidden; transition: transform .16s ease, box-shadow .16s ease, outline-color .16s ease; }
+  .theme-card:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0,0,0,.45); }
+  .theme-card.is-active { outline: 2px solid var(--kui-accent-2, #d4af37); outline-offset: 2px; }
+  .theme-card > * { position: relative; z-index: 1; }
+  .theme-card__art { opacity: .5; z-index: 0 !important; }
+  .theme-card__name { font-size: 15px; font-weight: 700; letter-spacing: .04em; }
+  .theme-card__id { font-family: var(--kui-font-mono, Consolas, monospace); font-size: 11px; opacity: .8; }
+  .theme-card__desc { font-size: 12px; line-height: 1.6; opacity: .9; }
+  .theme-card__foot { display: flex; align-items: center; gap: 6px; margin-top: auto; font-size: 11px; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(255,255,255,.35); display: inline-block; }
+  .badge { margin-left: auto; font-size: 10px; padding: 1px 8px; border-radius: 999px; border: 1px solid currentColor; }
+  .panel { border: 1px solid var(--kui-border, #2a1f26); background: var(--kui-bg-1, #141018); border-radius: 10px; padding: 14px 16px; margin-top: 16px; }
+  .panel h2 { margin: 0 0 10px; font-size: 13px; letter-spacing: .06em; }
+  .panel h2 span { font-size: 11px; font-weight: 400; color: var(--kui-text-3, #9a8b93); margin-left: 6px; }
+  .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+  .swatch { display: flex; align-items: center; gap: 8px; border: 1px solid var(--kui-border, #2a1f26); border-radius: 8px; padding: 7px 9px; background: var(--kui-bg-0, #08050a); min-width: 0; }
+  .swatch i { display: block; width: 16px; height: 16px; border-radius: 4px; border: 1px solid rgba(255,255,255,.22); flex: 0 0 auto; }
+  .swatch b { font-family: var(--kui-font-mono, Consolas, monospace); font-size: 10px; font-weight: 400; color: var(--kui-text-2, #cbb8c0); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .demo-samples { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .btn { height: 30px; padding: 0 13px; cursor: pointer; font-size: 12px; border-radius: 6px; color: var(--kui-text-1, #f5e9ee); background: var(--kui-control-bg, #1b141c); border: 1px solid var(--kui-control-border, #3a2b33); }
+  .btn:hover { border-color: var(--kui-accent, #e11d48); color: var(--kui-accent, #e11d48); }
+  .btn--primary { background: linear-gradient(180deg, var(--kui-accent-hover, #e11d48), var(--kui-accent, #e11d48)); border-color: var(--kui-accent, #e11d48); color: var(--kui-on-accent, var(--kui-text-inverse, #fff)); box-shadow: 0 2px 8px var(--kui-accent-glow, transparent); }
+  .btn--primary:hover { color: var(--kui-on-accent, var(--kui-text-inverse, #fff)); background: var(--kui-accent-hover, #e11d48); border-color: var(--kui-accent-hover, #e11d48); }
+  .btnrow { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .log { margin: 12px 0 0; padding: 10px 12px; min-height: 90px; max-height: 190px; overflow: auto; background: var(--kui-bg-0, #08050a); border: 1px dashed var(--kui-border, #2a1f26); border-radius: 6px; font-family: var(--kui-font-mono, Consolas, monospace); font-size: 11px; line-height: 1.7; color: var(--kui-text-2, #cbb8c0); white-space: pre-wrap; }
+  .log .is-err { color: var(--kui-danger, #ff5c7a); }
+  .log .is-ok { color: var(--kui-success, #3ecf8e); }
+</style>
+</head>
+<body>
+<main class="page">
+  <header class="page__head">
+    <div>
+      <h1 class="page__title">主题灵装</h1>
+      <p class="page__desc">六套主题在本 iframe 内实时切换预览（改的是 CSS 变量 token）；主框架的全局换肤请用顶部导航的 <code>theme.picker</code>。</p>
+    </div>
+    <div class="page__meta">
+      <span class="chip chip--gold" id="currentChip">当前：加载中…</span>
+      <span class="chip">6 套灵装</span>
+    </div>
+  </header>
+
+  <div class="tip">
+    <b>验证点：</b>① 点击卡片，本页背景/文字/强调色立即变化，卡片高亮同步；② 下方 token 色板实时反映当前值；③ 切到其他标签再回来，预览主题保持（iframe 未重建）；④ 主框架换肤后本页会收到 <code>theme:change</code> 并覆盖为全局主题。数据来自 <code>config/demos/theme.json</code> + <code>src/themes.json</code>。
+  </div>
+
+  <div class="cards" id="cardsHost"><div style="font-size:12px;color:var(--kui-text-3,#9a8b93)">正在加载主题数据…</div></div>
+
+  <section class="panel">
+    <h2>当前主题 token 色板 <span id="tokenSource">来源：src/themes.json</span></h2>
+    <div class="swatches" id="swatches"></div>
+    <div class="btnrow">
+      <button class="btn btn--primary" id="btnReset">恢复父级主题</button>
+      <button class="btn" id="btnReload">重新读取 JSON</button>
+      <button class="btn" id="btnPrev">上一个</button>
+      <button class="btn" id="btnNext">下一个</button>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>换肤后的控件观感 <span>同一份 JSON，不同主题 token</span></h2>
+    <div class="demo-samples" id="samples"></div>
+  </section>
+
+  <section class="panel">
+    <h2>日志</h2>
+    <pre class="log" id="logEl">// 主题日志</pre>
+  </section>
+</main>
+
+<script src="../src/core/kui-all.js" data-kui-profile="standalone"></script>
+<script>
+(function () {
+  'use strict';
+  var KUI = window.KUI || {};
+  var frame = KUI.frame || null;
+  var logEl = document.getElementById('logEl');
+  var cardsHost = document.getElementById('cardsHost');
+  var themesData = null;
+  var demosData = null;
+  var parentThemeId = '';
+  var localId = '';
+
+  var FALLBACK_CARDS = [
+    { id: 'kurumi', name: '绯红刻刻帝', desc: '暗夜绯红 + 鎏金 · 默认灵装', scheme: 'dark', preview: { bg: '#08050a', accent: '#c8102e', accent2: '#d4af37', text: '#f5e9ee' } },
+    { id: 'kurumi-angel', name: '白羽灵装', desc: '银白 + 淡金 + 血色点缀', scheme: 'light', preview: { bg: '#f4f2f5', accent: '#a3172f', accent2: '#c9a86a', text: '#241820' } },
+    { id: 'starry', name: '星夜观测', desc: '深空蓝紫 + 青色辉光', scheme: 'dark', preview: { bg: '#070a14', accent: '#4f7cff', accent2: '#2ee6d6', text: '#e8eefc' } },
+    { id: 'sakura', name: '樱雾通灵', desc: '粉紫 + 玫瑰金', scheme: 'dark', preview: { bg: '#140a12', accent: '#e05a9b', accent2: '#e8b48a', text: '#ffe9f3' } },
+    { id: 'abyss', name: '深渊刻印', desc: '墨绿黑 + 青铜', scheme: 'dark', preview: { bg: '#050a08', accent: '#2f9e7a', accent2: '#b08d57', text: '#e6f3ec' } },
+    { id: 'dawn', name: '黎明绯光', desc: '浅色暖白 + 绯红 + 金', scheme: 'light', preview: { bg: '#fbf7f2', accent: '#c8102e', accent2: '#b8860b', text: '#2a1a1e' } }
+  ];
+  var FALLBACK_TOKENS = {
+    kurumi: { '--kui-bg-0': '#08050a', '--kui-bg-1': '#141018', '--kui-bg-2': '#1d141d', '--kui-text-1': '#f5e9ee', '--kui-text-2': '#cbb8c0', '--kui-accent': '#c8102e', '--kui-accent-2': '#d4af37', '--kui-border': '#2a1f26' },
+    'kurumi-angel': { '--kui-bg-0': '#f4f2f5', '--kui-bg-1': '#ffffff', '--kui-bg-2': '#efe9ee', '--kui-text-1': '#241820', '--kui-text-2': '#5c4a54', '--kui-accent': '#a3172f', '--kui-accent-2': '#c9a86a', '--kui-border': '#d9cfd6' },
+    starry: { '--kui-bg-0': '#070a14', '--kui-bg-1': '#0e1424', '--kui-bg-2': '#161e33', '--kui-text-1': '#e8eefc', '--kui-text-2': '#a9b6d6', '--kui-accent': '#4f7cff', '--kui-accent-2': '#2ee6d6', '--kui-border': '#1e2a44' },
+    sakura: { '--kui-bg-0': '#140a12', '--kui-bg-1': '#1e0f1a', '--kui-bg-2': '#2a1622', '--kui-text-1': '#ffe9f3', '--kui-text-2': '#d3a8bd', '--kui-accent': '#e05a9b', '--kui-accent-2': '#e8b48a', '--kui-border': '#38202d' },
+    abyss: { '--kui-bg-0': '#050a08', '--kui-bg-1': '#0b1310', '--kui-bg-2': '#12201a', '--kui-text-1': '#e6f3ec', '--kui-text-2': '#a6c3b4', '--kui-accent': '#2f9e7a', '--kui-accent-2': '#b08d57', '--kui-border': '#1a2c24' },
+    dawn: { '--kui-bg-0': '#fbf7f2', '--kui-bg-1': '#ffffff', '--kui-bg-2': '#f3ece3', '--kui-text-1': '#2a1a1e', '--kui-text-2': '#6b5a55', '--kui-accent': '#c8102e', '--kui-accent-2': '#b8860b', '--kui-border': '#e4d8ca' }
+  };
+
+  function log(text, kind) {
+    var line = document.createElement('div');
+    if (kind === 'err') line.className = 'is-err';
+    if (kind === 'ok') line.className = 'is-ok';
+    line.textContent = '[' + new Date().toLocaleTimeString() + '] ' + text;
+    logEl.appendChild(line);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+  function ready(fn) {
+    if (frame && typeof frame.ready === 'function') {
+      try { frame.ready(fn); return; } catch (e) { /* 独立打开 */ }
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn);
+    else fn();
+  }
+  function iconSvg(name) {
+    if (KUI.icons && typeof KUI.icons.svg === 'function') { try { return KUI.icons.svg(name); } catch (e) { return ''; } }
+    return '';
+  }
+
+  function applyTokens(tokens) {
+    if (KUI.theme && typeof KUI.theme.applyTokens === 'function') {
+      KUI.theme.applyTokens(tokens);
+      return;
+    }
+    var root = document.documentElement;
+    for (var k in tokens) { if (Object.prototype.hasOwnProperty.call(tokens, k)) root.style.setProperty(k, tokens[k]); }
+  }
+
+  function currentTokens() {
+    var data = (KUI.theme && KUI.theme.currentTokens) ? KUI.theme.currentTokens() : null;
+    if (data && Object.keys(data).length) return data;
+    return FALLBACK_TOKENS[localId] || {};
+  }
+
+  function renderSwatches() {
+    var host = document.getElementById('swatches');
+    var tokens = currentTokens();
+    host.innerHTML = '';
+    var keys = Object.keys(tokens);
+    if (!keys.length) { host.innerHTML = '<span style="font-size:12px;color:var(--kui-text-3,#9a8b93)">暂无 token 数据</span>'; return; }
+    for (var i = 0; i < keys.length; i++) {
+      var k = keys[i];
+      if (k.indexOf('--kui-') !== 0) continue;
+      var cell = document.createElement('div');
+      cell.className = 'swatch';
+      var sw = document.createElement('i');
+      sw.style.background = tokens[k];
+      var b = document.createElement('b');
+      b.textContent = k.replace('--kui-', '') + ' ' + tokens[k];
+      cell.appendChild(sw); cell.appendChild(b);
+      host.appendChild(cell);
+    }
+  }
+
+  function markCards() {
+    var cards = cardsHost.querySelectorAll('.theme-card');
+    for (var i = 0; i < cards.length; i++) {
+      cards[i].className = 'theme-card' + (cards[i].getAttribute('data-theme-id') === localId ? ' is-active' : '');
+    }
+    var chip = document.getElementById('currentChip');
+    var name = localId || '父级主题';
+    var list = (demosData && demosData.themes) || FALLBACK_CARDS;
+    for (var j = 0; j < list.length; j++) { if (list[j].id === localId) name = list[j].name; }
+    chip.textContent = '当前：' + (localId ? name + '（本地预览）' : '跟随主框架');
+  }
+
+  function applyTheme(id) {
+    localId = id;
+    if (themesData && KUI.theme && typeof KUI.theme.apply === 'function') {
+      var ok = KUI.theme.apply(id);
+      log('KUI.theme.apply("' + id + '") → ' + ok, ok === false ? 'err' : 'ok');
+      if (ok === false || ok === null) {
+        applyTokens(FALLBACK_TOKENS[id] || {});
+        document.getElementById('tokenSource').textContent = '来源：内联兜底 token';
+      } else {
+        document.getElementById('tokenSource').textContent = '来源：src/themes.json';
+      }
+    } else {
+      applyTokens(FALLBACK_TOKENS[id] || {});
+      document.getElementById('tokenSource').textContent = '来源：内联兜底 token';
+      log('themes.json 未加载，使用内联兜底 token 预览 ' + id);
+    }
+    // 内嵌在主框架时：请求父级同步切换整壳（菜单/顶栏）与其他标签 iframe
+    if (frame && typeof frame.setTheme === 'function' && frame.isFramed && frame.isFramed()) {
+      try {
+        frame.setTheme(id);
+        log('已请求父级同步整壳主题：' + id, 'ok');
+      } catch (err) {
+        log('父级主题同步失败：' + err, 'err');
+      }
+    }
+    renderSwatches();
+    markCards();
+  }
+
+  function restoreParent() {
+    localId = '';
+    if (parentThemeId && themesData && KUI.theme && KUI.theme.apply) {
+      KUI.theme.apply(parentThemeId);
+      log('恢复父级主题：' + parentThemeId, 'ok');
+    } else if (frame && typeof frame.onTheme === 'function') {
+      log('等待父级下发主题（theme:change）');
+    } else {
+      applyTokens(FALLBACK_TOKENS.kurumi);
+      log('独立打开：恢复默认 kurumi token', 'ok');
+    }
+    renderSwatches();
+    markCards();
+  }
+
+  function rawThemeById(id) {
+    if (!themesData || !themesData.themes) return null;
+    for (var i = 0; i < themesData.themes.length; i++) {
+      if (themesData.themes[i].id === id) return themesData.themes[i];
+    }
+    return null;
+  }
+
+  function renderCards(cards) {
+    cardsHost.innerHTML = '';
+    for (var i = 0; i < cards.length; i++) {
+      (function (t) {
+        var pv = t.preview || {};
+        var card = document.createElement('button');
+        card.type = 'button';
+        card.className = 'theme-card';
+        card.setAttribute('data-theme-id', t.id);
+        card.style.background = 'linear-gradient(135deg,' + (pv.bg || '#141018') + ' 0%,' + (pv.accent || '#c8102e') + ' 165%)';
+        card.style.color = pv.text || '#f5e9ee';
+        card.onclick = function () { applyTheme(t.id); };
+        var name = document.createElement('div');
+        name.className = 'theme-card__name'; name.textContent = t.name || t.id;
+        var id = document.createElement('div');
+        id.className = 'theme-card__id'; id.textContent = t.id + ' · ' + (t.scheme || 'dark');
+        var desc = document.createElement('div');
+        desc.className = 'theme-card__desc'; desc.textContent = t.desc || '';
+        var foot = document.createElement('div');
+        foot.className = 'theme-card__foot';
+        function dot(color) { var d = document.createElement('span'); d.className = 'dot'; d.style.background = color; foot.appendChild(d); }
+        dot(pv.bg || '#000'); dot(pv.accent || '#c8102e'); dot(pv.accent2 || '#d4af37');
+        var badge = document.createElement('span');
+        badge.className = 'badge'; badge.textContent = '本地预览';
+        if (t.scheme === 'light') badge.textContent = '浅色';
+        foot.appendChild(badge);
+        card.appendChild(name); card.appendChild(id); card.appendChild(desc); card.appendChild(foot);
+        var raw = rawThemeById(t.id);
+        if (raw && KUI.themeArt && typeof KUI.themeArt.preview === 'function') {
+          try { KUI.themeArt.preview(raw, card, { className: 'theme-card__art' }); } catch (e) { /* 预览装饰层可缺省 */ }
+        }
+        cardsHost.appendChild(card);
+      })(cards[i]);
+    }
+    markCards();
+  }
+
+  function mountSamples() {
+    var host = document.getElementById('samples');
+    if (!host || !KUI.renderNode) return;
+    var nodes = [
+      { type: 'button', props: { text: '确认刻印', variant: 'primary', icon: 'check' } },
+      { type: 'button', props: { text: '结界', icon: 'shield' } },
+      { type: 'tag', props: { text: '时间线', type: 'primary' } },
+      { type: 'tag', props: { text: '封印', type: 'warning' } },
+      { type: 'badge', props: { value: 6, type: 'danger' } },
+      { type: 'switch', props: { activeText: '启用', inactiveText: '停用', value: true } },
+      { type: 'progress', props: { value: 62, style: { width: '140px' } } }
+    ];
+    for (var i = 0; i < nodes.length; i++) {
+      var el = KUI.renderNode(nodes[i], null);
+      if (el) host.appendChild(el);
+    }
+  }
+
+  function loadAll(force) {
+    if (force && KUI.config.clear) { KUI.config.clear('themes'); KUI.config.clear('demos/theme'); }
+    var pThemes = KUI.config.load('themes')['catch'](function () { return null; });
+    var pDemos = KUI.config.load('demos/theme')['catch'](function () { return null; });
+    Promise.all([pThemes, pDemos]).then(function (res) {
+      themesData = res[0];
+      demosData = res[1];
+      if (themesData && themesData.themes && KUI.theme && typeof KUI.theme.init === 'function') {
+        try {
+          KUI.theme.init(themesData, { fallbackId: (themesData['default'] || 'kurumi'), storageKey: 'kui-demo-theme', persist: false, silent: true });
+          parentThemeId = (KUI.theme.currentId && KUI.theme.currentId()) || (themesData['default'] || 'kurumi');
+        } catch (e) { log('theme.init 失败：' + e.message, 'err'); }
+      } else {
+        log('themes.json 未加载（file:// 时常见）：使用内联兜底 token 预览 6 套主题');
+      }
+      var cards = (demosData && demosData.themes && demosData.themes.length) ? demosData.themes : FALLBACK_CARDS;
+      renderCards(cards);
+      renderSwatches();
+      document.getElementById('tokenSource').textContent = themesData ? '来源：src/themes.json' : '来源：内联兜底 token';
+      log('已加载 ' + cards.length + ' 套主题卡片' + (demosData ? '（config/demos/theme.json）' : '（内联兜底）'), 'ok');
+    });
+  }
+
+  ready(function () {
+    mountSamples();
+    loadAll(false);
+
+    document.getElementById('btnReset').onclick = restoreParent;
+    document.getElementById('btnReload').onclick = function () { loadAll(true); };
+    document.getElementById('btnPrev').onclick = function () {
+      var list = (demosData && demosData.themes) || FALLBACK_CARDS;
+      var idx = 0;
+      for (var i = 0; i < list.length; i++) { if (list[i].id === localId) idx = i; }
+      applyTheme(list[(idx - 1 + list.length) % list.length].id);
+    };
+    document.getElementById('btnNext').onclick = function () {
+      var list = (demosData && demosData.themes) || FALLBACK_CARDS;
+      var idx = -1;
+      for (var i = 0; i < list.length; i++) { if (list[i].id === localId) idx = i; }
+      applyTheme(list[(idx + 1) % list.length].id);
+    };
+
+    if (frame && typeof frame.on === 'function') {
+      frame.on('theme', function (theme) {
+        var id = theme && (theme.id || theme.themeId);
+        if (!id) return;
+        parentThemeId = id;
+        log('收到 theme:change：' + id + '（本页本地预览将被覆盖）');
+        if (themesData && KUI.theme && KUI.theme.apply) KUI.theme.apply(id);
+        localId = '';
+        renderSwatches();
+        markCards();
+      });
+    }
+    if (frame && typeof frame.setTitle === 'function') {
+      try { frame.setTitle('主题灵装'); } catch (e) { /* 忽略 */ }
+    }
+    if (frame && typeof frame.onTheme === 'function') {
+      try { frame.onTheme(function (t) { if (t && t.id) parentThemeId = t.id; }); } catch (e) { /* 忽略 */ }
+    }
+  });
+})();
+</script>
+</body>
+</html>
+

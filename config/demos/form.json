@@ -1,0 +1,570 @@
+{
+  "title": "表单 · form",
+  "desc": "12+ 控件 + 完整 deps 联动：单选控显隐、多选控禁用、数字阈值控提示、日期控范围。JSON 直接喂给 KUI.form.create，standalone/form.html 与 pages/form.html 共用同一份配置。",
+  "type": "form",
+  "props": {
+    "title": "刻刻帝 · 灵装回路配置",
+    "bordered": false,
+    "validateOn": "blur",
+    "layout": {
+      "columns": 2,
+      "gap": 16,
+      "labelWidth": 96,
+      "labelPosition": "left",
+      "submitAlign": "right"
+    },
+    "data": {
+      "name": "时崎狂三",
+      "deployType": "timeline",
+      "sealName": "",
+      "sealPower": 5,
+      "priority": "normal",
+      "tags": [
+        "演算",
+        "观测"
+      ],
+      "bulletCount": 3,
+      "startDate": "",
+      "endDate": "",
+      "markTime": "00:00:00",
+      "deadline": "",
+      "month": "",
+      "watchWindow": [],
+      "watchWays": [
+        "auto"
+      ],
+      "notifyWay": "inbox",
+      "mail": "",
+      "budget": 40,
+      "enableNotify": true,
+      "rating": 4,
+      "color": "#c8102e",
+      "attachment": [],
+      "privacy": false,
+      "remark": ""
+    },
+    "nodes": [
+      {
+        "id": "name",
+        "type": "input",
+        "label": "代号",
+        "required": true,
+        "help": "显示在刻印记录与观测日志中",
+        "props": {
+          "placeholder": "输入代号",
+          "clearable": true,
+          "prefixIcon": "user",
+          "maxlength": 20
+        }
+      },
+      {
+        "id": "password",
+        "type": "password",
+        "label": "灵装密钥",
+        "required": true,
+        "props": {
+          "placeholder": "至少 6 位",
+          "toggleable": true,
+          "maxlength": 32
+        },
+        "rules": [
+          {
+            "required": true,
+            "message": "灵装回路需要密钥"
+          },
+          {
+            "min": 6,
+            "max": 32,
+            "message": "密钥长度需 6 ~ 32 位"
+          }
+        ]
+      },
+      {
+        "id": "deployType",
+        "type": "radio-group",
+        "label": "部署方式",
+        "span": 2,
+        "options": [
+          {
+            "label": "时间线",
+            "value": "timeline"
+          },
+          {
+            "label": "封印结界",
+            "value": "seal"
+          },
+          {
+            "label": "自定义",
+            "value": "custom"
+          }
+        ],
+        "props": {
+          "direction": "horizontal"
+        }
+      },
+      {
+        "id": "sealName",
+        "type": "input",
+        "label": "结界名称",
+        "visible": false,
+        "deps": [
+          {
+            "when": {
+              "field": "deployType",
+              "op": "eq",
+              "value": "seal"
+            },
+            "then": {
+              "visible": true,
+              "required": true
+            }
+          }
+        ],
+        "props": {
+          "placeholder": "仅封印结界必填",
+          "clearable": true
+        }
+      },
+      {
+        "id": "sealPower",
+        "type": "number",
+        "label": "结界强度",
+        "visible": false,
+        "deps": [
+          {
+            "when": {
+              "field": "deployType",
+              "op": "eq",
+              "value": "seal"
+            },
+            "then": {
+              "visible": true
+            }
+          }
+        ],
+        "props": {
+          "min": 1,
+          "max": 10,
+          "step": 1,
+          "unit": "级",
+          "value": 5
+        }
+      },
+      {
+        "id": "priority",
+        "type": "select",
+        "label": "优先级",
+        "options": [
+          {
+            "label": "低",
+            "value": "low"
+          },
+          {
+            "label": "标准",
+            "value": "normal"
+          },
+          {
+            "label": "高",
+            "value": "high"
+          },
+          {
+            "label": "特级",
+            "value": "ultimate"
+          }
+        ],
+        "deps": [
+          {
+            "when": {
+              "field": "tags",
+              "op": "contains",
+              "value": "封印"
+            },
+            "then": {
+              "disabled": true
+            }
+          }
+        ]
+      },
+      {
+        "id": "tags",
+        "type": "multiselect",
+        "label": "战术标签",
+        "options": [
+          {
+            "label": "演算",
+            "value": "演算"
+          },
+          {
+            "label": "观测",
+            "value": "观测"
+          },
+          {
+            "label": "封印",
+            "value": "封印"
+          },
+          {
+            "label": "回溯",
+            "value": "回溯"
+          },
+          {
+            "label": "加固",
+            "value": "加固"
+          }
+        ],
+        "props": {
+          "placeholder": "可多选（含「封印」会禁用优先级）",
+          "maxTagCount": 2,
+          "clearable": true
+        }
+      },
+      {
+        "id": "sealTagTip",
+        "type": "alert",
+        "span": 2,
+        "visible": false,
+        "props": {
+          "type": "warning",
+          "message": "已选「封印」标签：优先级被锁定为当前值，如需调整请先移除该标签。",
+          "showIcon": true
+        },
+        "deps": [
+          {
+            "when": {
+              "field": "tags",
+              "op": "contains",
+              "value": "封印"
+            },
+            "then": {
+              "visible": true
+            }
+          }
+        ]
+      },
+      {
+        "id": "bulletCount",
+        "type": "number",
+        "label": "子弹数量",
+        "help": "刻刻帝一之弹 ~ 十二之弹",
+        "props": {
+          "min": 1,
+          "max": 12,
+          "step": 1,
+          "unit": "发"
+        },
+        "deps": [
+          {
+            "when": {
+              "field": "bulletCount",
+              "op": "gte",
+              "value": 10
+            },
+            "then": {
+              "error": "十之弹以上消耗极高，可能撕裂时间线"
+            }
+          },
+          {
+            "when": {
+              "field": "bulletCount",
+              "op": "lt",
+              "value": 10
+            },
+            "then": {
+              "error": ""
+            }
+          }
+        ]
+      },
+      {
+        "id": "budget",
+        "type": "slider",
+        "label": "预算比例",
+        "span": 2,
+        "props": {
+          "min": 0,
+          "max": 100,
+          "step": 5,
+          "value": 40,
+          "showTooltip": true,
+          "showStops": true
+        }
+      },
+      {
+        "id": "startDate",
+        "type": "date",
+        "label": "起始日",
+        "props": {
+          "placeholder": "选择起始日",
+          "clearable": true
+        }
+      },
+      {
+        "id": "endDate",
+        "type": "date",
+        "label": "结束日",
+        "disabled": true,
+        "props": {
+          "placeholder": "先选起始日",
+          "clearable": true
+        },
+        "deps": [
+          {
+            "when": {
+              "field": "startDate",
+              "op": "notEmpty"
+            },
+            "then": {
+              "disabled": false
+            }
+          }
+        ]
+      },
+      {
+        "id": "rangeTip",
+        "type": "alert",
+        "span": 2,
+        "visible": false,
+        "props": {
+          "type": "info",
+          "message": "已选起始日，请补充结束日以闭合观测区间。",
+          "showIcon": true
+        },
+        "deps": [
+          {
+            "when": {
+              "all": [
+                {
+                  "field": "startDate",
+                  "op": "notEmpty"
+                },
+                {
+                  "field": "endDate",
+                  "op": "empty"
+                }
+              ]
+            },
+            "then": {
+              "visible": true
+            }
+          }
+        ]
+      },
+      {
+        "id": "markTime",
+        "type": "time",
+        "label": "刻印时刻",
+        "props": {
+          "format": "HH:mm:ss",
+          "valueFormat": "HH:mm:ss",
+          "clearable": true
+        }
+      },
+      {
+        "id": "deadline",
+        "type": "datetime",
+        "label": "截止时间",
+        "props": {
+          "clearable": true,
+          "showSeconds": true
+        }
+      },
+      {
+        "id": "month",
+        "type": "month",
+        "label": "观测月度",
+        "props": {
+          "format": "YYYY-MM",
+          "valueFormat": "YYYY-MM",
+          "clearable": true
+        }
+      },
+      {
+        "id": "watchWindow",
+        "type": "daterange",
+        "label": "观测窗口",
+        "span": 2,
+        "props": {
+          "separator": " ~ ",
+          "startPlaceholder": "窗口开始",
+          "endPlaceholder": "窗口结束",
+          "clearable": true
+        }
+      },
+      {
+        "id": "watchWays",
+        "type": "checkbox-group",
+        "label": "观测方式",
+        "span": 2,
+        "options": [
+          {
+            "label": "自动观测",
+            "value": "auto"
+          },
+          {
+            "label": "人工复核",
+            "value": "manual"
+          },
+          {
+            "label": "定时回溯",
+            "value": "cron"
+          },
+          {
+            "label": "异常告警",
+            "value": "alert"
+          }
+        ],
+        "props": {
+          "direction": "horizontal"
+        }
+      },
+      {
+        "id": "notifyWay",
+        "type": "select",
+        "label": "提醒通道",
+        "options": [
+          {
+            "label": "站内提醒",
+            "value": "inbox"
+          },
+          {
+            "label": "时间回溯讯号",
+            "value": "signal"
+          },
+          {
+            "label": "邮件",
+            "value": "mail"
+          }
+        ],
+        "deps": [
+          {
+            "when": {
+              "field": "watchWays",
+              "op": "contains",
+              "value": "alert"
+            },
+            "then": {
+              "required": true
+            }
+          }
+        ]
+      },
+      {
+        "id": "mail",
+        "type": "input",
+        "label": "接收邮箱",
+        "visible": false,
+        "deps": [
+          {
+            "when": {
+              "field": "notifyWay",
+              "op": "eq",
+              "value": "mail"
+            },
+            "then": {
+              "visible": true,
+              "required": true
+            }
+          }
+        ],
+        "props": {
+          "placeholder": "观测报告将发送到此邮箱",
+          "clearable": true
+        },
+        "rules": [
+          {
+            "type": "email",
+            "message": "请输入合法邮箱"
+          }
+        ]
+      },
+      {
+        "id": "enableNotify",
+        "type": "switch",
+        "label": "开启提醒",
+        "props": {
+          "activeText": "开启",
+          "inactiveText": "关闭"
+        }
+      },
+      {
+        "id": "rating",
+        "type": "rating",
+        "label": "灵装契合度",
+        "props": {
+          "max": 5,
+          "showText": true,
+          "allowHalf": false
+        }
+      },
+      {
+        "id": "color",
+        "type": "color",
+        "label": "主题色",
+        "props": {
+          "format": "hex",
+          "showInput": true,
+          "clearable": true
+        }
+      },
+      {
+        "id": "attachment",
+        "type": "upload",
+        "label": "灵装图纸",
+        "props": {
+          "multiple": true,
+          "maxCount": 3,
+          "dragger": true,
+          "tip": "支持 PNG / SVG / JSON，最多 3 个文件",
+          "listType": "text"
+        }
+      },
+      {
+        "id": "privacy",
+        "type": "checkbox",
+        "span": 2,
+        "required": true,
+        "props": {
+          "text": "我已阅读并遵守《时间结界使用规范》"
+        },
+        "rules": [
+          {
+            "required": true,
+            "message": "请先阅读并勾选使用规范"
+          }
+        ]
+      },
+      {
+        "id": "remark",
+        "type": "textarea",
+        "label": "备注",
+        "span": 2,
+        "props": {
+          "rows": 3,
+          "maxlength": 200,
+          "showCount": true,
+          "placeholder": "记录这次灵装回路的特殊约定…"
+        }
+      },
+      {
+        "id": "sealDivider",
+        "type": "divider",
+        "span": 2,
+        "props": {
+          "text": "刻印确认",
+          "dashed": false,
+          "position": "center"
+        }
+      },
+      {
+        "id": "sealIntro",
+        "type": "alert",
+        "span": 2,
+        "props": {
+          "type": "info",
+          "showIcon": true,
+          "title": "联动说明",
+          "message": "本示例演示 4 类 deps：① 单选 deployType 控显隐；② tags 含「封印」控 priority 禁用；③ bulletCount 阈值控错误提示；④ startDate 控 endDate 可用的日期范围。"
+        }
+      }
+    ]
+  }
+}

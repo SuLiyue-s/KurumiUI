@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>fixture: 内联脚本兼容性样本</title>
+</head>
+<body>
+  <h1>内联脚本</h1>
+  <script>
+    var opt = window.data?.value;
+    var nul = opt ?? 'default';
+  </script>
+  <script src="./external.js"></script>
+  <script type="module">
+    import x from './x.js';
+    export default x;
+  </script>
+  <script>
+    var plain = 1 + 1;
+  </script>
+</body>
+</html>

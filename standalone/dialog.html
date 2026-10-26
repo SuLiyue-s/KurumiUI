@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <!-- 主题预置：首帧前写入当前主题 token，防 FOUC 闪烁（由 .tools/patch-theme-boot.js 注入） -->
+  <script src="../src/core/theme-boot.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>dialog · 弹窗独立渲染 | KurumiUI</title>
+<link rel="stylesheet" href="../src/styles/base.css">
+<link rel="stylesheet" href="../src/styles/controls.css">
+<link rel="stylesheet" href="../src/styles/components.css">
+<link rel="stylesheet" href="../src/styles/tooltip.css">
+<style>
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--kui-bg-0, #08050a); color: var(--kui-text-1, #f5e9ee); font-family: var(--kui-font-family, "Microsoft YaHei", "PingFang SC", sans-serif); }
+  .demo-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 18px; border-bottom: 1px solid var(--kui-border, #2a1f26); background: var(--kui-bg-1, #141018); flex-wrap: wrap; }
+  .demo-bar__title { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+  .demo-bar__title strong { font-size: 16px; letter-spacing: .04em; }
+  .demo-tag { padding: 2px 8px; border-radius: 999px; font-size: 11px; color: var(--kui-accent-2, #d4af37); border: 1px solid var(--kui-accent-2, #d4af37); }
+  .demo-bar__ops { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .demo-bar select { background: var(--kui-control-bg, #1b141c); color: var(--kui-text-1, #f5e9ee); border: 1px solid var(--kui-control-border, #3a2b33); border-radius: 6px; height: 30px; padding: 0 8px; outline: none; }
+  .demo-nav { display: flex; gap: 6px; flex-wrap: wrap; }
+  .demo-nav a { color: var(--kui-text-2, #cbb8c0); text-decoration: none; font-size: 12px; padding: 4px 9px; border-radius: 999px; border: 1px solid transparent; }
+  .demo-nav a:hover { color: var(--kui-text-1); border-color: var(--kui-accent); }
+  .demo-nav a.is-current { color: var(--kui-text-1); border-color: var(--kui-accent); background: var(--kui-accent-soft); font-weight: 600; }
+  .demo-main { padding: 18px; display: grid; gap: 12px; }
+  .demo-panel { background: var(--kui-bg-1, #141018); border: 1px solid var(--kui-border, #2a1f26); border-radius: var(--kui-radius-lg, 10px); padding: 14px; }
+  .demo-panel__title { font-size: 13px; color: var(--kui-accent-2, #d4af37); margin: 0 0 10px; letter-spacing: .08em; }
+  .demo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+  .demo-card { display: flex; flex-direction: column; gap: 8px; background: var(--kui-bg-1, #141018); border: 1px solid var(--kui-border, #2a1f26); border-radius: var(--kui-radius-md, 6px); padding: 12px; }
+  .demo-card h3 { margin: 0; font-size: 13px; }
+  .demo-card p { margin: 0; font-size: 12px; line-height: 1.7; color: var(--kui-text-2, #cbb8c0); }
+  .demo-card__meta { font-family: var(--kui-font-mono, Consolas, monospace); font-size: 11px; color: var(--kui-accent-3, #8ee6d6); }
+  .demo-card__foot { margin-top: auto; display: flex; gap: 8px; }
+  .demo-btn { height: 30px; padding: 0 12px; cursor: pointer; font-size: 12px; color: var(--kui-text-1, #f5e9ee); background: var(--kui-control-bg, #1b141c); border: 1px solid var(--kui-control-border, #3a2b33); border-radius: 6px; }
+    .demo-btn:not(.demo-btn--primary):hover { border-color: var(--kui-accent); color: var(--kui-text-1); background: var(--kui-control-bg-hover); }
+  .demo-btn--primary { background: linear-gradient(180deg, var(--kui-accent-hover), var(--kui-accent)); border-color: var(--kui-accent); color: var(--kui-on-accent, var(--kui-text-inverse)); }
+  .demo-btn--primary:hover { background: var(--kui-accent-hover); border-color: var(--kui-accent-hover); color: var(--kui-on-accent, var(--kui-text-inverse)); }
+  .demo-log { margin: 0; padding: 10px 12px; min-height: 110px; max-height: 220px; overflow: auto; background: var(--kui-bg-0, #08050a); border: 1px dashed var(--kui-border, #2a1f26); border-radius: 6px; font-family: var(--kui-font-mono, Consolas, monospace); font-size: 11px; line-height: 1.7; color: var(--kui-text-2, #cbb8c0); white-space: pre-wrap; }
+  .demo-log .is-err { color: var(--kui-danger, #ff5c7a); }
+  .demo-error { color: var(--kui-danger, #ff5c7a); font-size: 12px; padding: 10px; }
+</style>
+</head>
+<body data-kui-auto="false">
+<header class="demo-bar">
+  <div class="demo-bar__title">
+    <span class="demo-tag">独立渲染</span>
+    <strong>dialog</strong>
+    <span>alert / confirm / prompt / form / custom + 嵌套弹窗</span>
+  </div>
+  <div class="demo-bar__ops">
+    <nav class="demo-nav" id="demoNav"></nav>
+    <label>主题 <select data-kui-native id="kuiThemeSwitch"><option value="kurumi">绯红刻刻帝</option></select></label>
+  </div>
+</header>
+<main class="demo-main">
+  <section class="demo-panel">
+    <h2 class="demo-panel__title">CONFIG / config/demos/dialog.json — 点击卡片按钮运行对应方法</h2>
+    <div class="demo-grid" id="dialogDemos"><div class="demo-error">正在加载 config/demos/dialog.json …</div></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+      <button class="demo-btn" id="btnCloseAll">closeAll() 关闭全部</button>
+      <button class="demo-btn" id="btnReload">重新读取 JSON</button>
+    </div>
+  </section>
+  <section class="demo-panel">
+    <h2 class="demo-panel__title">返回值 / 日志（Promise 解析结果会记录在这里）</h2>
+    <pre class="demo-log" id="demoLog">// 操作日志</pre>
+  </section>
+  <section class="demo-grid">
+    <div class="demo-card"><h3>方法约定</h3><p><code>alert</code>→Promise&lt;void&gt;、<code>confirm</code>→Promise&lt;boolean&gt;、<code>prompt</code>→Promise&lt;string|null&gt;、<code>form</code>→Promise&lt;object|null&gt;、<code>custom</code>→Promise&lt;any&gt;。</p></div>
+    <div class="demo-card"><h3>公共 config 字段</h3><p><code>title/type/icon/width/height/maxWidth/maskClosable/closeOnEsc/closable/draggable/layer/parentId/className/theme/loading/okText/cancelText</code>；custom 额外支持 <code>nodes</code> 与 <code>actions[]</code>。</p></div>
+    <div class="demo-card"><h3>嵌套与跨 iframe</h3><p>弹窗可层层打开；iframe 内调用会自动转发给父级主框架，并回传结果（本页是独立页，直接在本地打开）。</p></div>
+  </section>
+</main>
+<script src="embedded.js"></script>
+<script src="../src/core/kui-all.js" data-kui-profile="standalone"></script>
+<script>
+(function () {
+  'use strict';
+  var KUI = window.KUI;
+  var logEl = document.getElementById('demoLog');
+  var grid = document.getElementById('dialogDemos');
+  var PAGES = ['menu', 'menunav', 'tabs', 'dialog', 'toast', 'form', 'controls', 'theme', 'no-shell'];
+
+  function log(text, isError) {
+    var line = document.createElement('div');
+    if (isError) line.className = 'is-err';
+    line.textContent = '[' + new Date().toLocaleTimeString() + '] ' + text;
+    logEl.appendChild(line);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+  function nav() {
+    var box = document.getElementById('demoNav');
+    for (var i = 0; i < PAGES.length; i++) {
+      var a = document.createElement('a');
+      a.href = PAGES[i] + '.html';
+      a.textContent = PAGES[i];
+      if (PAGES[i] === 'dialog') a.className = 'is-current';
+      box.appendChild(a);
+    }
+  }
+  function fillThemeSelect() {
+    var sel = document.getElementById('kuiThemeSwitch');
+    var list = (KUI.theme && KUI.theme.list) ? KUI.theme.list() : [];
+    if (!list.length) return;
+    sel.innerHTML = '';
+    for (var i = 0; i < list.length; i++) {
+      var opt = document.createElement('option');
+      opt.value = list[i].id;
+      opt.textContent = list[i].name + '（' + list[i].id + '）';
+      sel.appendChild(opt);
+    }
+    sel.value = (KUI.theme.currentId && KUI.theme.currentId()) || list[0].id;
+    sel.onchange = function () { KUI.theme.apply(sel.value); };
+  }
+  function initTheme() {
+    KUI.config.load('themes').then(function (data) {
+      if (data && data.themes && KUI.theme.init) {
+        KUI.theme.init(data, { fallbackId: 'kurumi', storageKey: 'kui-demo-theme', persist: true, silent: true });
+      }
+      fillThemeSelect();
+    })['catch'](function () { fillThemeSelect(); });
+  }
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+
+  /* 注册 JSON 里引用的自定义动作（真实项目里可放在任意业务脚本中） */
+  function registerDemoActions() {
+    if (!KUI.actions || !KUI.actions.register) return;
+    KUI.actions.register('demo.trace', function () {
+      log('动作 demo.trace 已触发（custom 弹窗里 close:false 的自定义按钮）');
+      if (KUI.toast) KUI.toast.info({ title: '记录动作', message: 'demo.trace 已写入时间线历史。' });
+      return true;
+    });
+    KUI.actions.register('demo.nested', function () {
+      var p1 = KUI.dialog.confirm({
+        id: 'nest-confirm',
+        type: 'warning',
+        icon: 'question',
+        title: '嵌套确认（第 2 层）',
+        message: '确认后会在当前弹窗之上再开一层表单（第 3 层）。',
+        okText: '继续',
+        cancelText: '返回'
+      });
+      p1.then(function (ok) {
+        log('第 2 层 confirm 返回：' + ok);
+        if (!ok) return;
+        var p2 = KUI.dialog.form({
+          id: 'nest-form',
+          type: 'info',
+          icon: 'edit',
+          title: '嵌套表单（第 3 层）',
+          width: 480,
+          okText: '提交',
+          cancelText: '取消',
+          data: { sealName: '刻刻帝 · 三之弹', level: 'nested' },
+          nodes: [
+            { id: 'sealName', type: 'input', label: '刻印名称', required: true },
+            { id: 'level', type: 'select', label: '层级', options: [
+              { label: '第一层', value: 'first' },
+              { label: '第二层', value: 'second' },
+              { label: '第三层', value: 'nested' }
+            ] }
+          ]
+        });
+        p2.then(function (values) {
+          log('第 3 层 form 返回：' + JSON.stringify(values));
+          if (values && KUI.toast) KUI.toast.success({ title: '嵌套完成', message: '已提交：' + (values.sealName || '') });
+        });
+      });
+      return true;
+    });
+  }
+
+  function runDemo(demo) {
+    var method = demo.method || 'alert';
+    var fn = KUI.dialog && KUI.dialog[method];
+    if (typeof fn !== 'function') {
+      log('KUI.dialog.' + method + ' 不可用：请确认 src/components/dialog.js 已加载', true);
+      return;
+    }
+    var cfg = clone(demo.config || {});
+    log('调用 KUI.dialog.' + method + '("' + (cfg.title || demo.id) + '")');
+    var ret = fn(cfg);
+    if (ret && typeof ret.then === 'function') {
+      ret.then(function (value) {
+        if (typeof value === 'boolean' || typeof value === 'string') {
+          log(method + ' 返回：' + JSON.stringify(value));
+        } else if (value && typeof value === 'object') {
+          log(method + ' 返回对象：' + JSON.stringify(value));
+        } else {
+          log(method + ' 已关闭（无返回值）');
+        }
+      })['catch'](function (err) {
+        log(method + ' 异常：' + (err && err.message ? err.message : err), true);
+      });
+    }
+  }
+
+  function renderDemos(data) {
+    grid.innerHTML = '';
+    var demos = (data && data.demos) || [];
+    if (!demos.length) {
+      grid.innerHTML = '<div class="demo-error">config/demos/dialog.json 里没有 demos 数组。</div>';
+      return;
+    }
+    for (var i = 0; i < demos.length; i++) {
+      (function (demo) {
+        var card = document.createElement('div');
+        card.className = 'demo-card';
+        var h = document.createElement('h3');
+        h.textContent = demo.label || demo.id;
+        var meta = document.createElement('div');
+        meta.className = 'demo-card__meta';
+        meta.textContent = 'KUI.dialog.' + (demo.method || 'alert') + '()';
+        var p = document.createElement('p');
+        p.textContent = demo.desc || '';
+        var foot = document.createElement('div');
+        foot.className = 'demo-card__foot';
+        var btn = document.createElement('button');
+        btn.className = 'demo-btn demo-btn--primary';
+        btn.textContent = '运行';
+        btn.onclick = function () { runDemo(demo); };
+        foot.appendChild(btn);
+        card.appendChild(h);
+        card.appendChild(meta);
+        card.appendChild(p);
+        card.appendChild(foot);
+        grid.appendChild(card);
+      })(demos[i]);
+    }
+  }
+
+  function load(force) {
+    if (force && KUI.config.clear) KUI.config.clear('demos/dialog');
+    KUI.config.load('demos/dialog', force ? { force: true } : null).then(function (data) {
+      if (!data) {
+        grid.innerHTML = '<div class="demo-error">未找到 config/demos/dialog.json，请先运行 npm run build:config。</div>';
+        return;
+      }
+      renderDemos(data);
+      log('已加载 ' + ((data.demos || []).length) + ' 个弹窗 demo');
+    })['catch'](function (err) { log('加载失败：' + (err && err.message ? err.message : err), true); });
+  }
+
+  document.getElementById('btnCloseAll').onclick = function () {
+    if (KUI.dialog && KUI.dialog.closeAll) { KUI.dialog.closeAll(); log('closeAll()'); }
+  };
+  document.getElementById('btnReload').onclick = function () { load(true); };
+
+  nav();
+  initTheme();
+  registerDemoActions();
+  load(false);
+})();
+</script>
+</body>
+</html>
+

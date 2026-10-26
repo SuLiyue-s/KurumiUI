@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <!-- 主题预置：首帧前写入当前主题 token，防 FOUC 闪烁（由 .tools/patch-theme-boot.js 注入） -->
+  <script src="../src/core/theme-boot.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>首页 · 刻刻帝终端 | KurumiUI</title>
+<link rel="stylesheet" href="../src/styles/base.css">
+<link rel="stylesheet" href="../src/styles/controls.css">
+<link rel="stylesheet" href="../src/styles/components.css">
+<link rel="stylesheet" href="../src/styles/tooltip.css">
+<style>
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    background: var(--kui-bg-0, #08050a); color: var(--kui-text-1, #f5e9ee);
+    font-family: var(--kui-font-family, "Microsoft YaHei", "PingFang SC", sans-serif);
+    font-size: 13px; line-height: 1.7;
+  }
+  .home { padding: 6px 24px 40px; max-width: 1180px; margin: 0 auto; }
+  .hero {
+    position: relative; overflow: hidden; display: flex; align-items: center; gap: 18px;
+    padding: 24px 26px; border-radius: 12px; border: 1px solid var(--kui-border, #2a1f26);
+    background:
+      radial-gradient(120% 160% at 100% 0%, var(--kui-accent-soft, rgba(200,16,46,.16)) 0%, transparent 58%),
+      linear-gradient(120deg, var(--kui-bg-1, #141018), var(--kui-bg-2, #1d141d));
+  }
+  .hero__mark { flex: 0 0 auto; width: 62px; height: 62px; display: flex; align-items: center; justify-content: center; border-radius: 16px; border: 1px solid var(--kui-accent-2, #d4af37); color: var(--kui-accent, #e11d48); background: var(--kui-bg-0, #08050a); box-shadow: 0 0 24px var(--kui-accent-soft, rgba(200,16,46,.2)); }
+  .hero__mark svg { width: 34px; height: 34px; }
+  .hero__body { min-width: 0; }
+  .hero__eyebrow { font-size: 11px; letter-spacing: .22em; color: var(--kui-accent-2, #d4af37); }
+  .hero__title { margin: 4px 0 2px; font-size: 24px; letter-spacing: .06em; }
+  .hero__sub { margin: 0; color: var(--kui-text-2, #cbb8c0); font-size: 13px; }
+  .hero__meta { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+  .chip { font-size: 11px; color: var(--kui-text-2, #cbb8c0); border: 1px solid var(--kui-border, #2a1f26); background: var(--kui-bg-0, #08050a); border-radius: 999px; padding: 3px 10px; white-space: nowrap; }
+  .chip--gold { color: var(--kui-accent-2, #d4af37); border-color: var(--kui-accent-2, #d4af37); }
+  h2.section { display: flex; align-items: center; gap: 10px; margin: 26px 0 12px; font-size: 14px; letter-spacing: .1em; color: var(--kui-text-1, #f5e9ee); }
+  h2.section::before { content: ""; width: 3px; height: 14px; background: var(--kui-accent, #e11d48); border-radius: 2px; box-shadow: 0 0 10px var(--kui-accent, #e11d48); }
+  h2.section small { font-size: 11px; font-weight: 400; letter-spacing: .04em; color: var(--kui-text-3, #9a8b93); }
+  .grid { display: grid; gap: 12px; }
+  .grid--3 { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+  .grid--4 { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); margin-top: 14px; }
+  .ov { display: flex; flex-direction: column; gap: 2px; padding: 12px 16px; border-left: 3px solid var(--kui-accent, #e11d48); }
+  .ov b { font-size: 24px; letter-spacing: .02em; color: var(--kui-text-1, #f5e9ee); }
+  .ov span { font-size: 12px; color: var(--kui-accent-2, #d4af37); }
+  .ov small { font-size: 10px; color: var(--kui-text-3, #9a8b93); }
+  .grid--2 { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+  .card { border: 1px solid var(--kui-border, #2a1f26); background: var(--kui-bg-1, #141018); border-radius: 10px; padding: 14px 16px; }
+  .card__head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 13px; }
+  .card__head svg { width: 15px; height: 15px; color: var(--kui-accent-2, #d4af37); }
+  .card__desc { margin: 0; font-size: 12px; color: var(--kui-text-2, #cbb8c0); }
+  .card--link { cursor: pointer; transition: border-color .15s ease, transform .15s ease; }
+  .card--link:hover { border-color: var(--kui-accent, #e11d48); transform: translateY(-1px); }
+  .card--link .card__go { margin-top: 10px; font-size: 12px; color: var(--kui-accent, #e11d48); }
+  .preview-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; padding: 6px 0; }
+  .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+  .swatch { display: flex; align-items: center; gap: 8px; border: 1px solid var(--kui-border, #2a1f26); border-radius: 8px; padding: 7px 9px; background: var(--kui-bg-0, #08050a); min-width: 0; }
+  .swatch i { display: block; width: 16px; height: 16px; border-radius: 4px; border: 1px solid rgba(255,255,255,.22); flex: 0 0 auto; }
+  .swatch b { font-family: var(--kui-font-mono, Consolas, monospace); font-size: 10px; font-weight: 400; color: var(--kui-text-2, #cbb8c0); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .steps { margin: 0; padding-left: 18px; font-size: 12px; color: var(--kui-text-2, #cbb8c0); }
+  .steps li { margin: 3px 0; }
+  .steps code, .card__desc code { font-family: var(--kui-font-mono, Consolas, monospace); font-size: 11px; color: var(--kui-accent-3, #8ee6d6); }
+  .btnrow { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .btn { height: 30px; padding: 0 13px; cursor: pointer; font-size: 12px; border-radius: 6px; color: var(--kui-text-1, #f5e9ee); background: var(--kui-control-bg, #1b141c); border: 1px solid var(--kui-control-border, #3a2b33); }
+  .btn:hover { border-color: var(--kui-accent, #e11d48); color: var(--kui-accent, #e11d48); }
+  .btn--primary { background: linear-gradient(180deg, var(--kui-accent-hover, #e11d48), var(--kui-accent, #e11d48)); border-color: var(--kui-accent, #e11d48); color: var(--kui-on-accent, var(--kui-text-inverse, #fff)); box-shadow: 0 2px 8px var(--kui-accent-glow, transparent); }
+  .btn--primary:hover { color: var(--kui-on-accent, var(--kui-text-inverse, #fff)); background: var(--kui-accent-hover, #e11d48); border-color: var(--kui-accent-hover, #e11d48); }
+  .note { font-size: 11px; color: var(--kui-text-3, #9a8b93); margin-top: 8px; }
+  @media (max-width: 720px) { .hero { flex-wrap: wrap; } .hero__meta { margin-left: 0; width: 100%; justify-content: flex-start; } }
+</style>
+</head>
+<body>
+<main class="home">
+  <section class="hero">
+    <div class="hero__mark" id="heroMark">◷</div>
+    <div class="hero__body">
+      <div class="hero__eyebrow">KURUMI UI · CONFIG-DRIVEN</div>
+      <h1 class="hero__title">刻刻帝终端</h1>
+      <p class="hero__sub">灵装回路 · 时间结界控制台 —— 改 <code>config/app.json</code> 即可改整套 UI 的文案、结构、控件与菜单。</p>
+    </div>
+    <div class="hero__meta">
+      <span class="chip chip--gold" id="chipTheme">主题：加载中…</span>
+      <span class="chip">版本 1.0.0</span>
+      <span class="chip" id="chipTime">--:--:--</span>
+    </div>
+  </section>
+
+  <section class="grid grid--4" id="overviewGrid">
+    <div class="ov card"><b id="ovMenu">—</b><span>菜单项</span><small>menu.items（含二级）</small></div>
+    <div class="ov card"><b id="ovTabs">—</b><span>初始标签</span><small>1 固定首页 + initial</small></div>
+    <div class="ov card"><b id="ovThemes">—</b><span>主题灵装</span><small>src/themes.json</small></div>
+    <div class="ov card"><b id="ovControls">—</b><span>控件类型</span><small>registry category=control</small></div>
+  </section>
+
+  <h2 class="section">快捷入口 <small>点击卡片由本页调用 KUI.frame.navigate 打开新标签</small></h2>
+  <div class="grid grid--3" id="quickGrid"></div>
+
+  <h2 class="section">组件缩略预览 <small>控件样式来自 controls.css，真实可交互（本页直接引 controls/index.js）</small></h2>
+  <div class="grid grid--2">
+    <div class="card">
+      <div class="card__head">按钮与标签</div>
+      <div class="preview-row" id="pvButtons"></div>
+      <div class="preview-row" id="pvTags"></div>
+      <p class="note">JSON 写法：<code>{"type":"button","props":{"text":"刻印","variant":"primary"}}</code></p>
+    </div>
+    <div class="card">
+      <div class="card__head">输入与选择</div>
+      <div class="preview-row" id="pvInputs"></div>
+      <p class="note">所有控件共享 token：control-h / control-bg / control-border / control-radius。</p>
+    </div>
+    <div class="card">
+      <div class="card__head">状态与反馈</div>
+      <div class="preview-row" id="pvStatus"></div>
+      <p class="note">alert / progress / rating / switch 等展示型控件同样由 JSON 驱动。</p>
+    </div>
+    <div class="card">
+      <div class="card__head">主题色板（当前主题实时 token）</div>
+      <div class="swatches" id="swatches"></div>
+    </div>
+  </div>
+
+  <h2 class="section">验收指引 <small>「未保存数据不丢」与「主题实时切换」怎么验证</small></h2>
+  <div class="grid grid--2">
+    <div class="card">
+      <div class="card__head">① 未保存数据验证</div>
+      <ol class="steps">
+        <li>点上方「未保存数据验证」卡片，打开 <code>pages/profile.html</code>。</li>
+        <li>修改任意输入框 / 下拉框，<strong>不要点保存</strong>；页面会调用 <code>KUI.frame.setDirty(true)</code>，标签上出现未保存标记。</li>
+        <li>切到其他标签（例如本首页、表单页），再切回来：所有值仍在，iframe 没有被重建。</li>
+        <li>点「保存」后脏状态清除；关闭标签时若仍有未保存内容，主框架会弹确认框。</li>
+      </ol>
+      <div class="btnrow">
+        <button class="btn btn--primary" id="goProfile">打开验证页</button>
+        <button class="btn" id="goForm">打开完整表单页</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card__head">② 主题实时切换</div>
+      <ol class="steps">
+        <li>点顶部导航的主题按钮（<code>menunav.actions</code> 里配的 <code>theme.picker</code>）。</li>
+        <li>选择任意一套灵装：主框架与所有已打开 iframe 同时换肤，无需刷新。</li>
+        <li>也可打开 <code>pages/theme.html</code>，页内卡片切换只预览当前页。</li>
+      </ol>
+      <div class="btnrow">
+        <button class="btn" id="goTheme">打开主题预览页</button>
+        <button class="btn" id="goNotify">打开提醒页</button>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="section">目录约定 <small>本页属于 pages/**，由主框架以 iframe 打开</small></h2>
+  <div class="card">
+    <p class="card__desc" style="margin:0">
+      配置：<code>config/app.json</code>（应用/菜单/导航/标签）· <code>config/text.json</code>（全部文案）· <code>config/demos/*.json</code>（组件示例数据）。<br>
+      独立页：<code>standalone/*.html</code>（单组件 file:// 可开）· 业务页：<code>pages/*.html</code>（iframe，引 <code>src/frame/kui-frame.js</code>）。<br>
+      文档：<code>docs/02-config-reference.md</code>（配置参考）· <code>docs/06-customization.md</code>（定制指南）。
+    </p>
+  </div>
+</main>
+
+<script src="../src/core/kui-all.js" data-kui-profile="standalone"></script>
+<script>
+(function () {
+  'use strict';
+  var KUI = window.KUI || {};
+  var frame = KUI.frame || null;
+
+  function ready(fn) {
+    if (frame && typeof frame.ready === 'function') {
+      try { frame.ready(fn); return; } catch (e) { /* 直接打开时忽略 */ }
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn);
+    else fn();
+  }
+  function navigate(tab) {
+    if (frame && typeof frame.navigate === 'function') { frame.navigate(tab); return; }
+    window.location.href = tab.url;
+  }
+  function toast(type, title, message, duration) {
+    var t = frame && frame.toast;
+    if (!t) { if (window.console) console.log('[toast]', type, title, message); return; }
+    if (typeof t === 'function') { t({ type: type, title: title, message: message, duration: duration || 3200 }); return; }
+    var fn = t[type] || t.info;
+    if (typeof fn === 'function') fn({ title: title, message: message, duration: duration || 3200 });
+  }
+  function iconSvg(name, size) {
+    if (KUI.icons && typeof KUI.icons.svg === 'function') {
+      try { return KUI.icons.svg(name); } catch (e) { return ''; }
+    }
+    return '';
+  }
+
+  var QUICK = [
+    { id: 'profile', title: '未保存数据验证', url: '../pages/profile.html', icon: 'shield', desc: '改值不保存 → 切标签再回来 → 值仍在；页面调用 KUI.frame.setDirty 同步脏状态。' },
+    { id: 'form', title: '完整表单页', url: '../pages/form.html', icon: 'edit', desc: 'JSON 驱动的表单：deps 联动、校验、提交前再确认（KUI.frame.dialog.form）。' },
+    { id: 'editor', title: '编辑页保活', url: '../pages/editor.html', icon: 'code', desc: 'textarea 内容不提交也不丢；预览 JSON；脏状态提醒。' },
+    { id: 'dialogs', title: '弹窗剧场', url: '../pages/dialogs.html', icon: 'message', desc: 'alert / confirm / prompt / form / custom，以及连续两层弹窗。' },
+    { id: 'notify', title: '提醒讯号', url: '../pages/notify.html', icon: 'bell', desc: '四种 toast + notification 通知卡片，页内可调位置与常驻。' },
+    { id: 'theme', title: '主题预览页', url: '../pages/theme.html', icon: 'palette', desc: '六套灵装卡片，页内实时切换并展示当前 token 色板。' }
+  ];
+
+  function renderQuick() {
+    var host = document.getElementById('quickGrid');
+    host.innerHTML = '';
+    for (var i = 0; i < QUICK.length; i++) {
+      (function (item) {
+        var card = document.createElement('div');
+        card.className = 'card card--link';
+        var head = document.createElement('div');
+        head.className = 'card__head';
+        var ic = document.createElement('span');
+        ic.innerHTML = iconSvg(item.icon);
+        head.appendChild(ic);
+        head.appendChild(document.createTextNode(item.title));
+        var desc = document.createElement('p');
+        desc.className = 'card__desc';
+        desc.textContent = item.desc;
+        var go = document.createElement('div');
+        go.className = 'card__go';
+        go.textContent = '打开标签 →';
+        card.appendChild(head); card.appendChild(desc); card.appendChild(go);
+        card.onclick = function () { navigate({ id: item.id, title: item.title, url: item.url, icon: item.icon }); };
+        host.appendChild(card);
+      })(QUICK[i]);
+    }
+  }
+
+  function mountPreview() {
+    var render = KUI.renderNode;
+    if (typeof render !== 'function') return;
+    function into(hostId, nodes) {
+      var host = document.getElementById(hostId);
+      if (!host) return;
+      for (var i = 0; i < nodes.length; i++) {
+        var el = render(nodes[i], null);
+        if (el) host.appendChild(el);
+      }
+    }
+    into('pvButtons', [
+      { type: 'button', props: { text: '刻印', variant: 'primary', icon: 'check' } },
+      { type: 'button', props: { text: '结界', variant: 'default', icon: 'shield' } },
+      { type: 'button', props: { text: '抹除', variant: 'danger', icon: 'trash' } },
+      { type: 'button', props: { text: '静谧', variant: 'ghost', icon: 'moon' } }
+    ]);
+    into('pvTags', [
+      { type: 'tag', props: { text: '时间线', type: 'primary' } },
+      { type: 'tag', props: { text: '灵装回路', type: 'success' } },
+      { type: 'tag', props: { text: '结界', type: 'warning', effect: 'light' } },
+      { type: 'tag', props: { text: '不可逆', type: 'danger' } }
+    ]);
+    into('pvInputs', [
+      { type: 'input', props: { placeholder: '检索时间线…', prefixIcon: 'search', clearable: true, style: { width: '190px' } } },
+      { type: 'select', props: { placeholder: '选择结界', options: [{ label: '一之弹', value: 'one' }, { label: '二之弹', value: 'two' }], style: { width: '150px' } } },
+      { type: 'date', props: { placeholder: '刻印日期', style: { width: '160px' } } },
+      { type: 'switch', props: { activeText: '启用', inactiveText: '停用', value: true } }
+    ]);
+    into('pvStatus', [
+      { type: 'alert', props: { type: 'info', message: '时间结界运行正常。' } },
+      { type: 'progress', props: { value: 68, style: { width: '150px' } } },
+      { type: 'rating', props: { value: 4 } },
+      { type: 'badge', props: { value: 8, type: 'danger' } }
+    ]);
+  }
+
+  var TOKENS = ['--kui-accent', '--kui-accent-2', '--kui-accent-3', '--kui-bg-0', '--kui-bg-1', '--kui-bg-2', '--kui-text-1', '--kui-text-2', '--kui-border', '--kui-success', '--kui-warning', '--kui-danger'];
+  function renderSwatches() {
+    var host = document.getElementById('swatches');
+    if (!host) return;
+    var cs = window.getComputedStyle(document.documentElement);
+    host.innerHTML = '';
+    for (var i = 0; i < TOKENS.length; i++) {
+      var name = TOKENS[i];
+      var val = (cs.getPropertyValue(name) || '').replace(/^\s+|\s+$/g, '');
+      if (!val) continue;
+      var cell = document.createElement('div');
+      cell.className = 'swatch';
+      var i2 = document.createElement('i');
+      i2.style.background = val;
+      var b = document.createElement('b');
+      b.textContent = name.replace('--kui-', '') + ' ' + val;
+      cell.appendChild(i2); cell.appendChild(b);
+      host.appendChild(cell);
+    }
+  }
+
+  function themeName() {
+    var chip = document.getElementById('chipTheme');
+    if (!chip) return;
+    var id = (KUI.theme && KUI.theme.currentId && KUI.theme.currentId()) || '';
+    var list = (KUI.theme && KUI.theme.list && KUI.theme.list()) || [];
+    var name = id || '默认';
+    for (var i = 0; i < list.length; i++) { if (list[i].id === id) name = list[i].name; }
+    chip.textContent = '主题：' + name;
+  }
+
+  function clock() {
+    var el = document.getElementById('chipTime');
+    if (!el) return;
+    function tick() {
+      var d = new Date();
+      function p(n) { return (n < 10 ? '0' : '') + n; }
+      el.textContent = p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+    }
+    tick();
+    window.setInterval(tick, 1000);
+  }
+
+  function countMenuItems(items) {
+    var n = 0;
+    if (!items || !items.length) return 0;
+    for (var i = 0; i < items.length; i++) {
+      var it = items[i];
+      if (!it) continue;
+      if (it.type === 'item') n += 1;
+      if (it.children && it.children.length) n += countMenuItems(it.children);
+    }
+    return n;
+  }
+  function setOv(id, value) {
+    var el = document.getElementById(id);
+    if (el && value !== undefined && value !== null) el.textContent = String(value);
+  }
+  function renderOverview() {
+    var controls = 0;
+    try {
+      if (KUI.registry && typeof KUI.registry.list === 'function') {
+        var rows = KUI.registry.list();
+        for (var i = 0; i < rows.length; i++) {
+          var def = rows[i] && (rows[i].def || rows[i]);
+          var cat = def && def.category;
+          if (cat === 'control') controls += 1;
+          else if (!cat && rows[i] && rows[i].type && rows[i].type !== 'form') controls += 1;
+        }
+      }
+    } catch (e) { controls = '—'; }
+    setOv('ovControls', controls);
+    if (!KUI.config || typeof KUI.config.load !== 'function') return;
+    var pApp = KUI.config.load('app')['catch'](function () { return null; });
+    var pThemes = KUI.config.load('themes')['catch'](function () { return null; });
+    Promise.all([pApp, pThemes]).then(function (res) {
+      var app = res[0];
+      var themesData = res[1];
+      if (app) {
+        var menu = app.menu || {};
+        var items = (menu.props && menu.props.items) || menu.items || [];
+        setOv('ovMenu', countMenuItems(items));
+        var tabs = app.tabs || {};
+        var tprops = tabs.props || tabs;
+        var initial = tprops.initial || [];
+        setOv('ovTabs', 1 + (initial.length || 0));
+      }
+      if (themesData && themesData.themes) setOv('ovThemes', themesData.themes.length);
+      else if (KUI.theme && KUI.theme.list) setOv('ovThemes', KUI.theme.list().length);
+    });
+  }
+
+  function bindExtra() {
+    document.getElementById('goProfile').onclick = function () { navigate({ id: 'profile', title: '未保存数据验证', url: '../pages/profile.html', icon: 'shield' }); };
+    document.getElementById('goForm').onclick = function () { navigate({ id: 'form', title: '完整表单页', url: '../pages/form.html', icon: 'edit' }); };
+    document.getElementById('goTheme').onclick = function () { navigate({ id: 'theme-page', title: '主题灵装', url: '../pages/theme.html', icon: 'palette' }); };
+    document.getElementById('goNotify').onclick = function () { navigate({ id: 'notify', title: '提醒讯号', url: '../pages/notify.html', icon: 'bell' }); };
+    var mark = document.getElementById('heroMark');
+    if (mark) { mark.innerHTML = iconSvg('clock') || '◷'; }
+  }
+
+  ready(function () {
+    renderQuick();
+    mountPreview();
+    renderSwatches();
+    renderOverview();
+    themeName();
+    clock();
+    bindExtra();
+    if (KUI.theme && KUI.theme.onChange) {
+      KUI.theme.onChange(function () { renderSwatches(); themeName(); });
+    }
+    if (frame && typeof frame.setTitle === 'function') {
+      try { frame.setTitle('刻刻帝终端 · 首页'); } catch (e) { /* 独立打开时忽略 */ }
+    }
+    toast('success', '结界已就绪', '灵装回路加载完成，欢迎回到刻刻帝终端。', 2600);
+  });
+})();
+</script>
+</body>
+</html>
+

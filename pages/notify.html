@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <!-- 主题预置：首帧前写入当前主题 token，防 FOUC 闪烁（由 .tools/patch-theme-boot.js 注入） -->
+  <script src="../src/core/theme-boot.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>提醒讯号 · notify | KurumiUI</title>
+<link rel="stylesheet" href="../src/styles/base.css">
+<link rel="stylesheet" href="../src/styles/components.css">
+<link rel="stylesheet" href="../src/styles/tooltip.css">
+<style>
+  html, body { margin: 0; min-height: 100%; }
+  body { background: var(--kui-bg-0, #08050a); color: var(--kui-text-1, #f5e9ee); font-family: var(--kui-font-family, "Microsoft YaHei", "PingFang SC", sans-serif); font-size: 13px; line-height: 1.7; }
+  .page { max-width: 1080px; margin: 0 auto; padding: 6px 24px 44px; }
+  .page__head { display: flex; align-items: flex-start; gap: 14px; flex-wrap: wrap; margin-bottom: 14px; }
+  .page__title { margin: 0; font-size: 19px; letter-spacing: .05em; }
+  .page__desc { margin: 4px 0 0; font-size: 12px; color: var(--kui-text-2, #cbb8c0); }
+  .page__meta { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip { font-size: 11px; color: var(--kui-text-2, #cbb8c0); border: 1px solid var(--kui-border, #2a1f26); background: var(--kui-bg-1, #141018); border-radius: 999px; padding: 3px 10px; }
+  .chip--gold { color: var(--kui-accent-2, #d4af37); border-color: var(--kui-accent-2, #d4af37); }
+  .tip { border: 1px solid var(--kui-accent-2, #d4af37); background: linear-gradient(120deg, var(--kui-bg-1, #141018), var(--kui-bg-2, #1d141d)); border-radius: 10px; padding: 12px 16px; margin-bottom: 14px; font-size: 12px; color: var(--kui-text-2, #cbb8c0); }
+  .tip b { color: var(--kui-accent-2, #d4af37); }
+  .tip code, .panel code { font-family: var(--kui-font-mono, Consolas, monospace); font-size: 11px; color: var(--kui-accent-3, #8ee6d6); }
+  .options { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; border: 1px solid var(--kui-border, #2a1f26); background: var(--kui-bg-1, #141018); border-radius: 10px; padding: 12px 16px; margin-bottom: 14px; font-size: 12px; color: var(--kui-text-2, #cbb8c0); }
+  .options label { display: inline-flex; align-items: center; gap: 8px; }
+  .options select { height: 28px; background: var(--kui-control-bg, #1b141c); color: var(--kui-text-1, #f5e9ee); border: 1px solid var(--kui-control-border, #3a2b33); border-radius: 6px; padding: 0 8px; font-size: 12px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
+  .card { display: flex; flex-direction: column; gap: 8px; border: 1px solid var(--kui-border, #2a1f26); background: var(--kui-bg-1, #141018); border-radius: 10px; padding: 14px 16px; }
+  .card h2 { margin: 0; font-size: 13px; letter-spacing: .04em; display: flex; align-items: center; gap: 8px; }
+  .card h2 i { width: 8px; height: 8px; border-radius: 50%; display: block; background: var(--kui-info, #4f9cff); }
+  .card h2 i.is-success { background: var(--kui-success, #3ecf8e); }
+  .card h2 i.is-warning { background: var(--kui-warning, #f5b942); }
+  .card h2 i.is-error { background: var(--kui-danger, #ff5c7a); }
+  .card p { margin: 0; font-size: 12px; color: var(--kui-text-2, #cbb8c0); }
+  .card__api { font-family: var(--kui-font-mono, Consolas, monospace); font-size: 11px; color: var(--kui-accent-3, #8ee6d6); }
+  .card__foot { margin-top: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn { height: 30px; padding: 0 13px; cursor: pointer; font-size: 12px; border-radius: 6px; color: var(--kui-text-1, #f5e9ee); background: var(--kui-control-bg, #1b141c); border: 1px solid var(--kui-control-border, #3a2b33); }
+  .btn:hover { border-color: var(--kui-accent, #e11d48); color: var(--kui-accent, #e11d48); }
+  .btn--primary { background: linear-gradient(180deg, var(--kui-accent-hover, #e11d48), var(--kui-accent, #e11d48)); border-color: var(--kui-accent, #e11d48); color: var(--kui-on-accent, var(--kui-text-inverse, #fff)); box-shadow: 0 2px 8px var(--kui-accent-glow, transparent); }
+  .btn--primary:hover { color: var(--kui-on-accent, var(--kui-text-inverse, #fff)); background: var(--kui-accent-hover, #e11d48); border-color: var(--kui-accent-hover, #e11d48); }
+  .panel { border: 1px solid var(--kui-border, #2a1f26); background: var(--kui-bg-1, #141018); border-radius: 10px; padding: 14px 16px; margin-top: 14px; }
+  .panel h2 { margin: 0 0 10px; font-size: 13px; letter-spacing: .06em; }
+  .log { margin: 12px 0 0; padding: 10px 12px; min-height: 100px; max-height: 220px; overflow: auto; background: var(--kui-bg-0, #08050a); border: 1px dashed var(--kui-border, #2a1f26); border-radius: 6px; font-family: var(--kui-font-mono, Consolas, monospace); font-size: 11px; line-height: 1.7; color: var(--kui-text-2, #cbb8c0); white-space: pre-wrap; }
+  .log .is-err { color: var(--kui-danger, #ff5c7a); }
+  .log .is-ok { color: var(--kui-success, #3ecf8e); }
+</style>
+</head>
+<body>
+<main class="page">
+  <header class="page__head">
+    <div>
+      <h1 class="page__title">提醒讯号</h1>
+      <p class="page__desc">toast 四种类型 + notification 通知卡片，全部通过 <code>KUI.frame.toast(...)</code> 转发给主框架统一呈现。</p>
+    </div>
+    <div class="page__meta">
+      <span class="chip chip--gold">toast × 4</span>
+      <span class="chip">notification</span>
+      <span class="chip">位置 / 常驻</span>
+    </div>
+  </header>
+
+  <div class="tip">
+    <b>验证点：</b>① 四种类型颜色/图标正确；② notification 为右上角卡片（标题 + 正文 + 关闭）；③ 修改「位置 / 时长」后新提醒按新参数出现；④ 常驻提醒（duration 0）不会自动消失；⑤ 连续发送多条约队列上限（默认 5）时最早一条被挤掉。
+  </div>
+
+  <div class="options">
+    <label>位置
+      <select data-kui-native id="posSel">
+        <option value="top-right">top-right</option>
+        <option value="top-left">top-left</option>
+        <option value="bottom-right">bottom-right</option>
+        <option value="bottom-left">bottom-left</option>
+        <option value="top-center">top-center</option>
+        <option value="bottom-center">bottom-center</option>
+      </select>
+    </label>
+    <label>时长
+      <select data-kui-native id="durSel">
+        <option value="2400">2400ms</option>
+        <option value="3200" selected>3200ms</option>
+        <option value="5000">5000ms</option>
+        <option value="0">0（常驻）</option>
+      </select>
+    </label>
+    <span style="color:var(--kui-text-3,#9a8b93);font-size:11px">notification 固定右上角卡片语义，position 仅影响 toast。</span>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2><i></i>toast · info</h2>
+      <p class="card__api">KUI.frame.toast.info(msg|opts)</p>
+      <p>时之低语：普通观测信息。</p>
+      <div class="card__foot"><button class="btn btn--primary" data-act="toast-info">显示</button></div>
+    </div>
+    <div class="card">
+      <h2><i class="is-success"></i>toast · success</h2>
+      <p class="card__api">KUI.frame.toast.success(msg|opts)</p>
+      <p>刻印完成、保存成功等正向反馈。</p>
+      <div class="card__foot"><button class="btn btn--primary" data-act="toast-success">显示</button></div>
+    </div>
+    <div class="card">
+      <h2><i class="is-warning"></i>toast · warning</h2>
+      <p class="card__api">KUI.frame.toast.warning(msg|opts)</p>
+      <p>时间涟漪：需要留意的观测偏差。</p>
+      <div class="card__foot"><button class="btn btn--primary" data-act="toast-warning">显示</button></div>
+    </div>
+    <div class="card">
+      <h2><i class="is-error"></i>toast · error</h2>
+      <p class="card__api">KUI.frame.toast.error(msg|opts)</p>
+      <p>结界破裂：回路断开等严重错误。</p>
+      <div class="card__foot"><button class="btn btn--primary" data-act="toast-error">显示</button></div>
+    </div>
+    <div class="card">
+      <h2><i></i>notification · info</h2>
+      <p class="card__api">toast({mode:'notification', ...})</p>
+      <p>右上角通知卡片，适合需要留档的任务消息。</p>
+      <div class="card__foot"><button class="btn btn--primary" data-act="notice-info">显示</button></div>
+    </div>
+    <div class="card">
+      <h2><i class="is-success"></i>notification · success</h2>
+      <p class="card__api">toast({mode:'notification', type:'success'})</p>
+      <p>灵装同步完成等批量任务通知。</p>
+      <div class="card__foot"><button class="btn btn--primary" data-act="notice-success">显示</button></div>
+    </div>
+    <div class="card">
+      <h2><i class="is-warning"></i>notification · warning</h2>
+      <p class="card__api">toast({mode:'notification', type:'warning'})</p>
+      <p>未保存数据等需要用户处理的通知。</p>
+      <div class="card__foot"><button class="btn btn--primary" data-act="notice-warning">显示</button></div>
+    </div>
+    <div class="card">
+      <h2><i class="is-error"></i>notification · error</h2>
+      <p class="card__api">toast({mode:'notification', type:'error', duration:0})</p>
+      <p>回路中断：常驻通知，需手动关闭。</p>
+      <div class="card__foot"><button class="btn btn--primary" data-act="notice-error">显示</button></div>
+    </div>
+    <div class="card">
+      <h2><i class="is-warning"></i>连发队列</h2>
+      <p class="card__api">for 6 次 toast.info</p>
+      <p>默认最多同屏 5 条，超出后最早的被挤掉。</p>
+      <div class="card__foot"><button class="btn btn--primary" data-act="burst">连发 6 条</button></div>
+    </div>
+    <div class="card">
+      <h2><i class="is-warning"></i>长文案 + 标题 + 手动关闭</h2>
+      <p class="card__api">toast({title, message, duration:0, closable:true})</p>
+      <p>长文案自动换行、标题加粗；<code>closable:true</code> 显示关闭按钮，<code>duration:0</code> 常驻，需手动关闭。</p>
+      <div class="card__foot"><button class="btn btn--primary" data-act="long">显示长提醒</button></div>
+    </div>
+    <div class="card">
+      <h2><i></i>业务页 → 父级</h2>
+      <p class="card__api">KUI.frame.toast(...) / frame:toast</p>
+      <p>本页所有提醒都不是本地 DOM：业务 iframe 只发 postMessage，由主框架统一渲染，主题/位置/层级都跟随全局。</p>
+      <div class="card__foot"><button class="btn btn--primary" data-act="via-frame">演示一次转发</button></div>
+    </div>
+    <div class="card">
+      <h2><i></i>简写与 opts</h2>
+      <p class="card__api">KUI.frame.toast('字符串')</p>
+      <p>字符串简写走默认 info；对象可传 title/message/duration/position/mode。</p>
+      <div class="card__foot">
+        <button class="btn" data-act="short">字符串简写</button>
+        <button class="btn" data-act="opts">完整 opts</button>
+      </div>
+    </div>
+  </div>
+
+  <section class="panel">
+    <h2>日志</h2>
+    <pre class="log" id="logEl">// 提醒日志</pre>
+  </section>
+</main>
+
+<script src="../src/core/kui-all.js" data-kui-profile="standalone"></script>
+<script>
+(function () {
+  'use strict';
+  var KUI = window.KUI || {};
+  var frame = KUI.frame || null;
+  var logEl = document.getElementById('logEl');
+
+  function log(text, kind) {
+    var line = document.createElement('div');
+    if (kind === 'err') line.className = 'is-err';
+    if (kind === 'ok') line.className = 'is-ok';
+    line.textContent = '[' + new Date().toLocaleTimeString() + '] ' + text;
+    logEl.appendChild(line);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+  function ready(fn) {
+    if (frame && typeof frame.ready === 'function') {
+      try { frame.ready(fn); return; } catch (e) { /* 独立打开 */ }
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn);
+    else fn();
+  }
+  function opts() {
+    return {
+      position: document.getElementById('posSel').value,
+      duration: parseInt(document.getElementById('durSel').value, 10)
+    };
+  }
+  function show(cfg, label) {
+    var base = opts();
+    var use = {
+      title: cfg.title,
+      message: cfg.message,
+      type: cfg.type,
+      mode: cfg.mode || 'toast',
+      position: cfg.mode === 'notification' ? undefined : base.position,
+      duration: cfg.duration !== undefined ? cfg.duration : base.duration,
+      closable: true,
+      progress: cfg.progress !== undefined ? cfg.progress : true
+    };
+    var t = frame && frame.toast;
+    if (!t) {
+      log('[toast] ' + use.type + ' / ' + use.title + '：' + use.message, 'ok');
+      return;
+    }
+    if (typeof t === 'function') t(use);
+    else {
+      var fn = t[use.type] || t.info;
+      if (typeof fn === 'function') fn(use);
+    }
+    log('已发送 ' + use.mode + ' / ' + use.type + '：' + use.title + '（position=' + (use.position || 'notification') + '，duration=' + use.duration + '）', 'ok');
+  }
+
+  var DEMOS = {
+    'toast-info': function () { show({ type: 'info', title: '时之低语', message: '观测回路已上线，正在收集第一时区的时间碎片。' }, 'toast.info'); },
+    'toast-success': function () { show({ type: 'success', title: '刻印完成', message: '灵装回路已固化，本次时间回溯成功。' }, 'toast.success'); },
+    'toast-warning': function () { show({ type: 'warning', title: '时间涟漪', message: '第二时区检测到 0.8s 的时间偏移，请留意观测数据。' }, 'toast.warning'); },
+    'toast-error': function () { show({ type: 'error', title: '结界破裂', message: '刻刻帝第十二之弹未能命中目标，回路已断开。' }, 'toast.error'); },
+    'notice-info': function () { show({ type: 'info', mode: 'notification', title: '新的观测任务', message: '观测回廊追加了一项时间碎片收集任务，预计耗时 00:03:00。' }, 'notification.info'); },
+    'notice-success': function () { show({ type: 'success', mode: 'notification', title: '灵装同步完成', message: '六套灵装主题已同步，切换 theme.picker 即可实时换装。' }, 'notification.success'); },
+    'notice-warning': function () { show({ type: 'warning', mode: 'notification', title: '未保存数据', message: '「未保存数据验证」标签页存在未提交的改动，关闭前请先确认。' }, 'notification.warning'); },
+    'notice-error': function () { show({ type: 'error', mode: 'notification', title: '回路中断', message: '与第三时区的连接已中断，重试请点击「提醒独立渲染」页的按钮。', duration: 0, progress: false }, 'notification.error'); },
+    'burst': function () {
+      for (var i = 1; i <= 6; i++) {
+        show({ type: 'info', title: '队列 ' + i + '/6', message: '连发提醒第 ' + i + ' 条（同屏上限默认 5）。', duration: 2600 });
+      }
+      log('已连发 6 条 toast（观察最早一条被挤出）', 'ok');
+    },
+    'short': function () {
+      var t = frame && frame.toast;
+      if (!t) { log('[toast] 字符串简写（独立打开模式）', 'ok'); return; }
+      if (typeof t === 'function') t('字符串简写：时之低语，观测继续。');
+      else if (t.info) t.info('字符串简写：时之低语，观测继续。');
+      log('已发送字符串简写 toast', 'ok');
+    },
+    'opts': function () {
+      show({ type: 'success', title: '完整 opts', message: 'type / title / message / duration / position / closable / progress 均可配。', duration: 4200, progress: true }, 'opts');
+    },
+    'long': function () {
+      show({
+        type: 'warning',
+        title: '时间线一致性检查发现 3 处漂移',
+        message: '第一时区 03:00 的观测记录与第二时区 03:00:07 的刻印存在 7 秒偏差；第三时区的结界边缘出现重复回响。该提醒为常驻提醒（duration 0），请手动点击右侧关闭按钮，或在「未保存数据验证」页保存后再处理。',
+        duration: 0,
+        closable: true,
+        progress: false
+      }, 'toast.long');
+    },
+    'via-frame': function () {
+      show({ type: 'success', title: '来自业务页的转发', message: '这条提醒由 pages/notify.html 通过 KUI.frame.toast 发 postMessage，主框架收到 frame:toast 后统一渲染。' }, 'frame.toast');
+    }
+  };
+
+  ready(function () {
+    var buttons = document.querySelectorAll('[data-act]');
+    for (var i = 0; i < buttons.length; i++) {
+      (function (btn) {
+        btn.addEventListener('click', function () {
+          var act = btn.getAttribute('data-act');
+          var fn = DEMOS[act];
+          if (fn) { try { fn(); } catch (err) { log('发送失败：' + err.message, 'err'); } }
+          else log('未实现的演示：' + act, 'err');
+        });
+      })(buttons[i]);
+    }
+    if (frame && typeof frame.on === 'function') {
+      frame.on('activate', function () { log('收到 tab:activate'); });
+    }
+    if (frame && typeof frame.setTitle === 'function') {
+      try { frame.setTitle('提醒讯号'); } catch (e) { /* 忽略 */ }
+    }
+    log('页面就绪：选择位置/时长后点卡片按钮发送提醒', 'ok');
+  });
+})();
+</script>
+</body>
+</html>
+

@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <!-- 主题预置：首帧前写入当前主题 token，防 FOUC 闪烁（由 .tools/patch-theme-boot.js 注入） -->
+  <script src="../src/core/theme-boot.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>theme · 主题卡片独立渲染 | KurumiUI</title>
+<link rel="stylesheet" href="../src/styles/base.css">
+<link rel="stylesheet" href="../src/styles/controls.css">
+<link rel="stylesheet" href="../src/styles/components.css">
+<link rel="stylesheet" href="../src/styles/tooltip.css">
+<style>
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--kui-bg-0, #08050a); color: var(--kui-text-1, #f5e9ee); font-family: var(--kui-font-family, "Microsoft YaHei", "PingFang SC", sans-serif); }
+  .demo-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 18px; border-bottom: 1px solid var(--kui-border, #2a1f26); background: var(--kui-bg-1, #141018); flex-wrap: wrap; }
+  .demo-bar__title { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+  .demo-bar__title strong { font-size: 16px; letter-spacing: .04em; }
+  .demo-tag { padding: 2px 8px; border-radius: 999px; font-size: 11px; color: var(--kui-accent-2, #d4af37); border: 1px solid var(--kui-accent-2, #d4af37); }
+  .demo-bar__ops { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .demo-bar select { background: var(--kui-control-bg, #1b141c); color: var(--kui-text-1, #f5e9ee); border: 1px solid var(--kui-control-border, #3a2b33); border-radius: 6px; height: 30px; padding: 0 8px; outline: none; }
+  .demo-nav { display: flex; gap: 6px; flex-wrap: wrap; }
+  .demo-nav a { color: var(--kui-text-2, #cbb8c0); text-decoration: none; font-size: 12px; padding: 4px 9px; border-radius: 999px; border: 1px solid transparent; }
+  .demo-nav a:hover { color: var(--kui-text-1); border-color: var(--kui-accent); }
+  .demo-nav a.is-current { color: var(--kui-text-1); border-color: var(--kui-accent); background: var(--kui-accent-soft); font-weight: 600; }
+  .demo-main { padding: 18px; display: grid; gap: 14px; }
+  .demo-panel { background: var(--kui-bg-1, #141018); border: 1px solid var(--kui-border, #2a1f26); border-radius: var(--kui-radius-lg, 10px); padding: 14px; }
+  .demo-panel__title { font-size: 13px; color: var(--kui-accent-2, #d4af37); margin: 0 0 10px; letter-spacing: .08em; }
+  .demo-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+  .theme-card {
+    position: relative; display: flex; flex-direction: column; gap: 8px; cursor: pointer;
+    border: 1px solid var(--kui-border, #2a1f26); border-radius: 10px; padding: 14px;
+    min-height: 132px; text-align: left; overflow: hidden; transition: transform .16s ease, box-shadow .16s ease;
+  }
+  .theme-card:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(0, 0, 0, .45); }
+  .theme-card.is-active { outline: 2px solid var(--kui-accent-2, #d4af37); outline-offset: 2px; }
+  .theme-card > * { position: relative; z-index: 1; }
+  .theme-card__art { opacity: .5; z-index: 0 !important; }
+  .theme-card__name { font-size: 15px; font-weight: 700; letter-spacing: .04em; }
+  .theme-card__id { font-family: var(--kui-font-mono, Consolas, monospace); font-size: 11px; opacity: .78; }
+  .theme-card__desc { font-size: 12px; line-height: 1.6; opacity: .88; }
+  .theme-card__foot { display: flex; align-items: center; gap: 8px; margin-top: auto; font-size: 11px; opacity: .82; }
+  .theme-card__dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; border: 1px solid rgba(255,255,255,.35); }
+  .theme-card__badge { font-size: 10px; padding: 1px 7px; border-radius: 999px; border: 1px solid currentColor; }
+  .demo-ops { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .demo-btn { height: 30px; padding: 0 12px; cursor: pointer; font-size: 12px; color: var(--kui-text-1, #f5e9ee); background: var(--kui-control-bg, #1b141c); border: 1px solid var(--kui-control-border, #3a2b33); border-radius: 6px; }
+    .demo-btn:not(.demo-btn--primary):hover { border-color: var(--kui-accent); color: var(--kui-text-1); background: var(--kui-control-bg-hover); }
+  .demo-btn--primary { background: linear-gradient(180deg, var(--kui-accent-hover), var(--kui-accent)); border-color: var(--kui-accent); color: var(--kui-on-accent, var(--kui-text-inverse)); }
+  .demo-btn--primary:hover { background: var(--kui-accent-hover); border-color: var(--kui-accent-hover); color: var(--kui-on-accent, var(--kui-text-inverse)); }
+  .demo-status { font-size: 12px; color: var(--kui-text-2, #cbb8c0); margin: 0 0 8px; }
+  .demo-status strong { color: var(--kui-accent-2, #d4af37); }
+  .demo-log { margin: 0; padding: 10px 12px; min-height: 96px; max-height: 180px; overflow: auto; background: var(--kui-bg-0, #08050a); border: 1px dashed var(--kui-border, #2a1f26); border-radius: 6px; font-family: var(--kui-font-mono, Consolas, monospace); font-size: 11px; line-height: 1.7; color: var(--kui-text-2, #cbb8c0); white-space: pre-wrap; }
+  .demo-log .is-err { color: var(--kui-danger, #ff5c7a); }
+  .demo-error { color: var(--kui-danger, #ff5c7a); font-size: 12px; padding: 10px; }
+</style>
+</head>
+<body data-kui-auto="false">
+<header class="demo-bar">
+  <div class="demo-bar__title">
+    <span class="demo-tag">独立渲染</span>
+    <strong>theme</strong>
+    <span>主题卡片 · 6 套灵装实时切换（改的是 CSS 变量 token）</span>
+  </div>
+  <div class="demo-bar__ops">
+    <nav class="demo-nav" id="demoNav"></nav>
+    <label>主题 <select data-kui-native id="kuiThemeSwitch"><option value="kurumi">绯红刻刻帝</option></select></label>
+  </div>
+</header>
+<main class="demo-main">
+  <section class="demo-panel">
+    <h2 class="demo-panel__title">CONFIG / config/demos/theme.json — 点击卡片切换主题</h2>
+    <p class="demo-status">当前主题：<strong id="currentName">加载中…</strong> / <span id="currentId">-</span></p>
+    <div class="demo-cards" id="themeCards"><div class="demo-error">正在加载 config/demos/theme.json …</div></div>
+    <div class="demo-ops">
+      <button class="demo-btn demo-btn--primary" id="btnPicker">theme.picker 弹窗选择</button>
+      <button class="demo-btn" id="btnNext">theme.next</button>
+      <button class="demo-btn" id="btnPrev">theme.prev</button>
+      <button class="demo-btn" id="btnToggle">theme.toggleScheme 明暗切换</button>
+      <button class="demo-btn" id="btnRandom">app.themeRandom 随机</button>
+      <button class="demo-btn" id="btnReload">重新读取 JSON</button>
+    </div>
+  </section>
+  <section class="demo-panel">
+    <h2 class="demo-panel__title">主题 token 预览（当前主题生效后自动刷新）</h2>
+    <div id="tokenPreview" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px"></div>
+  </section>
+  <section class="demo-panel">
+    <h2 class="demo-panel__title">日志</h2>
+    <pre class="demo-log" id="demoLog">// 操作日志</pre>
+  </section>
+</main>
+<script src="embedded.js"></script>
+<script src="../src/core/kui-all.js" data-kui-profile="standalone"></script>
+<script>
+(function () {
+  'use strict';
+  var KUI = window.KUI;
+  var logEl = document.getElementById('demoLog');
+  var cardsHost = document.getElementById('themeCards');
+  var PAGES = ['menu', 'menunav', 'tabs', 'dialog', 'toast', 'form', 'controls', 'theme', 'no-shell'];
+  var demosData = null;
+  var rawThemes = null;
+
+  function rawThemeById(id) {
+    if (!rawThemes || !rawThemes.themes) return null;
+    for (var i = 0; i < rawThemes.themes.length; i++) {
+      if (rawThemes.themes[i].id === id) return rawThemes.themes[i];
+    }
+    return null;
+  }
+
+  function log(text, isError) {
+    var line = document.createElement('div');
+    if (isError) line.className = 'is-err';
+    line.textContent = '[' + new Date().toLocaleTimeString() + '] ' + text;
+    logEl.appendChild(line);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+  function nav() {
+    var box = document.getElementById('demoNav');
+    for (var i = 0; i < PAGES.length; i++) {
+      var a = document.createElement('a');
+      a.href = PAGES[i] + '.html';
+      a.textContent = PAGES[i];
+      if (PAGES[i] === 'theme') a.className = 'is-current';
+      box.appendChild(a);
+    }
+  }
+  function fillThemeSelect() {
+    var sel = document.getElementById('kuiThemeSwitch');
+    var list = (KUI.theme && KUI.theme.list) ? KUI.theme.list() : [];
+    if (!list.length) return;
+    sel.innerHTML = '';
+    for (var i = 0; i < list.length; i++) {
+      var opt = document.createElement('option');
+      opt.value = list[i].id;
+      opt.textContent = list[i].name + '（' + list[i].id + '）';
+      sel.appendChild(opt);
+    }
+    sel.value = (KUI.theme.currentId && KUI.theme.currentId()) || list[0].id;
+    sel.onchange = function () { applyTheme(sel.value, '顶部下拉'); };
+  }
+
+  function currentName() {
+    var id = (KUI.theme.currentId && KUI.theme.currentId()) || '-';
+    var list = (KUI.theme.list && KUI.theme.list()) || [];
+    var name = id;
+    for (var i = 0; i < list.length; i++) { if (list[i].id === id) name = list[i].name; }
+    document.getElementById('currentName').textContent = name;
+    document.getElementById('currentId').textContent = id;
+    var sel = document.getElementById('kuiThemeSwitch');
+    if (sel) sel.value = id;
+    markActive();
+  }
+  function markActive() {
+    var id = (KUI.theme.currentId && KUI.theme.currentId()) || '';
+    var cards = cardsHost.querySelectorAll('.theme-card');
+    for (var i = 0; i < cards.length; i++) {
+      if (cards[i].getAttribute('data-theme-id') === id) cards[i].className = 'theme-card is-active';
+      else cards[i].className = 'theme-card';
+    }
+  }
+
+  function tokenPreview() {
+    var host = document.getElementById('tokenPreview');
+    var tokens = (KUI.theme.currentTokens && KUI.theme.currentTokens()) || {};
+    var keys = Object.keys(tokens);
+    host.innerHTML = '';
+    if (!keys.length) {
+      host.innerHTML = '<span style="font-size:12px;color:var(--kui-text-3,#9a8b93)">当前主题没有 tokens（可能尚未 KUI.theme.init）。</span>';
+      return;
+    }
+    for (var i = 0; i < keys.length && i < 24; i++) {
+      var k = keys[i];
+      var cell = document.createElement('div');
+      cell.style.cssText = 'display:flex;align-items:center;gap:8px;background:var(--kui-bg-2,#1d141d);border:1px solid var(--kui-border,#2a1f26);border-radius:6px;padding:6px 8px';
+      var sw = document.createElement('span');
+      sw.style.cssText = 'width:14px;height:14px;border-radius:4px;flex:0 0 auto;border:1px solid rgba(255,255,255,.25);background:' + tokens[k];
+      var code = document.createElement('code');
+      code.style.cssText = 'font-family:var(--kui-font-mono,Consolas,monospace);font-size:10px;color:var(--kui-text-2,#cbb8c0);overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+      code.textContent = k.replace(/^--kui-/, '') + '  ' + tokens[k];
+      cell.appendChild(sw);
+      cell.appendChild(code);
+      host.appendChild(cell);
+    }
+  }
+
+  function applyTheme(id, source) {
+    if (!KUI.theme || !KUI.theme.apply) { log('KUI.theme.apply 不可用', true); return; }
+    KUI.theme.apply(id);
+    // 内嵌在主框架时：请求父级把整壳（菜单/顶栏）和其他已打开标签一起切换
+    if (KUI.frame && typeof KUI.frame.setTheme === 'function' && KUI.frame.isFramed && KUI.frame.isFramed()) {
+      try { KUI.frame.setTheme(id); } catch (err) { log('父级主题同步失败：' + err, true); }
+    }
+    currentName();
+    tokenPreview();
+    log('切换主题 → ' + id + (source ? '（' + source + '）' : ''));
+    if (KUI.toast) KUI.toast.success({ title: '主题已切换', message: '当前灵装：' + id });
+  }
+
+  function renderCards(data) {
+    cardsHost.innerHTML = '';
+    var themes = (data && data.themes) || [];
+    if (!themes.length) { cardsHost.innerHTML = '<div class="demo-error">theme.json 里没有 themes 数组。</div>'; return; }
+    for (var i = 0; i < themes.length; i++) {
+      (function (t) {
+        var pv = t.preview || {};
+        var card = document.createElement('button');
+        card.type = 'button';
+        card.className = 'theme-card';
+        card.setAttribute('data-theme-id', t.id);
+        card.style.background = 'linear-gradient(135deg,' + (pv.bg || '#141018') + ' 0%,' + (pv.accent || '#c8102e') + ' 160%)';
+        card.style.color = pv.text || '#f5e9ee';
+        card.onclick = function () { applyTheme(t.id, '卡片点击'); };
+        var name = document.createElement('div');
+        name.className = 'theme-card__name';
+        name.textContent = t.name || t.id;
+        var id = document.createElement('div');
+        id.className = 'theme-card__id';
+        id.textContent = t.id + ' · ' + (t.scheme || 'dark');
+        var desc = document.createElement('div');
+        desc.className = 'theme-card__desc';
+        desc.textContent = t.desc || '';
+        var foot = document.createElement('div');
+        foot.className = 'theme-card__foot';
+        var dot1 = document.createElement('span'); dot1.className = 'theme-card__dot'; dot1.style.background = pv.bg || '#000';
+        var dot2 = document.createElement('span'); dot2.className = 'theme-card__dot'; dot2.style.background = pv.accent || '#c8102e';
+        var dot3 = document.createElement('span'); dot3.className = 'theme-card__dot'; dot3.style.background = pv.accent2 || '#d4af37';
+        var badge = document.createElement('span'); badge.className = 'theme-card__badge'; badge.textContent = '点击应用';
+        foot.appendChild(dot1); foot.appendChild(dot2); foot.appendChild(dot3); foot.appendChild(badge);
+        card.appendChild(name); card.appendChild(id); card.appendChild(desc); card.appendChild(foot);
+        var raw = rawThemeById(t.id);
+        if (raw && KUI.themeArt && typeof KUI.themeArt.preview === 'function') {
+          try { KUI.themeArt.preview(raw, card, { className: 'theme-card__art' }); } catch (e) { /* 预览装饰层可缺省 */ }
+        }
+        cardsHost.appendChild(card);
+      })(themes[i]);
+    }
+    log('已渲染 ' + themes.length + ' 张主题卡片');
+  }
+
+  function load(force) {
+    if (force && KUI.config.clear) KUI.config.clear('demos/theme');
+    KUI.config.load('demos/theme', force ? { force: true } : null).then(function (data) {
+      if (!data) { cardsHost.innerHTML = '<div class="demo-error">未找到 config/demos/theme.json，请先运行 npm run build:config。</div>'; return; }
+      demosData = data;
+      renderCards(data);
+      currentName();
+      tokenPreview();
+    })['catch'](function (err) { log('加载失败：' + (err && err.message ? err.message : err), true); });
+  }
+
+  function initThemes() {
+    KUI.config.load('themes').then(function (data) {
+      if (data && data.themes) rawThemes = data;
+      if (data && data.themes && KUI.theme.init) {
+        KUI.theme.init(data, { fallbackId: (demosData && demosData['default']) || 'kurumi', storageKey: 'kui-demo-theme', persist: true, silent: true });
+      }
+      fillThemeSelect();
+      if (KUI.theme.onChange) {
+        KUI.theme.onChange(function (t) {
+          currentName();
+          tokenPreview();
+        });
+      }
+      load(false);
+    })['catch'](function (err) { log('themes.json 加载失败：' + (err && err.message ? err.message : err), true); fillThemeSelect(); load(false); });
+  }
+
+  document.getElementById('btnPicker').onclick = function () {
+    if (KUI.actions && KUI.actions.run) {
+      KUI.actions.run('theme.picker');
+      log('触发动作 theme.picker（若 bootstrap 未加载，会提示未注册动作）');
+    }
+  };
+  document.getElementById('btnNext').onclick = function () {
+    if (KUI.theme.next) { KUI.theme.next(); currentName(); tokenPreview(); log('theme.next()'); }
+  };
+  document.getElementById('btnPrev').onclick = function () {
+    if (KUI.theme.prev) { KUI.theme.prev(); currentName(); tokenPreview(); log('theme.prev()'); }
+  };
+  document.getElementById('btnToggle').onclick = function () {
+    if (KUI.actions && KUI.actions.run) { KUI.actions.run('theme.toggleScheme'); log('触发动作 theme.toggleScheme（bootstrap 注册）'); }
+  };
+  document.getElementById('btnRandom').onclick = function () {
+    if (KUI.actions && KUI.actions.run) { KUI.actions.run('app.themeRandom'); log('触发动作 app.themeRandom（bootstrap 注册）'); }
+  };
+  document.getElementById('btnReload').onclick = function () { load(true); };
+
+  nav();
+  initThemes();
+})();
+</script>
+</body>
+</html>
+

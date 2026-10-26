@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <!-- 主题预置：首帧前写入当前主题 token，防 FOUC 闪烁（由 .tools/patch-theme-boot.js 注入） -->
+  <script src="../src/core/theme-boot.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>弹窗剧场 · dialogs | KurumiUI</title>
+<link rel="stylesheet" href="../src/styles/base.css">
+<link rel="stylesheet" href="../src/styles/controls.css">
+<link rel="stylesheet" href="../src/styles/components.css">
+<link rel="stylesheet" href="../src/styles/tooltip.css">
+<style>
+  html, body { margin: 0; min-height: 100%; }
+  body { background: var(--kui-bg-0, #08050a); color: var(--kui-text-1, #f5e9ee); font-family: var(--kui-font-family, "Microsoft YaHei", "PingFang SC", sans-serif); font-size: 13px; line-height: 1.7; }
+  .page { max-width: 1080px; margin: 0 auto; padding: 6px 24px 44px; }
+  .page__head { display: flex; align-items: flex-start; gap: 14px; flex-wrap: wrap; margin-bottom: 14px; }
+  .page__title { margin: 0; font-size: 19px; letter-spacing: .05em; }
+  .page__desc { margin: 4px 0 0; font-size: 12px; color: var(--kui-text-2, #cbb8c0); }
+  .page__meta { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip { font-size: 11px; color: var(--kui-text-2, #cbb8c0); border: 1px solid var(--kui-border, #2a1f26); background: var(--kui-bg-1, #141018); border-radius: 999px; padding: 3px 10px; }
+  .chip--gold { color: var(--kui-accent-2, #d4af37); border-color: var(--kui-accent-2, #d4af37); }
+  .tip { border: 1px solid var(--kui-accent-2, #d4af37); background: linear-gradient(120deg, var(--kui-bg-1, #141018), var(--kui-bg-2, #1d141d)); border-radius: 10px; padding: 12px 16px; margin-bottom: 14px; font-size: 12px; color: var(--kui-text-2, #cbb8c0); }
+  .tip b { color: var(--kui-accent-2, #d4af37); }
+  .tip code { font-family: var(--kui-font-mono, Consolas, monospace); font-size: 11px; color: var(--kui-accent-3, #8ee6d6); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
+  .card { display: flex; flex-direction: column; gap: 8px; border: 1px solid var(--kui-border, #2a1f26); background: var(--kui-bg-1, #141018); border-radius: 10px; padding: 14px 16px; }
+  .card h2 { margin: 0; font-size: 13px; letter-spacing: .04em; }
+  .card p { margin: 0; font-size: 12px; color: var(--kui-text-2, #cbb8c0); }
+  .card__api { font-family: var(--kui-font-mono, Consolas, monospace); font-size: 11px; color: var(--kui-accent-3, #8ee6d6); }
+  .card__foot { margin-top: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn { height: 30px; padding: 0 13px; cursor: pointer; font-size: 12px; border-radius: 6px; color: var(--kui-text-1, #f5e9ee); background: var(--kui-control-bg, #1b141c); border: 1px solid var(--kui-control-border, #3a2b33); }
+  .btn:hover { border-color: var(--kui-accent, #e11d48); color: var(--kui-accent, #e11d48); }
+  .btn--primary { background: linear-gradient(180deg, var(--kui-accent-hover, #e11d48), var(--kui-accent, #e11d48)); border-color: var(--kui-accent, #e11d48); color: var(--kui-on-accent, var(--kui-text-inverse, #fff)); box-shadow: 0 2px 8px var(--kui-accent-glow, transparent); }
+  .btn--primary:hover { color: var(--kui-on-accent, var(--kui-text-inverse, #fff)); background: var(--kui-accent-hover, #e11d48); border-color: var(--kui-accent-hover, #e11d48); }
+  .panel { border: 1px solid var(--kui-border, #2a1f26); background: var(--kui-bg-1, #141018); border-radius: 10px; padding: 14px 16px; margin-top: 14px; }
+  .panel h2 { margin: 0 0 10px; font-size: 13px; letter-spacing: .06em; }
+  .panel h2 span { font-size: 11px; font-weight: 400; color: var(--kui-text-3, #9a8b93); margin-left: 6px; }
+  .result { font-family: var(--kui-font-mono, Consolas, monospace); font-size: 12px; color: var(--kui-accent-2, #d4af37); min-height: 20px; }
+  .log { margin: 12px 0 0; padding: 10px 12px; min-height: 110px; max-height: 240px; overflow: auto; background: var(--kui-bg-0, #08050a); border: 1px dashed var(--kui-border, #2a1f26); border-radius: 6px; font-family: var(--kui-font-mono, Consolas, monospace); font-size: 11px; line-height: 1.7; color: var(--kui-text-2, #cbb8c0); white-space: pre-wrap; }
+  .log .is-err { color: var(--kui-danger, #ff5c7a); }
+  .log .is-ok { color: var(--kui-success, #3ecf8e); }
+</style>
+</head>
+<body>
+<main class="page">
+  <header class="page__head">
+    <div>
+      <h1 class="page__title">弹窗剧场</h1>
+      <p class="page__desc">本页所有弹窗都通过 <code>KUI.frame.dialog.*</code> 转发给主框架渲染（业务 iframe 内不建遮罩层），Promise 结果回传本页。</p>
+    </div>
+    <div class="page__meta">
+      <span class="chip chip--gold">5 种方法</span>
+      <span class="chip">Promise 回传</span>
+      <span class="chip">弹窗内嵌套</span>
+    </div>
+  </header>
+
+  <div class="tip">
+    <b>验证点：</b>① 每个按钮都会在主框架上弹出对应弹窗并返回 Promise 结果（本页「最近结果」会显示）；② 「连续两层」先 confirm 再立刻 form，验证弹窗队列；③ 「弹窗内再开一层」在 custom 弹窗里放一个按钮，点击后由 dialog-frame 内部再发一次确认框；④ 关闭弹窗后主框架焦点正确回到页面。
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>alert · 通告</h2>
+      <p class="card__api">KUI.frame.dialog.alert(cfg) → Promise&lt;void&gt;</p>
+      <p>信息 / 警告 / 错误三种 type，支持 danger 红色确认按钮。</p>
+      <div class="card__foot">
+        <button class="btn btn--primary" data-act="alert-info">info</button>
+        <button class="btn" data-act="alert-danger">danger</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>confirm · 确认</h2>
+      <p class="card__api">KUI.frame.dialog.confirm(cfg) → Promise&lt;boolean&gt;</p>
+      <p>确定返回 true，取消返回 false；danger 按钮组用于破坏性操作。</p>
+      <div class="card__foot">
+        <button class="btn btn--primary" data-act="confirm-close">关闭结界</button>
+        <button class="btn" data-act="confirm-danger">抹除刻印</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>prompt · 输入</h2>
+      <p class="card__api">KUI.frame.dialog.prompt(cfg) → Promise&lt;string|null&gt;</p>
+      <p>单行 / 多行输入，带 required 与长度规则。</p>
+      <div class="card__foot">
+        <button class="btn btn--primary" data-act="prompt-name">命名结界</button>
+        <button class="btn" data-act="prompt-note">时之低语</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>form · 表单弹窗</h2>
+      <p class="card__api">KUI.frame.dialog.form(cfg) → Promise&lt;object|null&gt;</p>
+      <p>nodes + data + layout，提交后 resolve 出整份数据。</p>
+      <div class="card__foot">
+        <button class="btn btn--primary" data-act="form-seal">灵装回路配置</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>custom · 自定义</h2>
+      <p class="card__api">KUI.frame.dialog.custom(cfg) → Promise&lt;any&gt;</p>
+      <p>nodes 自定义内容 + actions 自定义按钮（close / resolve / false）。</p>
+      <div class="card__foot">
+        <button class="btn btn--primary" data-act="custom-actions">刻印确认单</button>
+        <button class="btn" data-act="custom-nested">弹窗内再开一层</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>连续两层</h2>
+      <p class="card__api">confirm().then(ok =&gt; form())</p>
+      <p>先确认再填写，验证弹窗关闭/打开顺序与 Promise 链。</p>
+      <div class="card__foot">
+        <button class="btn btn--primary" data-act="chain">连续两层</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>弹窗内调父级动作</h2>
+      <p class="card__api">nodes 内按钮 action: 'theme.picker'</p>
+      <p>弹窗由主框架渲染；按钮动作在 dialog-frame 内本地没有，会转发给主框架执行 → 主题选择器叠在弹窗之上。</p>
+      <div class="card__foot">
+        <button class="btn btn--primary" data-act="custom-parent-action">弹窗内开主题选择器</button>
+      </div>
+    </div>
+  </div>
+
+  <section class="panel">
+    <h2>最近结果 <span id="lastTitle">尚未触发</span></h2>
+    <div class="result" id="lastResult">-</div>
+    <pre class="log" id="logEl">// 弹窗日志</pre>
+  </section>
+</main>
+
+<script src="../src/core/kui-all.js" data-kui-profile="standalone"></script>
+<script>
+(function () {
+  'use strict';
+  var KUI = window.KUI || {};
+  var frame = KUI.frame || null;
+  var logEl = document.getElementById('logEl');
+
+  function log(text, kind) {
+    var line = document.createElement('div');
+    if (kind === 'err') line.className = 'is-err';
+    if (kind === 'ok') line.className = 'is-ok';
+    line.textContent = '[' + new Date().toLocaleTimeString() + '] ' + text;
+    logEl.appendChild(line);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+  function ready(fn) {
+    if (frame && typeof frame.ready === 'function') {
+      try { frame.ready(fn); return; } catch (e) { /* 独立打开 */ }
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn);
+    else fn();
+  }
+  function result(title, value) {
+    document.getElementById('lastTitle').textContent = title;
+    var text;
+    if (value === undefined || value === null) text = value === null ? 'null' : 'void';
+    else if (typeof value === 'object') text = JSON.stringify(value);
+    else text = String(value);
+    document.getElementById('lastResult').textContent = text;
+    log(title + ' → ' + text, 'ok');
+  }
+  function dlg() { return (frame && frame.dialog) ? frame.dialog : (KUI.dialog || null); }
+  function toast(type, title, message) {
+    var t = frame && frame.toast;
+    if (!t) { log('[toast] ' + type + '：' + title); return; }
+    if (typeof t === 'function') { t({ type: type, title: title, message: message }); return; }
+    var fn = t[type] || t.info;
+    if (typeof fn === 'function') fn({ title: title, message: message });
+  }
+  function notAvailable(method) {
+    log('KUI.frame.dialog.' + method + ' 不可用：请确认 src/frame/kui-frame.js 已加载', 'err');
+    result(method, '不可用');
+  }
+
+  var DEMOS = {
+    'alert-info': function () {
+      var d = dlg();
+      if (!d) return notAvailable('alert');
+      d.alert({ type: 'info', icon: 'info', title: '结界通告', message: '灵装回路已在 03:00 完成一次时间回溯，所有未保存的刻印均已固化。', okText: '知道了' }).then(function () { result('alert.info', '已关闭'); });
+    },
+    'alert-danger': function () {
+      var d = dlg();
+      if (!d) return notAvailable('alert');
+      d.alert({ type: 'error', icon: 'warning', title: '结界破裂', message: '第三时区的时间结界出现裂隙，请立即前往观测回廊确认。', okText: '前往观测', danger: true, maskClosable: false, closeOnEsc: false }).then(function () { result('alert.danger', '已确认'); });
+    },
+    'confirm-close': function () {
+      var d = dlg();
+      if (!d) return notAvailable('confirm');
+      d.confirm({ type: 'warning', icon: 'question', title: '关闭时间结界', message: '关闭后时间流将恢复流动，未固化的数据会丢失。', okText: '仍然关闭', cancelText: '再想想' }).then(function (ok) { result('confirm', ok); if (ok) toast('warning', '结界已关闭', '时间流恢复流动。'); });
+    },
+    'confirm-danger': function () {
+      var d = dlg();
+      if (!d) return notAvailable('confirm');
+      d.confirm({ type: 'error', icon: 'trash', title: '抹除刻印', message: '该刻印一旦抹除将无法通过时间回溯恢复，确定继续？', okText: '抹除', cancelText: '取消', danger: true }).then(function (ok) { result('confirm.danger', ok); });
+    },
+    'prompt-name': function () {
+      var d = dlg();
+      if (!d) return notAvailable('prompt');
+      d.prompt({ type: 'info', icon: 'edit', title: '命名时间结界', label: '结界名称', placeholder: '例如：一之弹 · 时之结界', defaultValue: '一之弹 · 时之结界', input: { type: 'text', maxlength: 20 }, rules: [{ required: true, message: '结界必须有名字' }, { min: 2, max: 20, message: '名称需 2 ~ 20 个字符' }], okText: '刻印', cancelText: '取消' }).then(function (value) { result('prompt.name', value); if (value) toast('success', '结界已命名', '新结界：' + value); });
+    },
+    'prompt-note': function () {
+      var d = dlg();
+      if (!d) return notAvailable('prompt');
+      d.prompt({ type: 'info', icon: 'message', title: '时之低语', label: '备注', placeholder: '记录这次时间跳跃的观测结果…', input: { type: 'textarea', maxlength: 120 }, okText: '记录', cancelText: '取消' }).then(function (value) { result('prompt.note', value); });
+    },
+    'form-seal': function () {
+      var d = dlg();
+      if (!d) return notAvailable('form');
+      d.form({
+        type: 'info', icon: 'settings', title: '灵装回路配置', width: 560, draggable: true, okText: '保存配置', cancelText: '放弃修改',
+        layout: { columns: 1, gap: 14, labelWidth: 88, labelPosition: 'left' },
+        data: { sealName: '刻刻帝 · 一之弹', mode: 'timeline', reuse: true },
+        nodes: [
+          { id: 'sealName', type: 'input', label: '结界名称', required: true, props: { placeholder: '输入结界名称', clearable: true } },
+          { id: 'mode', type: 'select', label: '时间模式', options: [{ label: '时间线', value: 'timeline' }, { label: '封印', value: 'seal' }, { label: '自定义', value: 'custom' }] },
+          { id: 'reuse', type: 'switch', label: '复用回路', props: { activeText: '复用', inactiveText: '新建' } },
+          { id: 'remark', type: 'textarea', label: '配置说明', span: 2, props: { rows: 3, maxlength: 200, showCount: true, placeholder: '为什么这样配置？' } }
+        ]
+      }).then(function (values) {
+        result('form', values);
+        if (values) toast('success', '回路配置已保存', '结界：' + (values.sealName || ''));
+      });
+    },
+    'custom-actions': function () {
+      var d = dlg();
+      if (!d) return notAvailable('custom');
+      d.custom({
+        type: 'info', icon: 'shield', title: '刻印确认单', width: 520,
+        nodes: [
+          { type: 'alert', props: { type: 'warning', message: '该操作会写入时间线历史，请确认刻印信息。' } },
+          { type: 'text', props: { text: '刻印对象：时崎狂三 · 刻刻帝（第一形态）', strong: true } },
+          { type: 'divider' },
+          { type: 'tag', props: { text: '不可逆', type: 'danger', effect: 'light' } }
+        ],
+        actions: [
+          { id: 'cancel', text: '取消', type: 'default', close: true },
+          { id: 'stamp', text: '确认刻印', type: 'primary', icon: 'check', close: 'resolve', value: { seal: '刻刻帝', form: 1, stamped: true } }
+        ]
+      }).then(function (value) { result('custom', value); if (value) toast('success', '刻印完成', '第一形态已写入时间线。'); });
+    },
+    'custom-nested': function () {
+      var d = dlg();
+      if (!d) return notAvailable('custom');
+      d.custom({
+        type: 'info', icon: 'layers', title: '嵌套结界（第 1 层）', width: 480,
+        nodes: [
+          { type: 'alert', props: { type: 'info', message: '点击下方「再开一层」，会在本弹窗之上再弹一个确认框（由 dialog-frame 内部动作分发）。' } },
+          {
+            type: 'button',
+            props: { text: '再开一层（confirm）', variant: 'primary', icon: 'plus' },
+            on: {
+              click: {
+                action: 'dialog.confirm',
+                params: {
+                  type: 'warning', icon: 'question',
+                  title: '嵌套确认（第 2 层）',
+                  message: '这是第 1 层弹窗内部触发的第 2 层弹窗。',
+                  okText: '确定', cancelText: '返回'
+                }
+              }
+            }
+          }
+        ],
+        actions: [
+          { id: 'close', text: '关闭', type: 'default', close: true }
+        ]
+      }).then(function (value) { result('custom.nested', value); });
+    },
+    'custom-parent-action': function () {
+      var d = dlg();
+      if (!d) return notAvailable('custom');
+      d.custom({
+        type: 'info', icon: 'palette', title: '弹窗内调父级动作', width: 500,
+        nodes: [
+          { type: 'alert', props: { type: 'info', message: '本按钮的 action 是 theme.picker：dialog-frame 内没有注册它，会转发给主框架执行。' } },
+          { type: 'text', props: { text: '点击后主题选择器会叠在本弹窗之上（更高 z-index），选择任意主题即时生效。', block: true } },
+          {
+            type: 'button',
+            props: { text: '打开主题选择器（theme.picker）', variant: 'primary', icon: 'palette' },
+            on: { click: { action: 'theme.picker' } }
+          }
+        ],
+        actions: [
+          { id: 'close', text: '关闭', type: 'default', close: true }
+        ]
+      }).then(function (value) { result('custom.parentAction', value); });
+    },
+    'chain': function () {      var d = dlg();
+      if (!d) return notAvailable('confirm');
+      d.confirm({ type: 'info', icon: 'question', title: '连续两层 · 第 1 步', message: '确认后立即打开第 2 个弹窗（表单）。', okText: '下一步', cancelText: '取消' }).then(function (ok) {
+        result('chain.confirm', ok);
+        if (!ok) return;
+        d.form({
+          type: 'info', icon: 'edit', title: '连续两层 · 第 2 步', width: 480, okText: '提交', cancelText: '取消',
+          data: { name: '刻刻帝 · 二之弹', level: 'second' },
+          nodes: [
+            { id: 'name', type: 'input', label: '刻印名称', required: true },
+            { id: 'level', type: 'select', label: '层级', options: [{ label: '第一层', value: 'first' }, { label: '第二层', value: 'second' }, { label: '第三层', value: 'third' }] }
+          ]
+        }).then(function (values) { result('chain.form', values); if (values) toast('success', '连续两层完成', '最终数据：' + (values.name || '')); });
+      });
+    }
+  };
+
+  ready(function () {
+    var buttons = document.querySelectorAll('[data-act]');
+    for (var i = 0; i < buttons.length; i++) {
+      (function (btn) {
+        btn.addEventListener('click', function () {
+          var act = btn.getAttribute('data-act');
+          log('触发 ' + act);
+          var fn = DEMOS[act];
+          if (fn) { try { fn(); } catch (err) { log('触发失败：' + err.message, 'err'); } }
+          else log('未实现的演示：' + act, 'err');
+        });
+      })(buttons[i]);
+    }
+    if (frame && typeof frame.on === 'function') {
+      frame.on('activate', function () { log('收到 tab:activate'); });
+    }
+    if (frame && typeof frame.setTitle === 'function') {
+      try { frame.setTitle('弹窗剧场'); } catch (e) { /* 忽略 */ }
+    }
+    log('页面就绪：所有弹窗将转发到主框架', 'ok');
+  });
+})();
+</script>
+</body>
+</html>
+

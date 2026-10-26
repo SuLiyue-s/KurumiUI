@@ -1,0 +1,157 @@
+{
+  "title": "提醒 · toast",
+  "desc": "toast 与 notification 双模式 × info / success / warning / error 四类型；另有位置、进度条、常驻等展示项。",
+  "demos": [
+    {
+      "id": "toast-info",
+      "label": "toast · info",
+      "mode": "toast",
+      "desc": "普通信息，3.2s 自动消失。",
+      "config": {
+        "type": "info",
+        "mode": "toast",
+        "title": "时之低语",
+        "message": "观测回路已上线，正在收集第一时区的时间碎片。",
+        "duration": 3200,
+        "closable": true,
+        "progress": true
+      }
+    },
+    {
+      "id": "toast-success",
+      "label": "toast · success",
+      "mode": "toast",
+      "desc": "成功态，带进度条。",
+      "config": {
+        "type": "success",
+        "mode": "toast",
+        "title": "刻印完成",
+        "message": "灵装回路已固化，本次时间回溯成功。",
+        "duration": 3200,
+        "closable": true,
+        "progress": true
+      }
+    },
+    {
+      "id": "toast-warning",
+      "label": "toast · warning",
+      "mode": "toast",
+      "desc": "警告态，2.4s。",
+      "config": {
+        "type": "warning",
+        "mode": "toast",
+        "title": "时间涟漪",
+        "message": "第二时区检测到 0.8s 的时间偏移，请留意观测数据。",
+        "duration": 2400,
+        "closable": true,
+        "progress": true
+      }
+    },
+    {
+      "id": "toast-error",
+      "label": "toast · error",
+      "mode": "toast",
+      "desc": "错误态，不可点击穿透。",
+      "config": {
+        "type": "error",
+        "mode": "toast",
+        "title": "结界破裂",
+        "message": "刻刻帝第十二之弹未能命中目标，回路已断开。",
+        "duration": 4000,
+        "closable": true,
+        "progress": true
+      }
+    },
+    {
+      "id": "notice-info",
+      "label": "notification · info",
+      "mode": "notification",
+      "desc": "通知卡片（右上角）：标题 + 正文 + 关闭。",
+      "config": {
+        "type": "info",
+        "mode": "notification",
+        "title": "新的观测任务",
+        "message": "观测回廊追加了一项时间碎片收集任务，预计耗时 00:03:00。",
+        "duration": 4200,
+        "closable": true,
+        "progress": true
+      }
+    },
+    {
+      "id": "notice-success",
+      "label": "notification · success",
+      "mode": "notification",
+      "desc": "通知卡片：成功态。",
+      "config": {
+        "type": "success",
+        "mode": "notification",
+        "title": "灵装同步完成",
+        "message": "六套灵装主题已同步，切换 theme.picker 即可实时换装。",
+        "duration": 4200,
+        "closable": true,
+        "progress": true
+      }
+    },
+    {
+      "id": "notice-warning",
+      "label": "notification · warning",
+      "mode": "notification",
+      "desc": "通知卡片：警告态。",
+      "config": {
+        "type": "warning",
+        "mode": "notification",
+        "title": "未保存数据",
+        "message": "「未保存数据验证」标签页存在未提交的改动，关闭前请先确认。",
+        "duration": 5000,
+        "closable": true,
+        "progress": true
+      }
+    },
+    {
+      "id": "notice-error",
+      "label": "notification · error",
+      "mode": "notification",
+      "desc": "通知卡片：错误态，常驻（duration:0）。",
+      "config": {
+        "type": "error",
+        "mode": "notification",
+        "title": "回路中断",
+        "message": "与第三时区的连接已中断，重试请点击「提醒独立渲染」页的按钮。",
+        "duration": 0,
+        "closable": true,
+        "progress": false
+      }
+    },
+    {
+      "id": "toast-bottom",
+      "label": "toast · 位置 bottom-right",
+      "mode": "toast",
+      "desc": "position 控制位置；toast 支持六向位置。",
+      "config": {
+        "type": "success",
+        "mode": "toast",
+        "title": "位置演示",
+        "message": "本条提醒出现在右下角（position: bottom-right）。",
+        "position": "bottom-right",
+        "duration": 3200,
+        "closable": true,
+        "progress": true
+      }
+    },
+    {
+      "id": "toast-persistent",
+      "label": "toast · 常驻提醒",
+      "mode": "toast",
+      "desc": "duration:0 表示不自动消失，需要手动关闭或 closeAll()。",
+      "config": {
+        "type": "warning",
+        "mode": "toast",
+        "title": "常驻提醒",
+        "message": "时间结界处于待确认状态，本条提醒不会自动消失。",
+        "duration": 0,
+        "closable": true,
+        "progress": false
+      }
+    }
+  ]
+}

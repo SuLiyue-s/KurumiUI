@@ -1,0 +1,71 @@
+{
+  "schema": "kui-modules/1",
+  "note": "KurumiUI 单一入口清单。修改框架模块只改这里，然后运行 npm run build:config 重新生成 src/core/kui-all.js；所有页面都只引 kui-all.js，不再逐个改 HTML。路径相对项目根目录。",
+  "profiles": {
+    "app": {
+      "desc": "主应用（index.html）：完整框架 + 应用外壳 + 自启动 bootstrap",
+      "files": [
+        "config/bundle.js",
+        "src/core/kui.js",
+        "src/core/tooltip.js",
+        "src/core/diag.js",
+        "src/core/icons.js",
+        "src/core/registry.js",
+        "src/core/avatar.js",
+        "src/core/config.js",
+        "src/core/theme.js",
+        "src/core/theme-art.js",
+        "src/core/handlers.js",
+        "src/core/dom-enhance.js",
+        "src/components/controls/index.js",
+        "src/components/form.js",
+        "src/components/handlers/form.handlers.js",
+        "src/components/menu.js",
+        "src/components/menunav.js",
+        "src/components/tabs.js",
+        "src/components/dialog.js",
+        "src/components/toast.js",
+        "src/components/handlers/menu.handlers.js",
+        "src/components/handlers/menunav.handlers.js",
+        "src/components/handlers/tabs.handlers.js",
+        "src/components/handlers/dialog.handlers.js",
+        "src/components/handlers/toast.handlers.js",
+        "src/components/app-shell.js",
+        "src/components/handlers/app-shell.handlers.js",
+        "src/app/bootstrap.js"
+      ]
+    },
+    "standalone": {
+      "desc": "独立渲染页（standalone/*.html）与配置驱动业务页（pages/*.html）：完整组件与控件，但不含应用外壳与自启动",
+      "files": [
+        "config/bundle.js",
+        "src/core/kui.js",
+        "src/core/tooltip.js",
+        "src/core/diag.js",
+        "src/core/icons.js",
+        "src/core/registry.js",
+        "src/core/avatar.js",
+        "src/core/config.js",
+        "src/core/theme.js",
+        "src/core/theme-art.js",
+        "src/core/handlers.js",
+        "src/core/dom-enhance.js",
+        "src/components/controls/index.js",
+        "src/components/form.js",
+        "src/components/handlers/form.handlers.js",
+        "src/components/menu.js",
+        "src/components/menunav.js",
+        "src/components/tabs.js",
+        "src/components/dialog.js",
+        "src/components/toast.js",
+        "src/components/handlers/menu.handlers.js",
+        "src/components/handlers/menunav.handlers.js",
+        "src/components/handlers/tabs.handlers.js",
+        "src/components/handlers/dialog.handlers.js",
+        "src/components/handlers/toast.handlers.js",
+        "src/components/handlers/app-shell.handlers.js",
+        "src/frame/kui-frame.js"
+      ]
+    }
+  }
+}

@@ -1,0 +1,645 @@
+{
+  "title": "动作 · actions",
+  "desc": "全部内置动作的 JSON 侧写法：按钮节点的 on.click 只写动作名与 params，由 KUI.actions.run 统一分发。覆盖主题 / 导航 / 菜单 / 弹窗 / 提醒 / 剪贴板 / 标签 七类。",
+  "groups": [
+    {
+      "id": "theme",
+      "title": "主题动作",
+      "icon": "palette",
+      "desc": "theme.* 由 bootstrap 注册；theme.apply 的 params.id 即 src/themes.json 中的主题 id。",
+      "actions": [
+        {
+          "type": "button",
+          "props": {
+            "text": "theme.picker",
+            "icon": "palette",
+            "variant": "primary",
+            "size": "sm"
+          },
+          "on": {
+            "click": {
+              "action": "theme.picker"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "theme.apply 绯红",
+            "icon": "moon",
+            "size": "sm"
+          },
+          "on": {
+            "click": {
+              "action": "theme.apply",
+              "params": {
+                "id": "kurumi"
+              }
+            }
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "theme.apply 白羽",
+            "icon": "sun",
+            "size": "sm"
+          },
+          "on": {
+            "click": {
+              "action": "theme.apply",
+              "params": {
+                "id": "kurumi-angel"
+              }
+            }
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "theme.toggleScheme",
+            "icon": "palette",
+            "size": "sm"
+          },
+          "on": {
+            "click": {
+              "action": "theme.toggleScheme"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "theme.next",
+            "icon": "chevron-right",
+            "size": "sm"
+          },
+          "on": {
+            "click": {
+              "action": "theme.next"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "theme.prev",
+            "icon": "chevron-left",
+            "size": "sm"
+          },
+          "on": {
+            "click": {
+              "action": "theme.prev"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "nav",
+      "title": "导航与外壳动作",
+      "icon": "terminal",
+      "desc": "nav.* / app.* / menu.*：菜单折叠、全屏、刷新、前进后退、打开或关闭标签页。",
+      "actions": [
+        {
+          "type": "button",
+          "props": {
+            "text": "search.toggle",
+            "icon": "search",
+            "size": "sm"
+          },
+          "on": {
+            "click": {
+              "action": "search.toggle"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "notify.demo",
+            "icon": "bell",
+            "size": "sm"
+          },
+          "on": {
+            "click": {
+              "action": "notify.demo"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "settings.open",
+            "icon": "settings",
+            "size": "sm"
+          },
+          "on": {
+            "click": {
+              "action": "settings.open"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "nav.toggleCollapse",
+            "icon": "menu",
+            "size": "sm"
+          },
+          "on": {
+            "click": {
+              "action": "nav.toggleCollapse"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "nav.refresh",
+            "icon": "refresh",
+            "size": "sm"
+          },
+          "on": {
+            "click": {
+              "action": "nav.refresh"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "nav.back",
+            "icon": "arrow-left",
+            "size": "sm"
+          },
+          "on": {
+            "click": {
+              "action": "nav.back"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "nav.forward",
+            "icon": "arrow-right",
+            "size": "sm"
+          },
+          "on": {
+            "click": {
+              "action": "nav.forward"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "nav.fullscreen",
+            "icon": "fullscreen",
+            "size": "sm"
+          },
+          "on": {
+            "click": {
+              "action": "nav.fullscreen"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "app.fullscreen",
+            "icon": "expand",
+            "size": "sm"
+          },
+          "on": {
+            "click": {
+              "action": "app.fullscreen"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "nav.open 配置参考",
+            "icon": "external-link",
+            "size": "sm"
+          },
+          "on": {
+            "click": {
+              "action": "nav.open",
+              "params": {
+                "id": "docs-config",
+                "title": "配置参考",
+                "url": "docs/02-config-reference.md",
+                "icon": "file",
+                "pinned": false
+              }
+            }
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "nav.close 配置参考",
+            "icon": "close",
+            "size": "sm"
+          },
+          "on": {
+            "click": {
+              "action": "nav.close",
+              "params": {
+                "id": "docs-config"
+              }
+            }
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "menu.select home",
+            "icon": "home",
+            "size": "sm"
+          },
+          "on": {
+            "click": {
+              "action": "menu.select",
+              "params": {
+                "id": "home"
+              }
+            }
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "menu.toggle",
+            "icon": "list",
+            "size": "sm"
+          },
+          "on": {
+            "click": {
+              "action": "menu.toggle"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "dialog",
+      "title": "弹窗动作",
+      "icon": "message",
+      "desc": "dialog.* 与 KUI.dialog 同源，params 即 config 字段。",
+      "actions": [
+        {
+          "type": "button",
+          "props": {
+            "text": "dialog.alert",
+            "icon": "info",
+            "size": "sm"
+          },
+          "on": {
+            "click": {
+              "action": "dialog.alert",
+              "params": {
+                "title": "结界通告",
+                "message": "来自 JSON 的 alert：on.click.action = dialog.alert。"
+              }
+            }
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "dialog.confirm",
+            "icon": "question",
+            "size": "sm"
+          },
+          "on": {
+            "click": {
+              "action": "dialog.confirm",
+              "params": {
+                "title": "确认结界",
+                "message": "来自 JSON 的 confirm，确定后仅关闭弹窗。"
+              }
+            }
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "dialog.prompt",
+            "icon": "edit",
+            "size": "sm"
+          },
+          "on": {
+            "click": {
+              "action": "dialog.prompt",
+              "params": {
+                "title": "命名结界",
+                "label": "结界名称",
+                "placeholder": "输入名称…",
+                "defaultValue": "一之弹"
+              }
+            }
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "dialog.form",
+            "icon": "settings",
+            "size": "sm"
+          },
+          "on": {
+            "click": {
+              "action": "dialog.form",
+              "params": {
+                "title": "快捷配置",
+                "data": {
+                  "name": "刻刻帝",
+                  "notify": true
+                },
+                "nodes": [
+                  {
+                    "id": "name",
+                    "type": "input",
+                    "label": "名称",
+                    "required": true
+                  },
+                  {
+                    "id": "notify",
+                    "type": "switch",
+                    "label": "提醒"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "dialog.custom",
+            "icon": "code",
+            "size": "sm"
+          },
+          "on": {
+            "click": {
+              "action": "dialog.custom",
+              "params": {
+                "title": "自定义弹窗",
+                "nodes": [
+                  {
+                    "type": "alert",
+                    "props": {
+                      "type": "info",
+                      "message": "custom 弹窗的 nodes 也来自 JSON。"
+                    }
+                  }
+                ],
+                "actions": [
+                  {
+                    "id": "ok",
+                    "text": "知道了",
+                    "type": "primary",
+                    "close": "resolve",
+                    "value": "ok"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "dialog.closeAll",
+            "icon": "close",
+            "variant": "ghost",
+            "size": "sm"
+          },
+          "on": {
+            "click": {
+              "action": "dialog.closeAll"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "toast",
+      "title": "提醒与剪贴板动作",
+      "icon": "bell",
+      "desc": "toast.* 四种类型 + notification 模式 + clear；clipboard.copy 可换任意文案。",
+      "actions": [
+        {
+          "type": "button",
+          "props": {
+            "text": "toast.success",
+            "icon": "success",
+            "variant": "success",
+            "size": "sm"
+          },
+          "on": {
+            "click": {
+              "action": "toast.success",
+              "params": {
+                "title": "刻印完成",
+                "message": "toast.success 来自 JSON 动作。"
+              }
+            }
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "toast.info",
+            "icon": "info",
+            "size": "sm"
+          },
+          "on": {
+            "click": {
+              "action": "toast.info",
+              "params": {
+                "title": "时之低语",
+                "message": "toast.info 来自 JSON 动作。"
+              }
+            }
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "toast.warning",
+            "icon": "warning",
+            "variant": "warning",
+            "size": "sm"
+          },
+          "on": {
+            "click": {
+              "action": "toast.warning",
+              "params": {
+                "title": "时间涟漪",
+                "message": "toast.warning 来自 JSON 动作。"
+              }
+            }
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "toast.error",
+            "icon": "error",
+            "variant": "danger",
+            "size": "sm"
+          },
+          "on": {
+            "click": {
+              "action": "toast.error",
+              "params": {
+                "title": "结界破裂",
+                "message": "toast.error 来自 JSON 动作。"
+              }
+            }
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "toast.notify",
+            "icon": "message",
+            "size": "sm"
+          },
+          "on": {
+            "click": {
+              "action": "toast.notify",
+              "params": {
+                "type": "success",
+                "title": "通知卡片",
+                "message": "toast.notify 等价于 mode: notification。"
+              }
+            }
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "toast.clear",
+            "icon": "trash",
+            "variant": "ghost",
+            "size": "sm"
+          },
+          "on": {
+            "click": {
+              "action": "toast.clear"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "clipboard.copy",
+            "icon": "copy",
+            "size": "sm"
+          },
+          "on": {
+            "click": {
+              "action": "clipboard.copy",
+              "params": {
+                "text": "刻刻帝 · 一之弹 · 时之结界"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "tab",
+      "title": "标签动作",
+      "icon": "list",
+      "desc": "tab.open 的 params 即标签描述：{id,title,url,icon,pinned,params}。",
+      "actions": [
+        {
+          "type": "button",
+          "props": {
+            "text": "tab.open 提醒讯号",
+            "icon": "plus",
+            "variant": "primary",
+            "size": "sm"
+          },
+          "on": {
+            "click": {
+              "action": "tab.open",
+              "params": {
+                "id": "notify",
+                "title": "提醒讯号",
+                "url": "pages/notify.html",
+                "icon": "bell"
+              }
+            }
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "tab.open 弹窗剧场",
+            "icon": "message",
+            "size": "sm"
+          },
+          "on": {
+            "click": {
+              "action": "tab.open",
+              "params": {
+                "id": "dialogs",
+                "title": "弹窗剧场",
+                "url": "pages/dialogs.html",
+                "icon": "message"
+              }
+            }
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "tab.refresh",
+            "icon": "refresh",
+            "size": "sm"
+          },
+          "on": {
+            "click": {
+              "action": "tab.refresh"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "tab.closeOthers",
+            "icon": "close",
+            "size": "sm"
+          },
+          "on": {
+            "click": {
+              "action": "tab.closeOthers"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "props": {
+            "text": "tab.closeAll",
+            "icon": "trash",
+            "variant": "danger",
+            "size": "sm"
+          },
+          "on": {
+            "click": {
+              "action": "tab.closeAll"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

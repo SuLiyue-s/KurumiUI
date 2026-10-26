@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <!-- 主题预置：首帧前写入当前主题 token，防 FOUC 闪烁（由 .tools/patch-theme-boot.js 注入） -->
+  <script src="../src/core/theme-boot.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>未保存数据验证 · profile | KurumiUI</title>
+<link rel="stylesheet" href="../src/styles/base.css">
+<link rel="stylesheet" href="../src/styles/controls.css">
+<link rel="stylesheet" href="../src/styles/components.css">
+<link rel="stylesheet" href="../src/styles/tooltip.css">
+<style>
+  html, body { margin: 0; min-height: 100%; }
+  body { background: var(--kui-bg-0, #08050a); color: var(--kui-text-1, #f5e9ee); font-family: var(--kui-font-family, "Microsoft YaHei", "PingFang SC", sans-serif); font-size: 13px; line-height: 1.7; }
+  .page { max-width: 980px; margin: 0 auto; padding: 6px 24px 44px; }
+  .page__head { display: flex; align-items: flex-start; gap: 14px; flex-wrap: wrap; margin-bottom: 16px; }
+  .page__title { margin: 0; font-size: 19px; letter-spacing: .05em; }
+  .page__desc { margin: 4px 0 0; font-size: 12px; color: var(--kui-text-2, #cbb8c0); }
+  .dirty-flag { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; font-size: 12px; border-radius: 999px; padding: 5px 12px; border: 1px solid var(--kui-border, #2a1f26); color: var(--kui-text-2, #cbb8c0); background: var(--kui-bg-1, #141018); }
+  .dirty-flag.is-dirty { color: var(--kui-warning, #f5b942); border-color: var(--kui-warning, #f5b942); }
+  .dirty-flag.is-clean { color: var(--kui-success, #3ecf8e); border-color: var(--kui-success, #3ecf8e); }
+  .dirty-flag i { width: 8px; height: 8px; border-radius: 50%; background: currentColor; display: block; }
+  .steps-card { border: 1px solid var(--kui-accent-2, #d4af37); background: linear-gradient(120deg, var(--kui-bg-1, #141018), var(--kui-bg-2, #1d141d)); border-radius: 10px; padding: 14px 16px; margin-bottom: 16px; }
+  .steps-card h2 { margin: 0 0 8px; font-size: 13px; color: var(--kui-accent-2, #d4af37); letter-spacing: .08em; }
+  .steps-card ol { margin: 0; padding-left: 18px; font-size: 12px; color: var(--kui-text-2, #cbb8c0); }
+  .steps-card li { margin: 3px 0; }
+  .steps-card code { font-family: var(--kui-font-mono, Consolas, monospace); font-size: 11px; color: var(--kui-accent-3, #8ee6d6); }
+  .panel { border: 1px solid var(--kui-border, #2a1f26); background: var(--kui-bg-1, #141018); border-radius: 10px; padding: 16px 18px; }
+  .panel h2 { margin: 0 0 12px; font-size: 13px; color: var(--kui-text-1, #f5e9ee); letter-spacing: .06em; }
+  .panel h2 span { font-size: 11px; font-weight: 400; color: var(--kui-text-3, #9a8b93); letter-spacing: .02em; margin-left: 6px; }
+  .btnrow { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; border-top: 1px dashed var(--kui-border, #2a1f26); padding-top: 14px; }
+  .btn { height: 30px; padding: 0 13px; cursor: pointer; font-size: 12px; border-radius: 6px; color: var(--kui-text-1, #f5e9ee); background: var(--kui-control-bg, #1b141c); border: 1px solid var(--kui-control-border, #3a2b33); }
+  .btn:hover { border-color: var(--kui-accent, #e11d48); color: var(--kui-accent, #e11d48); }
+  .btn--primary { background: linear-gradient(180deg, var(--kui-accent-hover, #e11d48), var(--kui-accent, #e11d48)); border-color: var(--kui-accent, #e11d48); color: var(--kui-on-accent, var(--kui-text-inverse, #fff)); box-shadow: 0 2px 8px var(--kui-accent-glow, transparent); }
+  .btn--primary:hover { color: var(--kui-on-accent, var(--kui-text-inverse, #fff)); background: var(--kui-accent-hover, #e11d48); border-color: var(--kui-accent-hover, #e11d48); }
+  .log { margin: 14px 0 0; padding: 10px 12px; min-height: 84px; max-height: 190px; overflow: auto; background: var(--kui-bg-0, #08050a); border: 1px dashed var(--kui-border, #2a1f26); border-radius: 6px; font-family: var(--kui-font-mono, Consolas, monospace); font-size: 11px; line-height: 1.7; color: var(--kui-text-2, #cbb8c0); white-space: pre-wrap; }
+  .log .is-err { color: var(--kui-danger, #ff5c7a); }
+  .log .is-ok { color: var(--kui-success, #3ecf8e); }
+</style>
+</head>
+<body>
+<main class="page">
+  <header class="page__head">
+    <div>
+      <h1 class="page__title">未保存数据验证</h1>
+      <p class="page__desc">本页故意不自动保存：改完值直接切换标签，再切回来验证 iframe 保活与脏状态同步。</p>
+    </div>
+    <div class="dirty-flag" id="dirtyFlag"><i></i><span id="dirtyText">未修改（干净）</span></div>
+  </header>
+
+  <section class="steps-card">
+    <h2>验证步骤（照做即可验收「切换不丢未保存数据」）</h2>
+    <ol>
+      <li>修改下面任意字段（例如「观测代号」「所属结界」「同步频率」），<strong>不要点保存</strong>。页面立即调用 <code>KUI.frame.setDirty(true)</code>，标题旁状态变黄、主框架标签出现未保存标记。</li>
+      <li>点顶部其他标签（如首页、完整表单页），再点回本标签。</li>
+      <li>观察：所有字段值仍然是刚才修改后的内容，开关/单选状态也在；本页日志会记录一次 <code>tab:activate</code>。</li>
+      <li>点「保存设置」→ 主框架收 <code>frame:dirty false</code> + 一条 toast；状态变绿。</li>
+      <li>额外验证：再次修改后直接关闭本标签，主框架应弹出「未保存数据」确认框（由 <code>tab:before-close</code> + dirty 状态触发）。</li>
+    </ol>
+  </section>
+
+  <section class="panel">
+    <h2>观测档案 <span>KUI.form.create 渲染，data 来自本页 JSON</span></h2>
+    <div id="formHost"><div style="font-size:12px;color:var(--kui-text-3,#9a8b93)">正在准备表单…</div></div>
+    <div class="btnrow">
+      <button class="btn btn--primary" id="btnSave">保存设置</button>
+      <button class="btn" id="btnDirty">手动 setDirty(true)</button>
+      <button class="btn" id="btnClean">手动 setDirty(false)</button>
+      <button class="btn" id="btnData">查看当前数据</button>
+      <button class="btn" id="btnToast">向主框架发 toast</button>
+    </div>
+    <pre class="log" id="logEl">// 本页日志</pre>
+  </section>
+</main>
+
+<script src="../src/core/kui-all.js" data-kui-profile="standalone"></script>
+<script>
+(function () {
+  'use strict';
+  var KUI = window.KUI || {};
+  var frame = KUI.frame || null;
+  var logEl = document.getElementById('logEl');
+  var form = null;
+  var dirty = false;
+
+  function log(text, kind) {
+    var line = document.createElement('div');
+    if (kind === 'err') line.className = 'is-err';
+    if (kind === 'ok') line.className = 'is-ok';
+    line.textContent = '[' + new Date().toLocaleTimeString() + '] ' + text;
+    logEl.appendChild(line);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+  function ready(fn) {
+    if (frame && typeof frame.ready === 'function') {
+      try { frame.ready(fn); return; } catch (e) { /* 独立打开 */ }
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn);
+    else fn();
+  }
+  function setDirty(on) {
+    dirty = !!on;
+    if (frame && typeof frame.setDirty === 'function') {
+      try { frame.setDirty(dirty); } catch (e) { log('setDirty 调用失败：' + e.message, 'err'); }
+    }
+    var flag = document.getElementById('dirtyFlag');
+    var text = document.getElementById('dirtyText');
+    flag.className = 'dirty-flag ' + (dirty ? 'is-dirty' : 'is-clean');
+    text.textContent = dirty ? '未保存（脏）' : '未修改（干净）';
+    log('KUI.frame.setDirty(' + dirty + ')', dirty ? undefined : 'ok');
+  }
+  function toast(type, title, message, duration) {
+    var t = frame && frame.toast;
+    if (!t) { log('[toast] ' + type + ' / ' + title + '：' + message); return; }
+    if (typeof t === 'function') { t({ type: type, title: title, message: message, duration: duration || 3200 }); return; }
+    var fn = t[type] || t.info;
+    if (typeof fn === 'function') fn({ title: title, message: message, duration: duration || 3200 });
+  }
+
+  var DATA = {
+    codename: '时崎狂三',
+    seal: 'timeline',
+    freq: 'daily',
+    sync: true,
+    level: 72,
+    note: '第一时区观测记录：时间流稳定，绯红结界的边缘在 03:00 出现轻微涟漪。'
+  };
+
+  function buildForm() {
+    var host = document.getElementById('formHost');
+    if (!KUI.form || typeof KUI.form.create !== 'function') {
+      host.innerHTML = '<div style="color:var(--kui-danger,#ff5c7a);font-size:12px">KUI.form.create 不可用：请确认 controls/index.js 与 form.js 已加载。</div>';
+      log('KUI.form.create 不可用', 'err');
+      return;
+    }
+    form = KUI.form.create(host, {
+      layout: { columns: 2, gap: 16, labelWidth: 96, labelPosition: 'left' },
+      data: DATA,
+      nodes: [
+        { id: 'codename', type: 'input', label: '观测代号', required: true, props: { placeholder: '例如：时崎狂三', clearable: true, prefixIcon: 'user', maxlength: 20 } },
+        { id: 'seal', type: 'select', label: '所属结界', props: { clearable: false }, options: [
+          { label: '时间线 · 一之弹', value: 'timeline' },
+          { label: '封印结界 · 刻刻帝', value: 'seal' },
+          { label: '观测回廊 · 静默', value: 'silence' }
+        ] },
+        { id: 'freq', type: 'radio-group', label: '同步频率', options: [
+          { label: '每次跳跃', value: 'each' },
+          { label: '每日', value: 'daily' },
+          { label: '每周', value: 'weekly' }
+        ] },
+        { id: 'sync', type: 'switch', label: '自动同步', props: { activeText: '同步', inactiveText: '手动' } },
+        { id: 'level', type: 'slider', label: '灵装功率', span: 2, props: { min: 0, max: 100, step: 1, showTooltip: true } },
+        { id: 'note', type: 'textarea', label: '观测备注', span: 2, props: { rows: 3, maxlength: 200, showCount: true, placeholder: '记录本次时间跳跃的观测结果…' } }
+      ],
+      onChange: function () {
+        if (!dirty) setDirty(true);
+      }
+    });
+    if (form && form.subscribe) {
+      form.subscribe(function (data, field) {
+        log('字段变化：' + (field && (field.id || field)) + ' → 当前脏状态 ' + dirty);
+      });
+    }
+    log('表单就绪：修改任意字段即触发 setDirty(true)', 'ok');
+  }
+
+  function save() {
+    if (!form) { log('表单未就绪', 'err'); return; }
+    var res = form.validate();
+    if (res && res.valid === false) {
+      log('校验未通过：' + JSON.stringify(res.errors), 'err');
+      return;
+    }
+    var values = form.getData();
+    log('保存数据：' + JSON.stringify(values), 'ok');
+    setDirty(false);
+    toast('success', '观测档案已保存', '刻印记录已写入时间线，未保存标记已清除。');
+  }
+
+  ready(function () {
+    buildForm();
+
+    document.getElementById('btnSave').onclick = save;
+    document.getElementById('btnDirty').onclick = function () { setDirty(true); };
+    document.getElementById('btnClean').onclick = function () { setDirty(false); };
+    document.getElementById('btnData').onclick = function () {
+      if (!form) return;
+      log('getData() → ' + JSON.stringify(form.getData()));
+    };
+    document.getElementById('btnToast').onclick = function () {
+      toast('info', '来自业务页的 toast', '这条提醒通过 frame:toast 转发给主框架显示。');
+      log('已向主框架发送 frame:toast');
+    };
+
+    if (frame && typeof frame.on === 'function') {
+      frame.on('activate', function () {
+        log('收到 tab:activate —— 本次激活没有重建 iframe，表单值仍在：' + (form ? JSON.stringify(form.getData().codename) : 'n/a'), 'ok');
+      });
+      frame.on('init', function (payload) {
+        log('收到 tab:init：tabId=' + (payload && payload.tabId));
+      });
+      frame.on('theme', function (theme) {
+        log('收到 theme:change：' + (theme && (theme.id || theme.name)));
+      });
+    }
+    if (frame && typeof frame.setTitle === 'function') {
+      try { frame.setTitle('未保存数据验证'); } catch (e) { /* 忽略 */ }
+    }
+    log('页面就绪；请按上方步骤操作（改值 → 切标签 → 切回）', 'ok');
+  });
+})();
+</script>
+</body>
+</html>
+

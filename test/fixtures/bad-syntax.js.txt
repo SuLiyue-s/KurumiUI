@@ -1,0 +1,20 @@
+/* 故意包含禁用语法，仅供 test/compat.test.js 断言扫描器；不要作为项目代码加载。
+ * 标记行以 MARK_ 前缀注释，测试按标记定位行号。 */
+var opt = obj?.a;                          // MARK_OPT
+var nul = opt ?? 1;                        // MARK_NULLISH
+var orv = nul ||= 2;                       // MARK_OR_ASSIGN
+var andv = nul &&= 3;                      // MARK_AND_ASSIGN
+var qav = nul ??= 4;                       // MARK_NULLISH_ASSIGN
+var rep = 'a-b'.replaceAll('-', '_');      // MARK_REPLACE_ALL
+var last = [1, 2].at(-1);                  // MARK_AT
+var fe = Object.fromEntries([]);           // MARK_FROM_ENTRIES
+var sc = structuredClone({});              // MARK_STRUCTURED_CLONE
+class Box { #secret = 1; }                 // MARK_PRIVATE_FIELD
+var flat = [[1]].flat();                   // MARK_FLAT
+var flatMap = [[1]].flatMap(function (x) { return x; }); // MARK_FLAT_MAP
+var has = Object.hasOwn({}, 'x');          // MARK_HAS_OWN
+var rtf = new Intl.RelativeTimeFormat();   // MARK_RTF
+import fs from 'fs';                       // MARK_IMPORT
+export default {};                         // MARK_EXPORT
+var dyn = import('./x');                   // MARK_DYNAMIC_IMPORT
+await something();                         // MARK_TOP_LEVEL_AWAIT

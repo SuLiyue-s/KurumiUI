@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-kui-dialog-frame="true">
+<head>
+  <!-- 主题预置：首帧前写入当前主题 token，防 FOUC 闪烁（由 .tools/patch-theme-boot.js 注入） -->
+  <script src="../core/theme-boot.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>KurumiUI · Dialog</title>
+  <!-- 弹窗 iframe 内部文档：所有资源路径按 src/frame/ 深度写 -->
+  <link rel="stylesheet" href="../styles/base.css" />
+  <link rel="stylesheet" href="../styles/controls.css" />
+  <link rel="stylesheet" href="../styles/components.css" />
+<link rel="stylesheet" href="../styles/tooltip.css">
+  <style>
+    /* 弹窗 iframe 内部只需要内容布局；颜色/材质全部走 --kui-* token */
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      overflow: hidden;
+    }
+    body.kui-dialog-body {
+      font-family: var(--kui-font-family);
+      font-size: var(--kui-fs-base);
+      color: var(--kui-text-1);
+      -webkit-font-smoothing: antialiased;
+    }
+    .kui-dialog {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      box-sizing: border-box;
+      background: var(--kui-bg-2);
+      border: var(--kui-border-width) solid var(--kui-border);
+      border-radius: var(--kui-radius-lg);
+      box-shadow: var(--kui-shadow-2), var(--kui-inner-glow);
+      overflow: hidden;
+      /* 说明（v1.1.0）：此处曾用 clip-path 画斜切角。clip-path 会让整个弹窗成为一个
+         裁剪图层，输入框光标闪烁 / 逐字输入都会触发整层重绘，在部分 GPU 组合下会造成
+         明显卡顿。改为纯圆角 + 描边，斜切装饰交给组件层用伪元素实现（不影响输入）。*/
+    }
+    .kui-dialog__header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 44px;
+      padding: 10px 14px;
+      border-bottom: var(--kui-border-width) solid var(--kui-divider);
+      background: linear-gradient(180deg, var(--kui-highlight, transparent), transparent);
+      cursor: default;
+    }
+    .kui-dialog.is-draggable .kui-dialog__header { cursor: move; }
+    .kui-dialog__icon { display: inline-flex; flex: 0 0 auto; color: var(--kui-accent); }
+    .kui-dialog__title {
+      flex: 1 1 auto;
+      margin: 0;
+      font-size: var(--kui-fs-md);
+      font-weight: 600;
+      letter-spacing: var(--kui-letter-spacing);
+      color: var(--kui-text-1);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .kui-dialog__close {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      padding: 0;
+      border: var(--kui-border-width) solid transparent;
+      border-radius: var(--kui-radius-sm);
+      background: transparent;
+      color: var(--kui-text-3);
+      cursor: pointer;
+      transition: color var(--kui-duration-fast) var(--kui-ease), background-color var(--kui-duration-fast) var(--kui-ease), border-color var(--kui-duration-fast) var(--kui-ease);
+    }
+    .kui-dialog__close:hover { color: var(--kui-text-1); background: var(--kui-control-hover); }
+    .kui-dialog__close:focus-visible { outline: none; border-color: var(--kui-control-border-focus); box-shadow: 0 0 0 2px var(--kui-accent-soft); }
+    .kui-dialog__body {
+      flex: 1 1 auto;
+      padding: 16px 14px;
+      overflow: auto;
+      min-height: 32px;
+      color: var(--kui-text-1);
+      line-height: var(--kui-lh);
+    }
+    .kui-dialog__body > p { margin: 0 0 8px; }
+    .kui-dialog__body > p:last-child { margin-bottom: 0; }
+    .kui-dialog__footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 10px 14px;
+      border-top: var(--kui-border-width) solid var(--kui-divider);
+      background: linear-gradient(0deg, var(--kui-highlight, transparent), transparent);
+      min-height: 30px;
+    }
+    .kui-dialog__footer:empty { display: none; }
+    .kui-dialog__actions { display: inline-flex; align-items: center; gap: 8px; }
+    .kui-dialog__message { color: var(--kui-text-1); }
+    .kui-dialog__hint { color: var(--kui-text-3); font-size: var(--kui-fs-sm); margin-top: 6px; }
+    .kui-dialog__loading { display: inline-flex; align-items: center; gap: 8px; color: var(--kui-text-3); }
+    /* 弹窗内表单兜底样式（controls/form 未加载时） */
+    .kui-dialog__field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+    .kui-dialog__label { font-size: var(--kui-fs-sm); color: var(--kui-text-2); }
+    .kui-dialog__input, .kui-dialog__select, .kui-dialog__textarea {
+      width: 100%;
+      box-sizing: border-box;
+      min-height: var(--kui-control-h-md);
+      padding: 0 var(--kui-control-px);
+      color: var(--kui-control-text);
+      background: var(--kui-control-bg);
+      border: var(--kui-border-width) solid var(--kui-control-border);
+      border-radius: var(--kui-control-radius);
+      font-family: inherit;
+      font-size: var(--kui-fs-base);
+      transition: border-color var(--kui-duration-fast) var(--kui-ease), box-shadow var(--kui-duration-fast) var(--kui-ease);
+    }
+    .kui-dialog__textarea { min-height: 72px; padding: 6px var(--kui-control-px); resize: none; }
+    .kui-dialog__input:hover, .kui-dialog__select:hover, .kui-dialog__textarea:hover { border-color: var(--kui-control-border-hover); }
+    .kui-dialog__input:focus, .kui-dialog__select:focus, .kui-dialog__textarea:focus {
+      outline: none;
+      border-color: var(--kui-control-border-focus);
+      box-shadow: 0 0 0 2px var(--kui-accent-soft);
+    }
+    .kui-dialog__error { color: var(--kui-danger); font-size: var(--kui-fs-sm); margin-top: 4px; min-height: 14px; }
+    .kui-dialog__btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: var(--kui-control-h-md);
+      padding: 0 14px;
+      border: var(--kui-border-width) solid var(--kui-control-border);
+      border-radius: var(--kui-control-radius);
+      background: var(--kui-control-bg);
+      color: var(--kui-control-text);
+      font-family: inherit;
+      font-size: var(--kui-fs-base);
+      cursor: pointer;
+      transition: background-color var(--kui-duration-fast) var(--kui-ease), border-color var(--kui-duration-fast) var(--kui-ease), color var(--kui-duration-fast) var(--kui-ease), transform var(--kui-duration-fast) var(--kui-ease);
+    }
+    .kui-dialog__btn:hover {
+      background: var(--kui-control-hover);
+      border-color: var(--kui-control-border-hover);
+      color: var(--kui-control-text-hover, var(--kui-control-text));
+    }
+    .kui-dialog__btn:active {
+      transform: translateY(1px);
+      background: var(--kui-control-active, var(--kui-control-hover));
+      color: var(--kui-control-text-hover, var(--kui-control-text));
+    }
+    .kui-dialog__btn:focus-visible { outline: none; border-color: var(--kui-control-border-focus); box-shadow: 0 0 0 2px var(--kui-accent-soft); }
+    .kui-dialog__btn.is-primary {
+      background: var(--kui-accent);
+      border-color: var(--kui-accent);
+      color: var(--kui-on-accent, var(--kui-text-inverse));
+    }
+    .kui-dialog__btn.is-primary:hover {
+      background: var(--kui-accent-hover);
+      border-color: var(--kui-accent-hover);
+      color: var(--kui-on-accent, var(--kui-text-inverse));
+    }
+    .kui-dialog__btn.is-primary:active {
+      background: var(--kui-accent-hover);
+      border-color: var(--kui-accent-hover);
+      color: var(--kui-on-accent, var(--kui-text-inverse));
+      filter: brightness(.96);
+    }
+    .kui-dialog__btn.is-danger {
+      background: var(--kui-danger);
+      border-color: var(--kui-danger);
+      color: var(--kui-on-danger, var(--kui-text-inverse));
+    }
+    .kui-dialog__btn.is-danger:hover {
+      background: var(--kui-danger-hover, var(--kui-danger));
+      border-color: var(--kui-danger-hover, var(--kui-danger));
+      color: var(--kui-on-danger, var(--kui-text-inverse));
+      filter: brightness(1.08);
+    }
+    .kui-dialog__btn.is-danger:active {
+      color: var(--kui-on-danger, var(--kui-text-inverse));
+      filter: brightness(.94);
+    }
+    .kui-dialog__btn.is-ghost { background: transparent; color: var(--kui-control-text); }
+    .kui-dialog__btn.is-ghost:hover { background: var(--kui-control-hover); }
+    .kui-dialog__btn:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+      color: var(--kui-control-text-disabled, var(--kui-control-text));
+    }
+    .kui-dialog__btn.is-primary:disabled,
+    .kui-dialog__btn.is-danger:disabled {
+      color: var(--kui-on-accent, var(--kui-text-inverse));
+    }
+    .kui-btn-spinner {
+      width: 12px; height: 12px; border-radius: 50%;
+      border: 2px solid currentColor;
+      border-top-color: transparent;
+      animation: kui-dialog-spin .7s linear infinite;
+    }
+    @keyframes kui-dialog-spin { to { transform: rotate(360deg); } }
+    .kui-icon { width: 16px; height: 16px; flex: 0 0 auto; }
+  </style>
+</head>
+<body class="kui-dialog-body">
+  <div id="kui-dialog" class="kui-dialog kui-dialog--frame" data-kui-dialog-root="true">
+    <div class="kui-dialog__header" data-dialog-header>
+      <span class="kui-dialog__icon" data-dialog-icon></span>
+      <h2 class="kui-dialog__title" data-dialog-title></h2>
+      <button class="kui-dialog__close" type="button" data-dialog-close aria-label="关闭" title="关闭">
+        <svg class="kui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+      </button>
+    </div>
+    <div class="kui-dialog__body" data-dialog-body></div>
+    <div class="kui-dialog__footer" data-dialog-footer></div>
+  </div>
+
+  <!-- 加载顺序与 index.html 保持一致（路径按 src/frame/ 深度） -->
+  <script src="../core/kui.js"></script>
+<script src="../core/tooltip.js"></script>
+  <script src="../core/icons.js"></script>
+  <script src="../core/registry.js"></script>
+  <script src="../core/config.js"></script>
+  <script src="../core/theme.js"></script>
+  <script src="../core/theme-art.js"></script>
+  <script src="../core/dom-enhance.js"></script>
+  <script src="../components/controls/index.js"></script>
+  <script src="../components/form.js"></script>
+  <script src="./dialog-frame.js"></script>
+</body>
+</html>

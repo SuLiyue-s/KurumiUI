@@ -1,0 +1,335 @@
+{
+  "title": "头像 · avatar",
+  "desc": "配置 JSON 传入头像 URL；一旦设置自定义头像，就在头像边框外绘制「刻刻帝时间齿轮」（外圈虚线齿轮 + 时间刻线 + 时针分针 + 轴心宝石）。齿轮框颜色全部来自主题 token，切换主题时自动变色；头像图片本身不随主题变化。editable 控制渲染完成后能否点击更换。",
+  "defaults": {
+    "url": "",
+    "editable": false,
+    "size": 44,
+    "frame": {
+      "enabled": true,
+      "style": "clock-gear"
+    }
+  },
+  "groups": [
+    {
+      "id": "basic",
+      "title": "一、基础：url 为空 / 有值，editable 开 / 关",
+      "desc": "url 为空 → 默认时钟图标 + 虚线占位（不画齿轮框）；url 有值 → 头像 + 齿轮框。editable 只影响「点击能否更换」，不影响齿轮框。",
+      "items": [
+        {
+          "id": "empty-editable",
+          "label": "url:\"\" · editable:true",
+          "desc": "未设置头像，点击头像可打开「更换头像」弹窗。",
+          "props": {
+            "url": "",
+            "editable": true,
+            "size": 56,
+            "clickTitle": "点击设置头像",
+            "frame": {
+              "enabled": true
+            }
+          }
+        },
+        {
+          "id": "empty-locked",
+          "label": "url:\"\" · editable:false",
+          "desc": "未设置且不可更换：只显示默认时钟图标。",
+          "props": {
+            "url": "",
+            "editable": false,
+            "size": 56,
+            "title": "未设置头像（editable:false）"
+          }
+        },
+        {
+          "id": "custom-editable",
+          "label": "url 预设 · editable:true",
+          "desc": "已设置头像 → 绘制刻刻帝齿轮框；点击可更换。",
+          "props": {
+            "url": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%232a0a12%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2217%22%20fill%3D%22none%22%20stroke%3D%22%23d4af37%22%20stroke-width%3D%222%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%229%22%20fill%3D%22%23c8102e%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%223.4%22%20fill%3D%22%230a0507%22%2F%3E%3Ccircle%20cx%3D%2234%22%20cy%3D%2229.6%22%20r%3D%221.4%22%20fill%3D%22%23ffe9c9%22%20opacity%3D%22.85%22%2F%3E%3C%2Fsvg%3E",
+            "editable": true,
+            "size": 56,
+            "clickTitle": "更换头像"
+          }
+        },
+        {
+          "id": "custom-locked",
+          "label": "url 预设 · editable:false",
+          "desc": "已设置头像且禁止更换：齿轮框照常显示，但点击无响应。",
+          "props": {
+            "url": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23120d08%22%2F%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23d4af37%22%20stroke-width%3D%222.6%22%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2219%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%228%22%2F%3E%3Cpath%20d%3D%22M32%208v7M32%2049v7M8%2032h7M49%2032h7%22%2F%3E%3C%2Fg%3E%3Cpath%20d%3D%22M32%2032V21M32%2032l8%206%22%20stroke%3D%22%23c8102e%22%20stroke-width%3D%222.6%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E",
+            "editable": false,
+            "size": 56
+          }
+        }
+      ]
+    },
+    {
+      "id": "size",
+      "title": "二、尺寸与形状（size / shape）",
+      "desc": "size 是头像直径（px），齿轮框自动按直径缩放；shape:square 使用圆角方形。",
+      "items": [
+        {
+          "id": "size-32",
+          "label": "size:32",
+          "props": {
+            "url": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cdefs%3E%3CradialGradient%20id%3D%22s%22%20cx%3D%2250%25%22%20cy%3D%2250%25%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%231b2a5c%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23070a18%22%2F%3E%3C%2FradialGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22url(%23s)%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2216%22%20fill%3D%22none%22%20stroke%3D%22%237b96e8%22%20stroke-width%3D%221.6%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%225%22%20fill%3D%22%23c8d6ff%22%2F%3E%3Cpath%20d%3D%22M32%206v8M32%2050v8M6%2032h8M50%2032h8%22%20stroke%3D%22%237b96e8%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E",
+            "editable": false,
+            "size": 32
+          }
+        },
+        {
+          "id": "size-44",
+          "label": "size:44（默认）",
+          "props": {
+            "url": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cdefs%3E%3CradialGradient%20id%3D%22s%22%20cx%3D%2250%25%22%20cy%3D%2250%25%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%231b2a5c%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23070a18%22%2F%3E%3C%2FradialGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22url(%23s)%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2216%22%20fill%3D%22none%22%20stroke%3D%22%237b96e8%22%20stroke-width%3D%221.6%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%225%22%20fill%3D%22%23c8d6ff%22%2F%3E%3Cpath%20d%3D%22M32%206v8M32%2050v8M6%2032h8M50%2032h8%22%20stroke%3D%22%237b96e8%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E",
+            "editable": false,
+            "size": 44
+          }
+        },
+        {
+          "id": "size-56",
+          "label": "size:56",
+          "props": {
+            "url": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cdefs%3E%3CradialGradient%20id%3D%22s%22%20cx%3D%2250%25%22%20cy%3D%2250%25%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%231b2a5c%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23070a18%22%2F%3E%3C%2FradialGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22url(%23s)%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2216%22%20fill%3D%22none%22%20stroke%3D%22%237b96e8%22%20stroke-width%3D%221.6%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%225%22%20fill%3D%22%23c8d6ff%22%2F%3E%3Cpath%20d%3D%22M32%206v8M32%2050v8M6%2032h8M50%2032h8%22%20stroke%3D%22%237b96e8%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E",
+            "editable": false,
+            "size": 56
+          }
+        },
+        {
+          "id": "size-72",
+          "label": "size:72",
+          "props": {
+            "url": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cdefs%3E%3CradialGradient%20id%3D%22s%22%20cx%3D%2250%25%22%20cy%3D%2250%25%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%231b2a5c%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23070a18%22%2F%3E%3C%2FradialGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22url(%23s)%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2216%22%20fill%3D%22none%22%20stroke%3D%22%237b96e8%22%20stroke-width%3D%221.6%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%225%22%20fill%3D%22%23c8d6ff%22%2F%3E%3Cpath%20d%3D%22M32%206v8M32%2050v8M6%2032h8M50%2032h8%22%20stroke%3D%22%237b96e8%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E",
+            "editable": false,
+            "size": 72
+          }
+        },
+        {
+          "id": "size-printf",
+          "label": "size:64 · shape:square",
+          "props": {
+            "url": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23120d08%22%2F%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23d4af37%22%20stroke-width%3D%222.6%22%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2219%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%228%22%2F%3E%3Cpath%20d%3D%22M32%208v7M32%2049v7M8%2032h7M49%2032h7%22%2F%3E%3C%2Fg%3E%3Cpath%20d%3D%22M32%2032V21M32%2032l8%206%22%20stroke%3D%22%23c8102e%22%20stroke-width%3D%222.6%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E",
+            "editable": false,
+            "size": 64,
+            "shape": "square"
+          }
+        }
+      ]
+    },
+    {
+      "id": "frame",
+      "title": "三、齿轮框细节（frame.*）",
+      "desc": "frame.enabled=false 关闭齿轮框；showRoman 显示罗马数字刻度；showHands 显示时针分针；animated=false 关闭齿轮缓慢旋转（prefers-reduced-motion 下也会自动关闭）。",
+      "items": [
+        {
+          "id": "frame-off",
+          "label": "frame.enabled:false",
+          "desc": "关闭齿轮框：只剩头像本身。",
+          "props": {
+            "url": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%232a0a12%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2217%22%20fill%3D%22none%22%20stroke%3D%22%23d4af37%22%20stroke-width%3D%222%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%229%22%20fill%3D%22%23c8102e%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%223.4%22%20fill%3D%22%230a0507%22%2F%3E%3Ccircle%20cx%3D%2234%22%20cy%3D%2229.6%22%20r%3D%221.4%22%20fill%3D%22%23ffe9c9%22%20opacity%3D%22.85%22%2F%3E%3C%2Fsvg%3E",
+            "editable": false,
+            "size": 56,
+            "frame": {
+              "enabled": false
+            }
+          }
+        },
+        {
+          "id": "frame-roman",
+          "label": "frame.showRoman:true",
+          "desc": "显示罗马数字（XII/I/II/…），尺寸 64 时更清晰。",
+          "props": {
+            "url": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23120d08%22%2F%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23d4af37%22%20stroke-width%3D%222.6%22%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2219%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%228%22%2F%3E%3Cpath%20d%3D%22M32%208v7M32%2049v7M8%2032h7M49%2032h7%22%2F%3E%3C%2Fg%3E%3Cpath%20d%3D%22M32%2032V21M32%2032l8%206%22%20stroke%3D%22%23c8102e%22%20stroke-width%3D%222.6%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E",
+            "editable": false,
+            "size": 64,
+            "frame": {
+              "showRoman": true
+            }
+          }
+        },
+        {
+          "id": "frame-static",
+          "label": "frame.animated:false",
+          "desc": "齿轮不旋转（对比上一个的缓动）。",
+          "props": {
+            "url": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cdefs%3E%3CradialGradient%20id%3D%22s%22%20cx%3D%2250%25%22%20cy%3D%2250%25%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%231b2a5c%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23070a18%22%2F%3E%3C%2FradialGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22url(%23s)%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2216%22%20fill%3D%22none%22%20stroke%3D%22%237b96e8%22%20stroke-width%3D%221.6%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%225%22%20fill%3D%22%23c8d6ff%22%2F%3E%3Cpath%20d%3D%22M32%206v8M32%2050v8M6%2032h8M50%2032h8%22%20stroke%3D%22%237b96e8%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E",
+            "editable": false,
+            "size": 64,
+            "frame": {
+              "animated": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "theme",
+      "title": "四、主题联动：切换右上角主题，观察齿轮框颜色",
+      "desc": "齿轮框的颜色全部使用 --kui-accent / --kui-accent-2 / --kui-glow 等 token，所以 6 套主题切换时头像框会立刻变色；头像图片本身保持不变。",
+      "items": [
+        {
+          "id": "theme-a",
+          "label": "预设 · 绯红之瞳",
+          "props": {
+            "url": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%232a0a12%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2217%22%20fill%3D%22none%22%20stroke%3D%22%23d4af37%22%20stroke-width%3D%222%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%229%22%20fill%3D%22%23c8102e%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%223.4%22%20fill%3D%22%230a0507%22%2F%3E%3Ccircle%20cx%3D%2234%22%20cy%3D%2229.6%22%20r%3D%221.4%22%20fill%3D%22%23ffe9c9%22%20opacity%3D%22.85%22%2F%3E%3C%2Fsvg%3E",
+            "editable": false,
+            "size": 56
+          }
+        },
+        {
+          "id": "theme-b",
+          "label": "预设 · 黄金齿轮",
+          "props": {
+            "url": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23120d08%22%2F%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23d4af37%22%20stroke-width%3D%222.6%22%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2219%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%228%22%2F%3E%3Cpath%20d%3D%22M32%208v7M32%2049v7M8%2032h7M49%2032h7%22%2F%3E%3C%2Fg%3E%3Cpath%20d%3D%22M32%2032V21M32%2032l8%206%22%20stroke%3D%22%23c8102e%22%20stroke-width%3D%222.6%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E",
+            "editable": false,
+            "size": 56
+          }
+        },
+        {
+          "id": "theme-c",
+          "label": "预设 · 星夜观测",
+          "props": {
+            "url": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cdefs%3E%3CradialGradient%20id%3D%22s%22%20cx%3D%2250%25%22%20cy%3D%2250%25%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%231b2a5c%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23070a18%22%2F%3E%3C%2FradialGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22url(%23s)%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2216%22%20fill%3D%22none%22%20stroke%3D%22%237b96e8%22%20stroke-width%3D%221.6%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%225%22%20fill%3D%22%23c8d6ff%22%2F%3E%3Cpath%20d%3D%22M32%206v8M32%2050v8M6%2032h8M50%2032h8%22%20stroke%3D%22%237b96e8%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E",
+            "editable": false,
+            "size": 56
+          }
+        }
+      ]
+    },
+    {
+      "id": "spin",
+      "title": "五、齿轮转速（frame.spinDuration）",
+      "desc": "spinDuration = 转一圈的秒数：数字越小转得越快；0 停转；负数反向转。默认 48。",
+      "items": [
+        {
+          "id": "spin-fast",
+          "label": "frame.spinDuration:6",
+          "desc": "6 秒一圈（明显转动，用于确认动画在跑）。",
+          "props": {
+            "url": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%232a0a12%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2217%22%20fill%3D%22none%22%20stroke%3D%22%23d4af37%22%20stroke-width%3D%222%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%229%22%20fill%3D%22%23c8102e%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%223.4%22%20fill%3D%22%230a0507%22%2F%3E%3Ccircle%20cx%3D%2234%22%20cy%3D%2229.6%22%20r%3D%221.4%22%20fill%3D%22%23ffe9c9%22%20opacity%3D%22.85%22%2F%3E%3C%2Fsvg%3E",
+            "editable": false,
+            "size": 64,
+            "frame": {
+              "spinDuration": 6
+            }
+          }
+        },
+        {
+          "id": "spin-normal",
+          "label": "frame.spinDuration:48",
+          "desc": "48 秒一圈（默认值，缓慢旋转）。",
+          "props": {
+            "url": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%232a0a12%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2217%22%20fill%3D%22none%22%20stroke%3D%22%23d4af37%22%20stroke-width%3D%222%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%229%22%20fill%3D%22%23c8102e%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%223.4%22%20fill%3D%22%230a0507%22%2F%3E%3Ccircle%20cx%3D%2234%22%20cy%3D%2229.6%22%20r%3D%221.4%22%20fill%3D%22%23ffe9c9%22%20opacity%3D%22.85%22%2F%3E%3C%2Fsvg%3E",
+            "editable": false,
+            "size": 64,
+            "frame": {
+              "spinDuration": 48
+            }
+          }
+        },
+        {
+          "id": "spin-slow",
+          "label": "frame.spinDuration:120",
+          "desc": "120 秒一圈（几乎静止）。",
+          "props": {
+            "url": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%232a0a12%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2217%22%20fill%3D%22none%22%20stroke%3D%22%23d4af37%22%20stroke-width%3D%222%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%229%22%20fill%3D%22%23c8102e%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%223.4%22%20fill%3D%22%230a0507%22%2F%3E%3Ccircle%20cx%3D%2234%22%20cy%3D%2229.6%22%20r%3D%221.4%22%20fill%3D%22%23ffe9c9%22%20opacity%3D%22.85%22%2F%3E%3C%2Fsvg%3E",
+            "editable": false,
+            "size": 64,
+            "frame": {
+              "spinDuration": 120
+            }
+          }
+        },
+        {
+          "id": "spin-stop",
+          "label": "frame.spinDuration:0",
+          "desc": "0 = 停转（等价于 animated:false，但保留齿轮样式）。",
+          "props": {
+            "url": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%232a0a12%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2217%22%20fill%3D%22none%22%20stroke%3D%22%23d4af37%22%20stroke-width%3D%222%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%229%22%20fill%3D%22%23c8102e%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%223.4%22%20fill%3D%22%230a0507%22%2F%3E%3Ccircle%20cx%3D%2234%22%20cy%3D%2229.6%22%20r%3D%221.4%22%20fill%3D%22%23ffe9c9%22%20opacity%3D%22.85%22%2F%3E%3C%2Fsvg%3E",
+            "editable": false,
+            "size": 64,
+            "frame": {
+              "spinDuration": 0
+            }
+          }
+        },
+        {
+          "id": "spin-reverse",
+          "label": "frame.spinDuration:-12",
+          "desc": "负数 = 反向旋转，绝对值是秒数。",
+          "props": {
+            "url": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%232a0a12%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2217%22%20fill%3D%22none%22%20stroke%3D%22%23d4af37%22%20stroke-width%3D%222%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%229%22%20fill%3D%22%23c8102e%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%223.4%22%20fill%3D%22%230a0507%22%2F%3E%3Ccircle%20cx%3D%2234%22%20cy%3D%2229.6%22%20r%3D%221.4%22%20fill%3D%22%23ffe9c9%22%20opacity%3D%22.85%22%2F%3E%3C%2Fsvg%3E",
+            "editable": false,
+            "size": 64,
+            "frame": {
+              "spinDuration": -12
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "fields": [
+    {
+      "name": "url",
+      "type": "string",
+      "desc": "头像图片地址（http(s) / 相对路径 / data:image）；空字符串表示未设置，显示 fallbackIcon。"
+    },
+    {
+      "name": "editable",
+      "type": "boolean",
+      "desc": "渲染完成后是否允许点击头像更换（true 时点击打开 KUI.dialog.form 更换弹窗）。"
+    },
+    {
+      "name": "persist",
+      "type": "boolean",
+      "desc": "用户更换后是否写入 localStorage（默认 false）。"
+    },
+    {
+      "name": "size",
+      "type": "number",
+      "desc": "头像直径 px（默认 44）。"
+    },
+    {
+      "name": "shape",
+      "type": "string",
+      "desc": "circle（默认）/ square。"
+    },
+    {
+      "name": "fallbackIcon",
+      "type": "string",
+      "desc": "未设置头像时的图标名（默认 clock，可换 user / feather / crown 等）。"
+    },
+    {
+      "name": "frame.enabled",
+      "type": "boolean",
+      "desc": "设置头像后是否绘制刻刻帝时间齿轮框（默认 true）。"
+    },
+    {
+      "name": "frame.showTicks",
+      "type": "boolean",
+      "desc": "是否显示 12 道时间刻线（默认 true）。"
+    },
+    {
+      "name": "frame.showRoman",
+      "type": "boolean",
+      "desc": "是否显示罗马数字刻度（默认 false）。"
+    },
+    {
+      "name": "frame.showHands",
+      "type": "boolean",
+      "desc": "是否显示时针分针与轴心宝石（默认 true）。"
+    },
+    {
+      "name": "frame.animated",
+      "type": "boolean",
+      "desc": "齿轮是否缓慢旋转（默认 true）。"
+    },
+    {
+      "name": "picker.*",
+      "type": "object",
+      "desc": "更换弹窗文案：title / urlLabel / urlPlaceholder / urlTip / clearLabel / presets 等。"
+    }
+  ]
+}

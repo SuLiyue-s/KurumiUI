@@ -1,0 +1,2573 @@
+/* ==========================================================================
+   KurumiUI components.css —— 框架组件样式
+   覆盖：左侧菜单（menu）/ 顶部菜单导航（menunav）/ 子标签页（tabs）/
+         弹窗层（dialog，父页面 iframe 容器）/ 提醒信息（toast / notification）
+   --------------------------------------------------------------------------
+   契约：docs/00-contract.md §8 组件规格、§10 CSS Token、§12 文案、§16 视觉方向
+   原则：
+   1. 颜色 / 尺寸 / 动效 / 圆角 / 阴影一律 var(--kui-*)；本文件不写死主题色。
+   2. 应用骨架网格（.kui-app）在 base.css，本文件不重复定义，只填组件内部结构。
+   3. 视觉语言：暗夜玻璃、细网格 HUD、斜切角、细描边、微弱内发光、
+      金色分隔线（--kui-accent-2）、绯红高亮光条（--kui-accent / -glow）。
+   4. 状态类由 components/*.js 写入：
+      is-active / is-open / is-collapsed / is-disabled / is-dirty / is-pinned /
+      is-visible / is-empty / is-enter / is-leaving / is-dragging / is-maximized …
+   加载顺序：base.css → controls.css → components.css
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   0. 组件公共：图标基准尺寸、角标、焦点环、文本省略
+   -------------------------------------------------------------------------- */
+
+.kui-menu .kui-icon,
+.kui-menunav .kui-icon,
+.kui-tabs .kui-icon,
+.kui-toast .kui-icon {
+  width: var(--kui-icon-size);
+  height: var(--kui-icon-size);
+  flex: 0 0 auto;
+  display: block;
+  pointer-events: none;
+}
+
+/* 组件内统一焦点环（暗夜玻璃下用绯红柔光而非系统蓝） */
+.kui-menu__link:focus-visible,
+.kui-menu__collapse:focus-visible,
+.kui-menu__footer-action:focus-visible,
+.kui-menunav__btn:focus-visible,
+.kui-menunav__action:focus-visible,
+.kui-menunav__crumb:focus-visible,
+.kui-tabs__item:focus-visible,
+.kui-tabs__close:focus-visible,
+.kui-tabs__scroll:focus-visible,
+.kui-tabs__context-item:focus-visible,
+.kui-toast__close:focus-visible,
+.kui-toast__action:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 1px var(--kui-focus-ring), 0 0 0 3px var(--kui-accent-soft);
+}
+
+.kui-menu__badge,
+.kui-menunav__action-badge,
+.kui-tabs__item-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: var(--kui-radius-pill);
+  font-family: var(--kui-font-mono);
+  font-size: var(--kui-fs-xs);
+  line-height: 1;
+  letter-spacing: 0;
+  white-space: nowrap;
+  color: var(--kui-text-inverse);
+  background: var(--kui-accent);
+  box-shadow: 0 0 8px var(--kui-accent-glow);
+}
+
+/* 角标语义色：accent 默认 / gold / success / warning / danger / info */
+.kui-menu__badge--accent,
+.kui-menunav__action-badge--accent,
+.kui-tabs__item-badge--accent {
+  background: var(--kui-accent);
+  color: var(--kui-text-inverse);
+}
+
+.kui-menu__badge--gold,
+.kui-menunav__action-badge--gold,
+.kui-tabs__item-badge--gold {
+  background: var(--kui-accent-2);
+  color: var(--kui-bg-0);
+  box-shadow: 0 0 8px var(--kui-accent-2-soft);
+}
+
+.kui-menu__badge--success,
+.kui-menunav__action-badge--success,
+.kui-tabs__item-badge--success {
+  background: var(--kui-success);
+  color: var(--kui-bg-0);
+  box-shadow: none;
+}
+
+.kui-menu__badge--warning,
+.kui-menunav__action-badge--warning,
+.kui-tabs__item-badge--warning {
+  background: var(--kui-warning);
+  color: var(--kui-bg-0);
+  box-shadow: none;
+}
+
+.kui-menu__badge--danger,
+.kui-menunav__action-badge--danger,
+.kui-tabs__item-badge--danger {
+  background: var(--kui-danger);
+  color: var(--kui-text-inverse);
+  box-shadow: none;
+}
+
+.kui-menu__badge--info,
+.kui-menunav__action-badge--info,
+.kui-tabs__item-badge--info {
+  background: var(--kui-info);
+  color: var(--kui-bg-0);
+  box-shadow: none;
+}
+
+/* 空角标（值为空）由 JS 打 is-empty，统一隐藏 */
+.kui-menu__badge.is-empty,
+.kui-menunav__action-badge.is-empty,
+.kui-tabs__item-badge.is-empty {
+  display: none;
+}
+
+/* ==========================================================================
+   1. 左侧菜单 .kui-menu
+   ========================================================================== */
+
+.kui-menu {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 auto;
+  width: var(--kui-menu-width);
+  height: 100%;
+  min-height: 360px;
+  overflow: visible;
+  isolation: isolate;
+  color: var(--kui-text-2);
+  font-size: var(--kui-fs-base);
+  line-height: var(--kui-lh);
+  background:
+    linear-gradient(180deg, var(--kui-bg-1) 0%, var(--kui-bg-0) 62%, var(--kui-bg-0) 100%);
+  border-right: var(--kui-border-width) solid var(--kui-border);
+  transition: width var(--kui-duration-base) var(--kui-ease-out);
+}
+
+/* 顶部高光细线（玻璃边缘） */
+.kui-menu::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--kui-highlight), transparent);
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* 右缘金色分隔线（不对称装饰：上淡下浓） */
+.kui-menu::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: -1px;
+  width: 1px;
+  background: linear-gradient(180deg, transparent 0%, var(--kui-accent-2-soft) 18%, var(--kui-accent-2-soft) 72%, transparent 100%);
+  opacity: 0.55;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* 应用骨架内由外层网格控制列宽，菜单自身不再撑最小高 */
+.kui-app__left .kui-menu {
+  min-height: 0;
+  width: 100%;
+}
+
+/* ---------------- 1.1 品牌区 ---------------- */
+
+.kui-menu__brand {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+  height: var(--kui-header-height);
+  padding: 0 12px;
+  border-bottom: var(--kui-border-width) solid var(--kui-divider);
+  background: linear-gradient(180deg, var(--kui-highlight, transparent), transparent 80%);
+}
+
+.kui-menu__brand::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: -1px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--kui-accent-2-soft), transparent 70%);
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.kui-menu__logo {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  color: var(--kui-text-inverse);
+  background: linear-gradient(145deg, var(--kui-accent) 0%, var(--kui-accent-3) 55%, var(--kui-accent-2) 100%);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%);
+  box-shadow: var(--kui-glow);
+}
+
+/* 内发光：让 logo 不是纯色块 */
+.kui-menu__logo::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  clip-path: inherit;
+  background: linear-gradient(160deg, var(--kui-highlight, transparent), transparent 55%);
+  pointer-events: none;
+}
+
+.kui-menu__logo-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  z-index: 1;
+}
+
+.kui-menu__logo-icon .kui-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.kui-menu__brand-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1 1 auto;
+  min-width: 0;
+  gap: 1px;
+  overflow: hidden;
+}
+
+.kui-menu__brand-title {
+  font-family: var(--kui-font-display);
+  font-size: var(--kui-fs-md);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--kui-text-1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 0 18px var(--kui-accent-glow);
+}
+
+.kui-menu__brand-title.is-link {
+  cursor: pointer;
+}
+
+.kui-menu__brand-title.is-link:hover {
+  color: var(--kui-accent-2);
+}
+
+.kui-menu__brand-subtitle {
+  font-size: var(--kui-fs-xs);
+  letter-spacing: 0.12em;
+  color: var(--kui-text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+}
+
+.kui-menu__collapse {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  border: var(--kui-border-width) solid transparent;
+  border-radius: var(--kui-radius-sm);
+  background: transparent;
+  color: var(--kui-text-3);
+  cursor: pointer;
+  transition:
+    color var(--kui-duration-fast) var(--kui-ease),
+    background-color var(--kui-duration-fast) var(--kui-ease),
+    border-color var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-menu__collapse:hover {
+  color: var(--kui-text-1);
+  background: var(--kui-control-bg-hover);
+  border-color: var(--kui-border);
+}
+
+.kui-menu__collapse-icon {
+  display: inline-flex;
+  width: 16px;
+  height: 16px;
+  transition: transform var(--kui-duration-base) var(--kui-ease-out);
+}
+
+.kui-menu.is-collapsed .kui-menu__collapse-icon {
+  transform: rotate(180deg);
+}
+
+/* ---------------- 1.2 滚动区与列表 ---------------- */
+
+.kui-menu__scroll {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 8px 8px 10px;
+  overscroll-behavior: contain;
+}
+
+.kui-menu__scroll::-webkit-scrollbar {
+  width: var(--kui-scrollbar-size);
+}
+
+.kui-menu__scroll::-webkit-scrollbar-track {
+  background: var(--kui-scrollbar-track);
+}
+
+.kui-menu__scroll::-webkit-scrollbar-thumb {
+  background: var(--kui-scrollbar-thumb);
+  border-radius: var(--kui-radius-pill);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.kui-menu__scroll:hover::-webkit-scrollbar-thumb {
+  background: var(--kui-scrollbar-thumb-hover);
+  background-clip: padding-box;
+}
+
+.kui-menu__list-host {
+  display: block;
+}
+
+.kui-menu__list,
+.kui-menu__sub {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* ---------------- 1.3 分组标题 ---------------- */
+
+.kui-menu__group {
+  list-style: none;
+  margin: 4px 0 2px;
+}
+
+.kui-menu__group-title {
+  position: relative;
+  padding: 12px 10px 7px;
+  margin: 0;
+  font-size: var(--kui-fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--kui-text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 分组标题下的金色分隔线（契约 §16 金色分隔线） */
+.kui-menu__group-title::after {
+  content: "";
+  display: block;
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(90deg, var(--kui-accent-2-soft), transparent 85%);
+  opacity: 0.4;
+}
+
+/* ---------------- 1.4 菜单项 ---------------- */
+
+.kui-menu__item {
+  position: relative;
+  list-style: none;
+}
+
+.kui-menu__link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  margin: 0;
+  padding: 0 10px 0 12px;
+  border: var(--kui-border-width) solid transparent;
+  border-radius: var(--kui-radius-md);
+  color: var(--kui-text-2);
+  text-decoration: none;
+  cursor: pointer;
+  overflow: hidden;
+  /* 斜切角：右下角切一刀，哥特式锐角 */
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%);
+  transition:
+    color var(--kui-duration-fast) var(--kui-ease),
+    background-color var(--kui-duration-fast) var(--kui-ease),
+    border-color var(--kui-duration-fast) var(--kui-ease),
+    transform var(--kui-duration-fast) var(--kui-ease-out);
+}
+
+/* 左侧绯红光条：hover 半显，选中满显 */
+.kui-menu__link::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--kui-accent);
+  box-shadow: 0 0 10px var(--kui-accent-glow);
+  opacity: 0;
+  transform: scaleY(0.4);
+  transform-origin: center;
+  transition:
+    opacity var(--kui-duration-fast) var(--kui-ease),
+    transform var(--kui-duration-base) var(--kui-ease-out);
+  pointer-events: none;
+}
+
+.kui-menu__link:hover {
+  color: var(--kui-text-1);
+  background: linear-gradient(90deg, var(--kui-accent-soft) 0%, transparent 72%);
+  transform: translateX(1px);
+}
+
+.kui-menu__link:hover::before {
+  opacity: 0.55;
+  transform: scaleY(0.8);
+}
+
+.kui-menu__item.is-active > .kui-menu__link {
+  color: var(--kui-text-1);
+  background:
+    linear-gradient(90deg, var(--kui-accent-soft) 0%, transparent 78%),
+    var(--kui-bg-3);
+  border-color: var(--kui-border);
+  box-shadow: var(--kui-inner-glow), var(--kui-shadow-1);
+}
+
+.kui-menu__item.is-active > .kui-menu__link::before {
+  opacity: 1;
+  transform: scaleY(1);
+}
+
+.kui-menu__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  opacity: 0.86;
+  color: currentColor;
+  transition: opacity var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-menu__link:hover .kui-menu__icon,
+.kui-menu__item.is-active > .kui-menu__link .kui-menu__icon {
+  opacity: 1;
+  color: var(--kui-accent-2);
+}
+
+.kui-menu__label {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: var(--kui-fs-base);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kui-menu__arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  color: var(--kui-text-3);
+  transition: transform var(--kui-duration-base) var(--kui-ease-out), color var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-menu__item.has-children.is-open > .kui-menu__link .kui-menu__arrow {
+  transform: rotate(90deg);
+  color: var(--kui-accent-2);
+}
+
+/* ---------------- 1.5 二级菜单 ---------------- */
+
+.kui-menu__sub {
+  position: relative;
+  margin: 2px 0 4px;
+  padding: 2px 0 2px 0;
+  gap: 1px;
+}
+
+/* 二级菜单左侧引导竖线 */
+.kui-menu__sub::before {
+  content: "";
+  position: absolute;
+  left: 20px;
+  top: 4px;
+  bottom: 4px;
+  width: 1px;
+  background: linear-gradient(180deg, var(--kui-divider), transparent 92%);
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+/* 多级菜单：默认收起，父项 .is-open 时展开（点击父项或激活子项时由 JS 加上 .is-open） */
+.kui-menu__item > .kui-menu__sub {
+  display: none;
+}
+
+.kui-menu__item.is-open > .kui-menu__sub {
+  display: flex;
+  animation: kui-menu-sub-in var(--kui-duration-base) var(--kui-ease-out) both;
+}
+
+@keyframes kui-menu-sub-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.kui-menu__item.is-sub-item {
+  list-style: none;
+}
+
+.kui-menu__item.is-sub-item > .kui-menu__link {
+  min-height: 34px;
+  padding-left: 36px;
+  border-radius: var(--kui-radius-sm);
+  font-size: var(--kui-fs-sm);
+}
+
+/* 三级及更深层级：缩进与引导线逐级递进 */
+.kui-menu__sub .kui-menu__sub::before {
+  left: 34px;
+}
+
+.kui-menu__sub .kui-menu__sub .kui-menu__link {
+  padding-left: 50px;
+}
+
+.kui-menu__sub .kui-menu__sub .kui-menu__sub::before {
+  left: 48px;
+}
+
+.kui-menu__sub .kui-menu__sub .kui-menu__sub .kui-menu__link {
+  padding-left: 64px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kui-menu__item.is-open > .kui-menu__sub {
+    animation: none;
+  }
+}
+
+.kui-menu__item.is-sub-item > .kui-menu__link .kui-menu__icon {
+  width: 14px;
+  height: 14px;
+  opacity: 0.62;
+}
+
+.kui-menu__item.is-sub-item.is-active > .kui-menu__link::before {
+  top: 7px;
+  bottom: 7px;
+}
+
+/* ---------------- 1.6 分隔线与禁用态 ---------------- */
+
+.kui-menu__divider {
+  list-style: none;
+  height: 1px;
+  margin: 8px 12px;
+  padding: 0;
+  background: linear-gradient(90deg, transparent, var(--kui-divider) 18%, var(--kui-accent-2-soft) 50%, var(--kui-divider) 82%, transparent);
+  opacity: 0.7;
+}
+
+.kui-menu__item.is-disabled > .kui-menu__link,
+.kui-menu__link.is-disabled {
+  color: var(--kui-control-text-disabled);
+  opacity: 0.55;
+  cursor: not-allowed;
+  pointer-events: none;
+  background: transparent;
+  transform: none;
+}
+
+.kui-menu__link.is-disabled::before {
+  opacity: 0;
+}
+
+/* ---------------- 1.7 底部区 ---------------- */
+
+.kui-menu__footer {
+  position: relative;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  row-gap: 6px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border-top: var(--kui-border-width) solid var(--kui-divider);
+  background: linear-gradient(0deg, var(--kui-highlight, transparent), transparent 85%);
+  color: var(--kui-text-3);
+  font-size: var(--kui-fs-xs);
+}
+
+.kui-menu__footer::before {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: -1px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--kui-accent-2-soft) 60%, transparent);
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.kui-menu__footer-title {
+  order: 1;
+  flex: 1 1 100%;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.06em;
+}
+
+.kui-menu__footer-version {
+  order: 2;
+  flex: 0 0 auto;
+  padding: 1px 6px;
+  border: var(--kui-border-width) solid var(--kui-border);
+  border-radius: var(--kui-radius-xs);
+  font-family: var(--kui-font-mono);
+  font-size: var(--kui-fs-xs);
+  color: var(--kui-text-3);
+  background: var(--kui-bg-2);
+}
+
+.kui-menu__footer-actions {
+  order: 3;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+  margin-left: auto;
+  max-width: 100%;
+}
+
+.kui-menu__footer-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  border: var(--kui-border-width) solid transparent;
+  border-radius: var(--kui-radius-sm);
+  background: transparent;
+  color: var(--kui-text-3);
+  font-size: var(--kui-fs-xs);
+  cursor: pointer;
+  transition:
+    color var(--kui-duration-fast) var(--kui-ease),
+    background-color var(--kui-duration-fast) var(--kui-ease),
+    border-color var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-menu__footer-action:hover {
+  color: var(--kui-text-1);
+  background: var(--kui-control-bg-hover);
+  border-color: var(--kui-border);
+}
+
+.kui-menu__footer-action-icon {
+  display: inline-flex;
+  width: 14px;
+  height: 14px;
+}
+
+/* v1.3.3：footer 里的框架按钮必须自适应宽度。
+ * 配置中常见的 block:true 会生成 `.kui-btn--block{width:100%}`，
+ * 在单行 flex 里会把同一行的 title / version 直接挤掉。 */
+.kui-menu__footer-actions .kui-btn {
+  display: inline-flex;
+  flex: 0 1 auto;
+  width: auto;
+  max-width: 100%;
+  min-width: 0;
+  height: 24px;
+  min-height: 24px;
+  padding: 0 8px;
+  gap: 4px;
+  font-size: var(--kui-fs-xs);
+}
+
+.kui-menu__footer-actions .kui-btn__text {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kui-menu__footer-actions .kui-btn__icon {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+}
+
+/* 折叠态（68px）：footer 按钮只留图标，文字会溢出 */
+.kui-menu.is-collapsed .kui-menu__footer-actions .kui-btn {
+  width: 24px;
+  padding: 0;
+  justify-content: center;
+}
+
+.kui-menu.is-collapsed .kui-menu__footer-actions .kui-btn__text {
+  display: none;
+}
+
+/* ---------------- 1.8 折叠态（68px）与 hover flyout ---------------- */
+
+.kui-menu.is-collapsed {
+  width: var(--kui-menu-width-collapsed);
+  min-width: var(--kui-menu-width-collapsed);
+  overflow: visible;
+}
+
+.kui-menu.is-collapsed .kui-menu__brand {
+  padding: 0 10px;
+  justify-content: center;
+  gap: 4px;
+}
+
+.kui-menu.is-collapsed .kui-menu__brand-text {
+  display: none;
+}
+
+.kui-menu.is-collapsed .kui-menu__logo {
+  width: 30px;
+  height: 30px;
+}
+
+/* 折叠后折叠按钮变成 logo 右下角小圆钮，hover 才显形 */
+.kui-menu.is-collapsed .kui-menu__collapse {
+  position: absolute;
+  right: 2px;
+  top: 2px;
+  width: 16px;
+  height: 16px;
+  opacity: 0;
+  color: var(--kui-text-2);
+  background: var(--kui-bg-3);
+  border-color: var(--kui-border);
+  z-index: 2;
+}
+
+.kui-menu.is-collapsed .kui-menu__collapse-icon {
+  width: 10px;
+  height: 10px;
+}
+
+.kui-menu.is-collapsed .kui-menu__brand:hover .kui-menu__collapse,
+.kui-menu.is-collapsed .kui-menu__collapse:focus-visible {
+  opacity: 1;
+}
+
+.kui-menu.is-collapsed .kui-menu__scroll {
+  padding: 8px 10px 10px;
+}
+
+.kui-menu.is-collapsed .kui-menu__group-title {
+  height: 1px;
+  padding: 0;
+  margin: 10px 6px 8px;
+  color: transparent;
+  background: linear-gradient(90deg, transparent, var(--kui-divider) 30%, var(--kui-divider) 70%, transparent);
+  overflow: hidden;
+}
+
+.kui-menu.is-collapsed .kui-menu__group-title::after {
+  display: none;
+}
+
+.kui-menu.is-collapsed .kui-menu__link {
+  justify-content: center;
+  gap: 0;
+  padding: 0;
+  border-radius: var(--kui-radius-md);
+}
+
+.kui-menu.is-collapsed .kui-menu__label,
+.kui-menu.is-collapsed .kui-menu__arrow,
+.kui-menu.is-collapsed .kui-menu__badge {
+  display: none;
+}
+
+.kui-menu.is-collapsed .kui-menu__icon {
+  width: 20px;
+  height: 20px;
+}
+
+.kui-menu.is-collapsed .kui-menu__icon .kui-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.kui-menu.is-collapsed .kui-menu__item.is-sub-item > .kui-menu__link {
+  padding-left: 0;
+}
+
+.kui-menu.is-collapsed .kui-menu__sub {
+  display: none;
+}
+
+/* 折叠态存在未读角标：图标右上角小圆点 */
+.kui-menu.is-collapsed .kui-menu__item.has-badge > .kui-menu__link::after {
+  content: "";
+  position: absolute;
+  top: 7px;
+  right: 11px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--kui-accent);
+  box-shadow: 0 0 6px var(--kui-accent-glow);
+}
+
+.kui-menu.is-collapsed .kui-menu__footer {
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 6px;
+}
+
+.kui-menu.is-collapsed .kui-menu__footer-title,
+.kui-menu.is-collapsed .kui-menu__footer-version {
+  display: none;
+}
+
+.kui-menu.is-collapsed .kui-menu__footer-actions {
+  margin: 0;
+  flex-direction: column;
+}
+
+/* hover flyout：由 menu.js 动态创建/移除，JS 只设置 top */
+.kui-menu__flyout {
+  position: absolute;
+  left: calc(100% + 8px);
+  top: 0;
+  z-index: var(--kui-popup-z);
+  min-width: 210px;
+  max-width: 280px;
+  padding: 6px;
+  background: var(--kui-popup-bg);
+  border: var(--kui-border-width) solid var(--kui-border-strong);
+  border-radius: var(--kui-popup-radius);
+  box-shadow: var(--kui-popup-shadow), 0 0 24px var(--kui-accent-glow);
+  backdrop-filter: blur(var(--kui-glass-blur));
+  -webkit-backdrop-filter: blur(var(--kui-glass-blur));
+  animation: kui-flyout-in var(--kui-duration-fast) var(--kui-ease-out) both;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
+}
+
+/* 左缘金色细线，呼应菜单 */
+.kui-menu__flyout::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--kui-accent-2), var(--kui-accent));
+  box-shadow: 0 0 10px var(--kui-accent-glow);
+}
+
+@keyframes kui-flyout-in {
+  from {
+    opacity: 0;
+    transform: translateX(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.kui-menu__flyout-title {
+  padding: 6px 10px 8px;
+  font-size: var(--kui-fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--kui-text-3);
+  border-bottom: var(--kui-border-width) solid var(--kui-divider);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kui-menu__flyout-list {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.kui-menu__flyout-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 0 8px;
+  border-radius: var(--kui-radius-sm);
+  color: var(--kui-text-2);
+  font-size: var(--kui-fs-base);
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    color var(--kui-duration-fast) var(--kui-ease),
+    background-color var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-menu__flyout-item:hover {
+  color: var(--kui-text-1);
+  background: var(--kui-option-hover-bg);
+}
+
+.kui-menu__flyout-item.is-active {
+  color: var(--kui-text-1);
+  background: var(--kui-option-selected-bg);
+  color: var(--kui-option-selected-text);
+}
+
+.kui-menu__flyout-item.is-disabled {
+  color: var(--kui-control-text-disabled);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.kui-menu__flyout-icon {
+  display: inline-flex;
+  width: 15px;
+  height: 15px;
+  color: var(--kui-accent-2);
+  opacity: 0.9;
+}
+
+.kui-menu__flyout-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kui-menu__flyout-divider {
+  list-style: none;
+  height: 1px;
+  margin: 5px 6px;
+  background: linear-gradient(90deg, var(--kui-divider), transparent);
+  opacity: 0.8;
+}
+
+/* ==========================================================================
+   2. 顶部菜单导航 .kui-menunav
+   ========================================================================== */
+
+.kui-menunav {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex: 0 0 auto;
+  width: 100%;
+  height: var(--kui-header-height);
+  min-width: 0;
+  padding: 0 14px;
+  color: var(--kui-text-2);
+  font-size: var(--kui-fs-base);
+  background:
+    linear-gradient(180deg, var(--kui-highlight, transparent), transparent 70%),
+    linear-gradient(180deg, var(--kui-bg-2), var(--kui-bg-1) 90%);
+  border-bottom: var(--kui-border-width) solid var(--kui-border);
+  box-shadow: var(--kui-shadow-1);
+  isolation: isolate;
+  overflow: hidden;
+}
+
+/* 底边金色渐变分隔线 */
+.kui-menunav::after {
+  content: "";
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: -1px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--kui-accent-2-soft) 22%, var(--kui-accent-2-soft) 68%, transparent);
+  opacity: 0.45;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.kui-menunav__left,
+.kui-menunav__right {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.kui-menunav__left {
+  flex: 1 1 auto;
+  gap: 10px;
+  overflow: hidden;
+}
+
+.kui-menunav__right {
+  flex: 0 0 auto;
+  gap: 8px;
+  margin-left: auto;
+}
+
+/* ---------------- 2.1 图标按钮 ---------------- */
+
+.kui-menunav__group {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  border: var(--kui-border-width) solid var(--kui-border);
+  border-radius: var(--kui-radius-md);
+  background: var(--kui-bg-1);
+  box-shadow: var(--kui-inner-glow);
+}
+
+.kui-menunav__btn {
+  position: relative;
+  width: 30px;
+  height: 28px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  border: var(--kui-border-width) solid transparent;
+  border-radius: var(--kui-radius-sm);
+  background: transparent;
+  color: var(--kui-text-2);
+  cursor: pointer;
+  transition:
+    color var(--kui-duration-fast) var(--kui-ease),
+    background-color var(--kui-duration-fast) var(--kui-ease),
+    border-color var(--kui-duration-fast) var(--kui-ease),
+    transform var(--kui-duration-fast) var(--kui-ease-out);
+}
+
+.kui-menunav__btn:hover {
+  color: var(--kui-text-1);
+  background: var(--kui-control-bg-hover);
+  border-color: var(--kui-border);
+  transform: translateY(-1px);
+}
+
+.kui-menunav__btn:active {
+  transform: translateY(0);
+  background: var(--kui-control-bg-active);
+  box-shadow: var(--kui-inner-glow);
+}
+
+.kui-menunav__btn.is-active {
+  color: var(--kui-accent);
+  border-color: var(--kui-accent-soft);
+  background: var(--kui-accent-soft);
+}
+
+.kui-menunav__btn.is-disabled,
+.kui-menunav__btn[disabled] {
+  color: var(--kui-control-text-disabled);
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.kui-menunav__btn-icon {
+  display: inline-flex;
+  width: 16px;
+  height: 16px;
+}
+
+.kui-menunav__btn-icon .kui-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* ---------------- 2.2 标题与面包屑 ---------------- */
+
+.kui-menunav__title-wrap {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  max-width: 42%;
+  padding-left: 2px;
+}
+
+.kui-menunav__title {
+  font-family: var(--kui-font-display);
+  font-size: var(--kui-fs-md);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--kui-text-1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kui-menunav__subtitle {
+  font-size: var(--kui-fs-xs);
+  letter-spacing: 0.1em;
+  color: var(--kui-text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kui-menunav__breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.kui-menunav__crumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  max-width: 180px;
+  padding: 3px 6px;
+  border: var(--kui-border-width) solid transparent;
+  border-radius: var(--kui-radius-sm);
+  color: var(--kui-text-2);
+  font-size: var(--kui-fs-sm);
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    color var(--kui-duration-fast) var(--kui-ease),
+    background-color var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-menunav__crumb:hover {
+  color: var(--kui-text-1);
+  background: var(--kui-control-bg-hover);
+}
+
+.kui-menunav__crumb.is-current {
+  color: var(--kui-text-1);
+  font-weight: 500;
+}
+
+.kui-menunav__crumb.is-current .kui-menunav__crumb-icon {
+  color: var(--kui-accent);
+}
+
+.kui-menunav__crumb.is-disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.kui-menunav__crumb-icon {
+  display: inline-flex;
+  width: 14px;
+  height: 14px;
+  color: var(--kui-accent-2);
+  opacity: 0.9;
+}
+
+.kui-menunav__crumb-icon .kui-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.kui-menunav__crumb-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kui-menunav__crumb-sep {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  color: var(--kui-text-3);
+  font-family: var(--kui-font-mono);
+  font-size: var(--kui-fs-sm);
+  opacity: 0.7;
+  user-select: none;
+}
+
+.kui-menunav__crumb-ellipsis {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--kui-radius-sm);
+  color: var(--kui-text-3);
+  cursor: default;
+}
+
+/* ---------------- 2.3 右侧动作区 ---------------- */
+
+.kui-menunav__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.kui-menunav__actions-divider {
+  display: inline-block;
+  width: 1px;
+  height: 18px;
+  margin: 0 4px;
+  background: linear-gradient(180deg, transparent, var(--kui-accent-2-soft), transparent);
+  opacity: 0.7;
+}
+
+.kui-menunav__action {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 9px;
+  border: var(--kui-border-width) solid transparent;
+  border-radius: var(--kui-radius-md);
+  background: transparent;
+  color: var(--kui-text-2);
+  font-size: var(--kui-fs-sm);
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    color var(--kui-duration-fast) var(--kui-ease),
+    background-color var(--kui-duration-fast) var(--kui-ease),
+    border-color var(--kui-duration-fast) var(--kui-ease),
+    transform var(--kui-duration-fast) var(--kui-ease-out);
+}
+
+.kui-menunav__action:hover {
+  color: var(--kui-text-1);
+  background: var(--kui-control-bg-hover);
+  border-color: var(--kui-border);
+  transform: translateY(-1px);
+}
+
+.kui-menunav__action.is-active {
+  color: var(--kui-accent);
+  border-color: var(--kui-accent-soft);
+  background: var(--kui-accent-soft);
+}
+
+.kui-menunav__action.is-disabled {
+  color: var(--kui-control-text-disabled);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.kui-menunav__action-icon {
+  display: inline-flex;
+  width: 15px;
+  height: 15px;
+}
+
+.kui-menunav__action-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kui-menunav__action-badge {
+  margin-left: 2px;
+}
+
+/* 右侧插槽（面包屑之外的业务自定义节点） */
+.kui-menunav__slot {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 0 1 auto;
+}
+
+.kui-menunav__slot > * {
+  min-width: 0;
+}
+
+/* 窄图标模式：只有图标没有文字的动作 */
+.kui-menunav__action.is-icon-only {
+  width: 30px;
+  padding: 0;
+  justify-content: center;
+}
+
+.kui-menunav__action.is-icon-only .kui-menunav__action-label {
+  display: none;
+}
+
+/* 折叠态：菜单收起时隐藏标题区文本，给面包屑让位 */
+.kui-menunav.is-collapsed .kui-menunav__title-wrap {
+  display: none;
+}
+
+/* ==========================================================================
+   3. 子标签页 .kui-tabs（每个 pane + iframe 固定，切换只切 hidden/is-active）
+   ========================================================================== */
+
+.kui-tabs {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  color: var(--kui-text-1);
+  font-size: var(--kui-fs-base);
+}
+
+/* ---------------- 3.1 标签栏 ---------------- */
+
+.kui-tabs__bar {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  flex: 0 0 auto;
+  height: var(--kui-tabbar-height);
+  padding: 0 2px;
+  border-bottom: var(--kui-border-width) solid var(--kui-border);
+  background: linear-gradient(180deg, var(--kui-bg-2), var(--kui-bg-1));
+}
+
+/* 标签栏底部金色细线 */
+.kui-tabs__bar::after {
+  content: "";
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  bottom: -1px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--kui-accent-2-soft) 25%, var(--kui-accent-2-soft) 62%, transparent);
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.kui-tabs__scroll {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 26px;
+  margin-bottom: 1px;
+  display: none;
+  place-items: center;
+  padding: 0;
+  border: var(--kui-border-width) solid transparent;
+  border-radius: var(--kui-radius-sm);
+  background: transparent;
+  color: var(--kui-text-3);
+  cursor: pointer;
+  transition:
+    color var(--kui-duration-fast) var(--kui-ease),
+    background-color var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-tabs__scroll.is-visible {
+  display: grid;
+}
+
+.kui-tabs__scroll:hover {
+  color: var(--kui-text-1);
+  background: var(--kui-control-bg-hover);
+}
+
+.kui-tabs__list {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  scroll-behavior: smooth;
+  overscroll-behavior-x: contain;
+}
+
+.kui-tabs__list::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+/* ---------------- 3.2 单个标签 ---------------- */
+
+.kui-tabs__item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  max-width: 200px;
+  height: calc(var(--kui-tabbar-height) - 8px);
+  margin-bottom: 1px;
+  padding: 0 8px 0 11px;
+  border: var(--kui-border-width) solid var(--kui-border);
+  border-bottom-color: transparent;
+  border-radius: var(--kui-radius-sm) var(--kui-radius-sm) 0 0;
+  background: linear-gradient(180deg, var(--kui-bg-2), var(--kui-bg-1));
+  color: var(--kui-text-2);
+  font-size: var(--kui-fs-sm);
+  cursor: pointer;
+  user-select: none;
+  /* 斜切角：右上角一刀 */
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
+  transition:
+    color var(--kui-duration-fast) var(--kui-ease),
+    background-color var(--kui-duration-fast) var(--kui-ease),
+    border-color var(--kui-duration-fast) var(--kui-ease);
+}
+
+/* 活动标签：顶部绯红光条 + 内发光 */
+.kui-tabs__item::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 10px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--kui-accent), var(--kui-accent-2));
+  box-shadow: 0 0 12px var(--kui-accent-glow);
+  opacity: 0;
+  transition: opacity var(--kui-duration-base) var(--kui-ease);
+  pointer-events: none;
+}
+
+.kui-tabs__item:hover {
+  color: var(--kui-text-1);
+  background: linear-gradient(180deg, var(--kui-bg-3), var(--kui-bg-2));
+}
+
+.kui-tabs__item.is-active {
+  color: var(--kui-text-1);
+  border-color: var(--kui-border-strong);
+  border-bottom-color: transparent;
+  background:
+    linear-gradient(180deg, var(--kui-accent-soft), transparent 46%),
+    linear-gradient(180deg, var(--kui-bg-2), var(--kui-bg-1));
+  box-shadow: var(--kui-inner-glow);
+}
+
+.kui-tabs__item.is-active::before {
+  opacity: 1;
+}
+
+.kui-tabs__item.is-active::after {
+  content: "";
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: -1px;
+  height: 1px;
+  background: var(--kui-bg-1);
+}
+
+.kui-tabs__item.is-pinned {
+  border-top-color: var(--kui-accent-2-soft);
+}
+
+.kui-tabs__item.is-dragging {
+  opacity: 0.45;
+  border-style: dashed;
+}
+
+.kui-tabs__item.is-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.kui-tabs__item-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  color: var(--kui-text-3);
+}
+
+.kui-tabs__item-icon .kui-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.kui-tabs__item.is-active .kui-tabs__item-icon {
+  color: var(--kui-accent);
+}
+
+.kui-tabs__item-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 132px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  letter-spacing: 0.02em;
+}
+
+.kui-tabs__item-badge {
+  flex: 0 0 auto;
+  margin: 0 1px;
+}
+
+/* 固定标签角标（先 pin 图钉） */
+.kui-tabs__item-pin {
+  display: none;
+  flex: 0 0 auto;
+  width: 12px;
+  height: 12px;
+  color: var(--kui-accent-2);
+}
+
+.kui-tabs__item.is-pinned .kui-tabs__item-pin {
+  display: inline-flex;
+}
+
+.kui-tabs__item-pin .kui-icon {
+  width: 12px;
+  height: 12px;
+}
+
+/* 未保存（dirty）小圆点：有 is-dirty 时替代关闭按钮 */
+.kui-tabs__item-dirty {
+  display: none;
+  flex: 0 0 auto;
+  width: 7px;
+  height: 7px;
+  margin: 0 2px;
+  border-radius: 50%;
+  background: var(--kui-warning);
+  box-shadow: 0 0 8px var(--kui-warning);
+  animation: kui-tab-dirty-pulse 2s var(--kui-ease) infinite;
+}
+
+.kui-tabs__item.is-dirty .kui-tabs__item-dirty {
+  display: inline-block;
+}
+
+.kui-tabs__item.is-dirty:hover .kui-tabs__item-dirty {
+  display: none;
+}
+
+@keyframes kui-tab-dirty-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.kui-tabs__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  margin-left: 1px;
+  padding: 0;
+  border: none;
+  border-radius: var(--kui-radius-xs);
+  background: transparent;
+  color: var(--kui-text-3);
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    color var(--kui-duration-fast) var(--kui-ease),
+    background-color var(--kui-duration-fast) var(--kui-ease),
+    opacity var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-tabs__close .kui-icon {
+  width: 12px;
+  height: 12px;
+}
+
+.kui-tabs__item:hover .kui-tabs__close,
+.kui-tabs__item.is-active .kui-tabs__close,
+.kui-tabs__close:focus-visible {
+  opacity: 1;
+}
+
+.kui-tabs__item.is-dirty .kui-tabs__close {
+  display: none;
+}
+
+.kui-tabs__item.is-dirty:hover .kui-tabs__close {
+  display: inline-flex;
+}
+
+.kui-tabs__close:hover {
+  color: var(--kui-text-inverse);
+  background: var(--kui-danger);
+}
+
+/* ---------------- 3.3 主体区：pane 与 iframe（永不重建） ---------------- */
+
+.kui-tabs__body {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  margin-top: 0;
+  border-radius: 0 0 var(--kui-frame-radius) var(--kui-frame-radius);
+  overflow: hidden;
+}
+
+.kui-tabs__pane {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+}
+
+.kui-tabs__pane[hidden] {
+  display: none !important;
+}
+
+.kui-tabs__pane.is-active {
+  z-index: 1;
+}
+
+.kui-tabs__frame {
+  display: block;
+  flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: var(--kui-border-width) solid var(--kui-border);
+  border-radius: var(--kui-frame-radius);
+  background: var(--kui-bg-0);
+  color-scheme: normal;
+  box-shadow: var(--kui-shadow-1), var(--kui-inner-glow);
+}
+
+/* 空态（无标签时） */
+.kui-tabs__empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 24px;
+  border: var(--kui-border-width) dashed var(--kui-border);
+  border-radius: var(--kui-frame-radius);
+  background:
+    radial-gradient(ellipse at 50% 40%, var(--kui-accent-soft), transparent 62%),
+    var(--kui-bg-0);
+  color: var(--kui-text-3);
+  text-align: center;
+  pointer-events: none;
+}
+
+.kui-tabs__empty[hidden] {
+  display: none !important;
+}
+
+.kui-tabs__empty-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border: var(--kui-border-width) solid var(--kui-border);
+  border-radius: 50%;
+  background: var(--kui-bg-2);
+  color: var(--kui-text-3);
+  box-shadow: var(--kui-inner-glow);
+}
+
+.kui-tabs__empty-icon .kui-icon {
+  width: 22px;
+  height: 22px;
+}
+
+.kui-tabs__empty-text {
+  max-width: 320px;
+  font-size: var(--kui-fs-sm);
+  letter-spacing: 0.06em;
+  line-height: var(--kui-lh);
+}
+
+/* ---------------- 3.4 右键菜单 ---------------- */
+
+.kui-tabs__context {
+  position: fixed;
+  z-index: var(--kui-popup-z);
+  min-width: 168px;
+  padding: 5px;
+  background: var(--kui-popup-bg);
+  border: var(--kui-border-width) solid var(--kui-border-strong);
+  border-radius: var(--kui-popup-radius);
+  box-shadow: var(--kui-popup-shadow), 0 0 20px var(--kui-accent-glow);
+  backdrop-filter: blur(var(--kui-glass-blur));
+  -webkit-backdrop-filter: blur(var(--kui-glass-blur));
+  color: var(--kui-text-2);
+  font-size: var(--kui-fs-base);
+  animation: kui-context-in var(--kui-duration-fast) var(--kui-ease-out) both;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
+}
+
+@keyframes kui-context-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.kui-tabs__context-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 30px;
+  padding: 0 9px;
+  border-radius: var(--kui-radius-sm);
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    color var(--kui-duration-fast) var(--kui-ease),
+    background-color var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-tabs__context-item:hover {
+  color: var(--kui-text-1);
+  background: var(--kui-option-hover-bg);
+}
+
+.kui-tabs__context-item.is-disabled {
+  color: var(--kui-control-text-disabled);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.kui-tabs__context-icon {
+  display: inline-flex;
+  width: 14px;
+  height: 14px;
+  color: var(--kui-accent-2);
+  opacity: 0.9;
+}
+
+.kui-tabs__context-label {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.kui-tabs__context-divider {
+  height: 1px;
+  margin: 4px 8px;
+  background: linear-gradient(90deg, var(--kui-accent-2-soft), transparent);
+  opacity: 0.5;
+}
+
+/* ==========================================================================
+   4. 弹窗层 .kui-dialog-layer（父页面：遮罩 + 居中 + 独立 iframe）
+   说明：弹窗本体（标题/正文/按钮）由 iframe 内的 dialog-frame.html 渲染，
+        父页面只负责遮罩、定位、拖拽把手与进出场动效。
+   ========================================================================== */
+
+.kui-dialog-layer {
+  position: fixed;
+  inset: 0;
+  z-index: var(--kui-z-dialog);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  isolation: isolate;
+}
+
+/* 遮罩：暗色玻璃 + 轻微模糊，可点击关闭（maskClosable） */
+.kui-dialog-mask {
+  position: absolute;
+  inset: 0;
+  /* 刻意不用 backdrop-filter：全屏模糊叠加多个 iframe 在真实 GPU 上极贵，
+     是「弹窗打开/输入时整页卡顿」的高概率来源；用更深的遮罩色替代。 */
+  background: var(--kui-mask-strong, var(--kui-mask));
+  opacity: 0;
+  transition: opacity var(--kui-duration-base) var(--kui-ease-out);
+}
+
+.kui-dialog-layer.is-open .kui-dialog-mask {
+  opacity: 1;
+}
+
+.kui-dialog-layer.is-stacked .kui-dialog-mask {
+  background: var(--kui-mask-strong);
+}
+
+.kui-dialog-wrap {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  width: 480px;
+  max-width: 92vw;
+  max-height: calc(100vh - 48px);
+  margin: 0;
+  opacity: 0;
+  transform: translateY(12px) scale(0.985);
+  /* 打开缓动 320ms（--kui-duration-slow），关闭沿用基础时长，符合 §16 动效节奏 */
+  transition:
+    opacity var(--kui-duration-base) var(--kui-ease-out),
+    transform var(--kui-duration-slow) var(--kui-ease-bounce);
+}
+
+.kui-dialog-layer.is-open .kui-dialog-wrap {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.kui-dialog-layer.is-leaving .kui-dialog-wrap,
+.kui-dialog-layer.is-enter:not(.is-open) .kui-dialog-wrap {
+  opacity: 0;
+  transform: translateY(8px) scale(0.99);
+}
+
+/* 弹窗 iframe：内容透明背景，圆角与阴影由 iframe 内卡片自己画 */
+.kui-dialog-frame {
+  display: block;
+  width: 100%;
+  min-height: 96px;
+  max-height: calc(100vh - 48px);
+  padding: 0;
+  border: 0;
+  border-radius: var(--kui-radius-lg);
+  background: transparent;
+  color-scheme: normal;
+  overflow: hidden;
+}
+
+.kui-dialog-layer.is-resized .kui-dialog-frame {
+  transition: height var(--kui-duration-base) var(--kui-ease-out);
+}
+
+.kui-dialog-layer.is-loading .kui-dialog-frame {
+  opacity: 0;
+}
+
+.kui-dialog-layer.is-ready .kui-dialog-frame {
+  opacity: 1;
+  transition: opacity var(--kui-duration-base) var(--kui-ease-out);
+}
+
+/* iframe 未就绪时的骨架微光（避免白块闪烁） */
+.kui-dialog-layer.is-loading .kui-dialog-wrap::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  min-height: 120px;
+  border-radius: var(--kui-radius-lg);
+  background:
+    linear-gradient(100deg, transparent 20%, var(--kui-highlight) 42%, transparent 62%),
+    var(--kui-bg-2);
+  background-size: 200% 100%, 100% 100%;
+  border: var(--kui-border-width) solid var(--kui-border);
+  animation: kui-dialog-skeleton 1.2s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes kui-dialog-skeleton {
+  from {
+    background-position: 130% 0, 0 0;
+  }
+  to {
+    background-position: -60% 0, 0 0;
+  }
+}
+
+/* 拖拽：JS 只设置 wrap 的 left/top/position，其它外观走这里 */
+.kui-dialog-wrap.is-draggable {
+  cursor: default;
+}
+
+.kui-dialog-layer.is-dragging,
+.kui-dialog-layer.is-dragging * {
+  cursor: grabbing !important;
+  user-select: none;
+}
+
+/* 拖拽期间 iframe 不接收指针事件，避免鼠标被 iframe 吸走 */
+.kui-dialog-layer.is-dragging .kui-dialog-frame {
+  pointer-events: none;
+}
+
+/* 顶部细窄拖拽区（iframe 标题栏拖拽通过 dialog:drag-* 消息转发） */
+.kui-dialog-handle {
+  position: absolute;
+  top: 0;
+  left: 16px;
+  right: 64px;
+  height: 18px;
+  z-index: 2;
+  border-radius: var(--kui-radius-sm);
+  cursor: grab;
+  background: transparent;
+  transition: background-color var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-dialog-handle:hover {
+  background: linear-gradient(90deg, transparent, var(--kui-accent-2-soft) 30%, var(--kui-accent-2-soft) 70%, transparent);
+  opacity: 0.6;
+}
+
+.kui-dialog-wrap.is-draggable::before {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 50%;
+  width: 34px;
+  height: 3px;
+  margin-left: -17px;
+  border-radius: var(--kui-radius-pill);
+  background: var(--kui-border-strong);
+  opacity: 0.55;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* 最大化：覆盖 JS 内联的行内尺寸 */
+.kui-dialog-layer.is-maximized {
+  padding: 16px;
+}
+
+.kui-dialog-layer.is-maximized .kui-dialog-wrap,
+.kui-dialog-wrap.is-maximized {
+  width: calc(100vw - 32px) !important;
+  max-width: none !important;
+  height: calc(100vh - 32px) !important;
+  max-height: none !important;
+  position: relative !important;
+  left: auto !important;
+  top: auto !important;
+  margin: 0 !important;
+}
+
+.kui-dialog-layer.is-maximized .kui-dialog-frame,
+.kui-dialog-wrap.is-maximized .kui-dialog-frame {
+  height: calc(100vh - 32px) !important;
+  max-height: none !important;
+}
+
+/* 打开弹窗时锁定页面滚动（JS 给 body 加类） */
+body.kui-dialog-open {
+  overflow: hidden;
+}
+
+/* 弹窗类型修饰（layer 上的 --type，仅调遮罩浓度，不重画卡片） */
+.kui-dialog-layer--confirm .kui-dialog-mask,
+.kui-dialog-layer--prompt .kui-dialog-mask {
+  background: var(--kui-mask);
+}
+
+.kui-dialog-layer--danger .kui-dialog-mask,
+.kui-dialog-layer--loading .kui-dialog-mask {
+  background: var(--kui-mask-strong);
+}
+
+/* ==========================================================================
+   5. 提醒信息 .kui-toast / .kui-toast-layer
+   ========================================================================== */
+
+/* 每个位置一个层，层内纵向堆叠 */
+.kui-toast-layer {
+  position: fixed;
+  z-index: var(--kui-z-toast);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(360px, calc(100vw - 32px));
+  pointer-events: none;
+}
+
+.kui-toast-layer > * {
+  pointer-events: auto;
+}
+
+.kui-toast-layer--top-right {
+  top: 18px;
+  right: 18px;
+  align-items: flex-end;
+}
+
+.kui-toast-layer--top-left {
+  top: 18px;
+  left: 18px;
+  align-items: flex-start;
+}
+
+.kui-toast-layer--top-center {
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  align-items: center;
+}
+
+.kui-toast-layer--bottom-right {
+  bottom: 18px;
+  right: 18px;
+  flex-direction: column-reverse;
+  align-items: flex-end;
+}
+
+.kui-toast-layer--bottom-left {
+  bottom: 18px;
+  left: 18px;
+  flex-direction: column-reverse;
+  align-items: flex-start;
+}
+
+.kui-toast-layer--bottom-center {
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  flex-direction: column-reverse;
+  align-items: center;
+}
+
+/* notification 固定右上、更宽的大卡片 */
+.kui-toast-layer--notification {
+  top: 70px;
+  right: 18px;
+  left: auto;
+  bottom: auto;
+  width: min(400px, calc(100vw - 32px));
+  align-items: flex-end;
+  flex-direction: column;
+}
+
+/* ---------------- 5.1 单条提醒 ---------------- */
+
+.kui-toast {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 12px 11px 14px;
+  overflow: hidden;
+  border: var(--kui-border-width) solid var(--kui-border);
+  border-radius: var(--kui-radius-md);
+  background:
+    linear-gradient(180deg, var(--kui-highlight, transparent), transparent 55%),
+    var(--kui-glass-bg-strong, var(--kui-popup-bg));
+  box-shadow: var(--kui-shadow-3), var(--kui-inner-glow);
+  backdrop-filter: blur(var(--kui-glass-blur));
+  -webkit-backdrop-filter: blur(var(--kui-glass-blur));
+  color: var(--kui-text-1);
+  opacity: 0;
+  transform: translateX(16px) scale(0.985);
+  transition:
+    opacity var(--kui-duration-base) var(--kui-ease-out),
+    transform var(--kui-duration-base) var(--kui-ease-out);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%);
+}
+
+.kui-toast.is-open {
+  opacity: 1;
+  transform: translateX(0) scale(1);
+}
+
+.kui-toast.is-leaving {
+  opacity: 0;
+  transform: translateX(12px) scale(0.99);
+}
+
+/* 左侧强调色条（按类型着色） */
+.kui-toast__accent {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--kui-info);
+  box-shadow: 0 0 12px var(--kui-info);
+}
+
+.kui-toast--info .kui-toast__accent {
+  background: var(--kui-info);
+  box-shadow: 0 0 12px var(--kui-info);
+}
+
+.kui-toast--success .kui-toast__accent {
+  background: var(--kui-success);
+  box-shadow: 0 0 12px var(--kui-success);
+}
+
+.kui-toast--warning .kui-toast__accent {
+  background: var(--kui-warning);
+  box-shadow: 0 0 12px var(--kui-warning);
+}
+
+.kui-toast--error .kui-toast__accent,
+.kui-toast--danger .kui-toast__accent {
+  background: var(--kui-danger);
+  box-shadow: 0 0 12px var(--kui-danger);
+}
+
+.kui-toast__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  border-radius: var(--kui-radius-sm);
+  background: var(--kui-bg-3);
+  color: var(--kui-info);
+}
+
+.kui-toast__icon .kui-icon {
+  width: 15px;
+  height: 15px;
+}
+
+.kui-toast--info .kui-toast__icon {
+  color: var(--kui-info);
+}
+
+.kui-toast--success .kui-toast__icon {
+  color: var(--kui-success);
+}
+
+.kui-toast--warning .kui-toast__icon {
+  color: var(--kui-warning);
+}
+
+.kui-toast--error .kui-toast__icon,
+.kui-toast--danger .kui-toast__icon {
+  color: var(--kui-danger);
+}
+
+.kui-toast__body {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding-right: 2px;
+}
+
+.kui-toast__title {
+  font-size: var(--kui-fs-md);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--kui-text-1);
+  line-height: 1.35;
+}
+
+.kui-toast__message {
+  font-size: var(--kui-fs-sm);
+  line-height: var(--kui-lh);
+  color: var(--kui-text-2);
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.kui-toast__action {
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 2px 8px;
+  border: var(--kui-border-width) solid var(--kui-accent-soft);
+  border-radius: var(--kui-radius-sm);
+  background: transparent;
+  color: var(--kui-accent);
+  font-size: var(--kui-fs-sm);
+  cursor: pointer;
+  transition:
+    color var(--kui-duration-fast) var(--kui-ease),
+    background-color var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-toast__action:hover {
+  color: var(--kui-text-inverse);
+  background: var(--kui-accent);
+}
+
+.kui-toast__close {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  display: inline-grid;
+  place-items: center;
+  margin: -2px -2px 0 2px;
+  padding: 0;
+  border: none;
+  border-radius: var(--kui-radius-xs);
+  background: transparent;
+  color: var(--kui-text-3);
+  cursor: pointer;
+  opacity: 0.75;
+  transition:
+    color var(--kui-duration-fast) var(--kui-ease),
+    background-color var(--kui-duration-fast) var(--kui-ease),
+    opacity var(--kui-duration-fast) var(--kui-ease);
+}
+
+.kui-toast__close:hover {
+  color: var(--kui-text-1);
+  background: var(--kui-control-bg-hover);
+  opacity: 1;
+}
+
+.kui-toast__close .kui-icon {
+  width: 12px;
+  height: 12px;
+}
+
+/* 自动消失进度条 */
+.kui-toast__progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: transparent;
+  overflow: hidden;
+}
+
+.kui-toast__progress-bar {
+  width: 100%;
+  height: 100%;
+  transform-origin: left center;
+  background: linear-gradient(90deg, var(--kui-accent), var(--kui-accent-2));
+  box-shadow: 0 0 10px var(--kui-accent-glow);
+  transition: width 120ms linear;
+}
+
+.kui-toast--success .kui-toast__progress-bar {
+  background: linear-gradient(90deg, var(--kui-success), var(--kui-accent-2));
+  box-shadow: 0 0 10px var(--kui-success);
+}
+
+.kui-toast--warning .kui-toast__progress-bar {
+  background: linear-gradient(90deg, var(--kui-warning), var(--kui-accent-2));
+  box-shadow: 0 0 10px var(--kui-warning);
+}
+
+.kui-toast--error .kui-toast__progress-bar,
+.kui-toast--danger .kui-toast__progress-bar {
+  background: linear-gradient(90deg, var(--kui-danger), var(--kui-accent-2));
+  box-shadow: 0 0 10px var(--kui-danger);
+}
+
+/* hover 暂停：暂停呼吸光，视觉上不继续收缩 */
+.kui-toast.is-paused .kui-toast__progress-bar {
+  opacity: 0.55;
+}
+
+/* notification：右上大卡片，标题更大、内边距更足 */
+.kui-toast--notification {
+  padding: 14px 14px 14px 16px;
+  border-radius: var(--kui-radius-lg);
+}
+
+.kui-toast--notification .kui-toast__title {
+  font-family: var(--kui-font-display);
+  font-size: var(--kui-fs-lg);
+}
+
+.kui-toast--notification .kui-toast__message {
+  font-size: var(--kui-fs-base);
+}
+
+.kui-toast--notification .kui-toast__icon {
+  width: 24px;
+  height: 24px;
+}
+
+.kui-toast--notification .kui-toast__icon .kui-icon {
+  width: 17px;
+  height: 17px;
+}
+
+/* toast 顶部玻璃高光 */
+.kui-toast::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 9px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--kui-highlight), transparent);
+  pointer-events: none;
+}
+
+/* 挂载锚点（register('toast') 的 render 返回隐藏节点，避免破坏布局） */
+.kui-toast-anchor,
+.kui-dialog-anchor {
+  display: none !important;
+}
+
+.kui-toast-anchor {
+  position: fixed;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   6. 响应式与无障碍降级
+   ========================================================================== */
+
+/* 中等宽度：收窄标签与面包屑，避免挤压 */
+@media (max-width: 1180px) {
+  .kui-tabs__item {
+    max-width: 168px;
+  }
+
+  .kui-tabs__item-title {
+    max-width: 106px;
+  }
+
+  .kui-menunav__title-wrap {
+    max-width: 34%;
+  }
+
+  .kui-menunav__crumb {
+    max-width: 132px;
+  }
+}
+
+/* 小屏：菜单默认折叠视觉、导航隐藏按钮文字、toast 变窄 */
+@media (max-width: 860px) {
+  .kui-menu {
+    width: var(--kui-menu-width-collapsed);
+  }
+
+  .kui-menunav__action-label {
+    display: none;
+  }
+
+  .kui-menunav__action {
+    width: 30px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .kui-toast-layer {
+    width: calc(100vw - 24px);
+  }
+
+  .kui-dialog-layer {
+    padding: 12px;
+  }
+
+  .kui-dialog-wrap {
+    max-width: calc(100vw - 24px);
+  }
+}
+
+/* 动效降级：用户偏好减少动画时，只保留透明度过渡 */
+@media (prefers-reduced-motion: reduce) {
+  .kui-menu,
+  .kui-menu__link,
+  .kui-menu__collapse-icon,
+  .kui-menunav__btn,
+  .kui-menunav__action,
+  .kui-tabs__item,
+  .kui-tabs__list,
+  .kui-dialog-wrap,
+  .kui-dialog-mask,
+  .kui-toast {
+    transition-duration: 1ms !important;
+    animation: none !important;
+  }
+
+  .kui-menu__flyout,
+  .kui-tabs__context {
+    animation: none !important;
+  }
+
+  .kui-tabs__item-dirty {
+    animation: none !important;
+  }
+
+  .kui-tabs__list {
+    scroll-behavior: auto;
+  }
+}
+
+/* 高对比度模式兜底：确保描边可见 */
+@media (forced-colors: active) {
+  .kui-menu,
+  .kui-menunav,
+  .kui-tabs__item,
+  .kui-dialog-frame,
+  .kui-toast {
+    border-color: CanvasText;
+  }
+
+  .kui-menu__item.is-active > .kui-menu__link,
+  .kui-tabs__item.is-active {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+}
+
+/* ==========================================================================
+   X. 原生控件升级器（dom-enhance.js）：<select data-kui-native>
+   --------------------------------------------------------------------------
+   页面里的原生 select 被替换为框架 select 后，宿主 span 需要承担原来的行内位置。
+   宿主自身不画任何东西，所有视觉由 .kui-select 控件负责，从而保持主题一致。
+   ========================================================================== */
+.kui-native-select {
+  display: inline-block;
+  vertical-align: middle;
+  max-width: 100%;
+}
+
+.kui-native-select > .kui-select {
+  width: 100%;
+  min-width: 0;
+}
+
+/* 升级后的框架 select 继承原 label 的行内排版 */
+label > .kui-native-select {
+  margin-left: 4px;
+}
+
+/* ==========================================================================
+   诊断面板（src/core/diag.js，仅 ?kui_debug=1 时出现）
+   ========================================================================== */
+.kui-diag {
+  position: fixed;
+  right: var(--kui-app-gap, 10px);
+  bottom: var(--kui-app-gap, 10px);
+  z-index: 2147483000;
+  width: 420px;
+  max-width: calc(100vw - 20px);
+  max-height: 52vh;
+  display: flex;
+  flex-direction: column;
+  background: rgba(8, 5, 10, 0.94);
+  border: 1px solid var(--kui-accent, #c8102e);
+  border-radius: var(--kui-radius-md, 6px);
+  box-shadow: 0 0 0 1px rgba(200, 16, 46, 0.24), var(--kui-shadow-3, 0 16px 40px rgba(0, 0, 0, 0.5));
+  font: 11px/1.55 "Cascadia Mono", Consolas, monospace;
+  color: #e8e0d8;
+}
+
+.kui-diag.is-collapsed {
+  max-height: none;
+  width: auto;
+}
+
+.kui-diag.is-collapsed .kui-diag__log {
+  display: none;
+}
+
+.kui-diag__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-bottom: 1px solid rgba(200, 16, 46, 0.28);
+}
+
+.kui-diag__title {
+  flex: 1 1 auto;
+  color: var(--kui-accent-2, #d4af37);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kui-diag__btn {
+  padding: 1px 7px;
+  border: 1px solid rgba(200, 16, 46, 0.5);
+  border-radius: var(--kui-radius-sm, 4px);
+  background: transparent;
+  color: #f0d9dc;
+  font: inherit;
+  cursor: pointer;
+}
+
+.kui-diag__btn:hover {
+  background: rgba(200, 16, 46, 0.22);
+}
+
+.kui-diag__log {
+  margin: 0;
+  padding: 6px 8px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  user-select: text;
+  scrollbar-width: thin;
+}

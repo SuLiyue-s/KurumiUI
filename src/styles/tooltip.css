@@ -1,0 +1,105 @@
+/*!
+ * KurumiUI · tooltip.css
+ * 主题化悬浮提示（配合 src/core/tooltip.js）。
+ * 全部颜色/圆角/阴影/动效来自主题 token，切主题自动跟随；
+ * 不使用 !important，不针对具体主题写选择器。
+ */
+
+.kui-tooltip {
+  position: fixed;
+  z-index: var(--kui-z-toast, 9000);
+  left: 0;
+  top: 0;
+  display: none;
+  max-width: 300px;
+  padding: 6px 10px;
+  box-sizing: border-box;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(2px);
+  background: var(--kui-popup-bg, var(--kui-bg-3, #1d141d));
+  color: var(--kui-text-1, #f5e9ee);
+  border: 1px solid var(--kui-popup-border, var(--kui-border-strong, #46323c));
+  border-radius: var(--kui-radius-sm, 4px);
+  box-shadow: var(--kui-shadow-2, 0 8px 24px rgba(0, 0, 0, .45)), var(--kui-inner-glow, inset 0 0 0 1px rgba(255, 255, 255, .03));
+  font-family: var(--kui-font-family, "Microsoft YaHei", "PingFang SC", sans-serif);
+  font-size: var(--kui-fs-sm, 12px);
+  line-height: 1.55;
+  letter-spacing: .02em;
+  backdrop-filter: blur(var(--kui-glass-blur, 10px));
+  -webkit-backdrop-filter: blur(var(--kui-glass-blur, 10px));
+  transition: opacity var(--kui-duration-fast, 120ms) var(--kui-ease-out, ease),
+    transform var(--kui-duration-fast, 120ms) var(--kui-ease-out, ease);
+}
+
+/* 顶部一道极细的绯金线：与框架其它 HUD 面板保持同一材质语言 */
+.kui-tooltip::before {
+  content: "";
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent,
+    var(--kui-accent-2, #d4af37),
+    var(--kui-accent, #c8102e),
+    var(--kui-accent-2, #d4af37),
+    transparent);
+  opacity: .55;
+  border-radius: 1px;
+}
+
+.kui-tooltip.is-visible {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.kui-tooltip--top.is-visible { transform: translateY(0); }
+.kui-tooltip--bottom.is-visible { transform: translateY(0); }
+
+.kui-tooltip__text {
+  display: block;
+  white-space: pre-line;
+  word-break: break-word;
+}
+
+/* 箭头：用带边框的小方块旋转实现，颜色与浮层边框一致 */
+.kui-tooltip__arrow {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: var(--kui-popup-bg, var(--kui-bg-3, #1d141d));
+  border: 1px solid var(--kui-popup-border, var(--kui-border-strong, #46323c));
+  transform: rotate(45deg);
+  pointer-events: none;
+}
+
+.kui-tooltip--top .kui-tooltip__arrow {
+  border-top-color: transparent;
+  border-left-color: transparent;
+  clip-path: polygon(100% 100%, 100% 0, 0 100%);
+}
+
+.kui-tooltip--bottom .kui-tooltip__arrow {
+  border-bottom-color: transparent;
+  border-right-color: transparent;
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+}
+
+.kui-tooltip--left .kui-tooltip__arrow {
+  border-left-color: transparent;
+  border-bottom-color: transparent;
+}
+
+.kui-tooltip--right .kui-tooltip__arrow {
+  border-right-color: transparent;
+  border-top-color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kui-tooltip {
+    transition: none;
+  }
+}

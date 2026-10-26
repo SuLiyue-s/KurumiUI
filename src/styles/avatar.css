@@ -1,0 +1,200 @@
+/* =====================================================================
+ * KurumiUI · 头像与「刻刻帝时间齿轮」头像框（v1.2.0）
+ * 颜色全部走 token → 切换主题时头像框自动跟随；头像图片本身不参与主题。
+ * 由 src/core/avatar.js 生成 DOM：
+ *   <div class="kui-avatar [is-editable] [is-empty] [kui-avatar--animated]">
+ *     <div class="kui-avatar__inner"> <img.kui-avatar__img> 或 span.kui-avatar__fallback </div>
+ *     <svg class="kui-avatar__ring"> ... </svg>
+ *   </div>
+ * ===================================================================== */
+
+.kui-avatar {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: var(--kui-avatar-size, 44px);
+  height: var(--kui-avatar-size, 44px);
+  border-radius: 50%;
+  vertical-align: middle;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.kui-avatar--square { border-radius: var(--kui-radius-md); }
+.kui-avatar--square .kui-avatar__inner { border-radius: var(--kui-radius-sm); }
+
+/* 内层头像 */
+.kui-avatar__inner {
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, var(--kui-bg-2), var(--kui-bg-1));
+  border: 1px solid var(--kui-control-border);
+  box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.45);
+}
+
+.kui-avatar__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.kui-avatar__fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--kui-accent-2);
+  filter: drop-shadow(0 0 6px var(--kui-accent-glow));
+}
+
+.kui-avatar__fallback-text {
+  font-family: var(--kui-font-display);
+  font-size: 0.9em;
+  font-weight: 600;
+  color: var(--kui-accent-2);
+}
+
+/* 未设置头像：虚线占位，暗示「可点击设置」 */
+.kui-avatar.is-empty .kui-avatar__inner {
+  border-style: dashed;
+  border-color: var(--kui-control-border-hover);
+  background: linear-gradient(160deg, var(--kui-bg-1), var(--kui-bg-0));
+}
+
+/* ---------------- 刻刻帝时间齿轮头像框 ---------------- */
+.kui-avatar__ring {
+  position: absolute;
+  inset: -5px;
+  width: calc(100% + 10px);
+  height: calc(100% + 10px);
+  overflow: visible;
+  pointer-events: none;
+  filter: drop-shadow(0 0 4px var(--kui-accent-glow));
+}
+
+.kui-avatar__ring-rotor {
+  transform-origin: 50% 50%;
+  transform-box: fill-box;
+}
+
+.kui-avatar__ring-gear {
+  fill: none;
+  stroke: var(--kui-accent-2);
+  stroke-width: 4.6;
+  opacity: 0.92;
+}
+
+.kui-avatar__ring-rim {
+  fill: none;
+  stroke: var(--kui-accent);
+  stroke-width: 1.4;
+  opacity: 0.85;
+}
+
+.kui-avatar__ring-ticks { opacity: 0.92; }
+
+.kui-avatar__ring-tick {
+  stroke: var(--kui-accent-2);
+  stroke-width: 1.2;
+  stroke-linecap: round;
+}
+
+.kui-avatar__ring-tick.is-major {
+  stroke: var(--kui-accent);
+  stroke-width: 1.9;
+}
+
+.kui-avatar__ring-roman text {
+  fill: var(--kui-accent-2);
+  font-family: var(--kui-font-display);
+  letter-spacing: 0.02em;
+  opacity: 0.8;
+}
+
+.kui-avatar__ring-hand { stroke-linecap: round; }
+.kui-avatar__ring-hand.is-hour {
+  stroke: var(--kui-accent-2);
+  stroke-width: 3.2;
+}
+.kui-avatar__ring-hand.is-minute {
+  stroke: var(--kui-accent);
+  stroke-width: 2.2;
+}
+.kui-avatar__ring-pin { fill: var(--kui-accent-2); }
+
+/* 齿轮缓慢转动（可在配置中 frame.animated=false 关闭；减少动效时自动停） */
+@keyframes kui-avatar-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.kui-avatar.kui-avatar--animated .kui-avatar__ring-rotor {
+  animation: kui-avatar-spin var(--kui-avatar-spin-duration, 48s) linear infinite var(--kui-avatar-spin-direction, normal);
+}
+
+/* 可点击更换 */
+.kui-avatar.is-editable {
+  cursor: pointer;
+  outline: none;
+}
+
+.kui-avatar.is-editable .kui-avatar__inner {
+  transition: border-color var(--kui-duration-base) var(--kui-ease-out),
+              box-shadow var(--kui-duration-base) var(--kui-ease-out);
+}
+
+.kui-avatar.is-editable:hover .kui-avatar__inner,
+.kui-avatar.is-editable:focus-visible .kui-avatar__inner {
+  border-color: var(--kui-accent);
+  box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.4), 0 0 10px var(--kui-accent-glow);
+}
+
+.kui-avatar.is-editable:hover .kui-avatar__ring,
+.kui-avatar.is-editable:focus-visible .kui-avatar__ring {
+  filter: drop-shadow(0 0 7px var(--kui-accent-glow));
+}
+
+.kui-avatar.is-editable:focus-visible {
+  box-shadow: 0 0 0 2px var(--kui-accent-soft);
+  border-radius: 50%;
+}
+
+/* 菜单品牌区使用头像时的布局（不覆盖原 logo 尺寸） */
+.kui-menu__logo--avatar {
+  padding: 0;
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  width: auto;
+  height: auto;
+  line-height: 0;
+  /* v1.3.1：原 logo 有右下角斜切 clip-path，会把头像与齿轮框裁掉一圈 */
+  clip-path: none !important;
+  overflow: visible;
+}
+
+.kui-menu__logo--avatar .kui-avatar { display: block; }
+
+/* 注册表渲染的宿主（行内） */
+.kui-avatar-host {
+  display: inline-flex;
+  vertical-align: middle;
+  padding: 5px;
+  line-height: 0;
+}
+
+/* 预览（KUI.avatar.ring()） */
+.kui-avatar--ring-preview { margin: 6px; }
+
+/* 减少动效：停掉齿轮旋转与过渡 */
+@media (prefers-reduced-motion: reduce) {
+  .kui-avatar.kui-avatar--animated .kui-avatar__ring-rotor { animation: none; }
+  .kui-avatar.is-editable .kui-avatar__inner { transition: none; }
+}

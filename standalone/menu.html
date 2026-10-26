@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <!-- 主题预置：首帧前写入当前主题 token，防 FOUC 闪烁（由 .tools/patch-theme-boot.js 注入） -->
+  <script src="../src/core/theme-boot.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>menu · 左侧菜单独立渲染 | KurumiUI</title>
+<!-- 独立渲染：只引 menu 需要的样式与脚本，零外部依赖 -->
+<link rel="stylesheet" href="../src/styles/base.css">
+<link rel="stylesheet" href="../src/styles/components.css">
+<link rel="stylesheet" href="../src/styles/tooltip.css">
+<style>
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--kui-bg-0, #08050a);
+    color: var(--kui-text-1, #f5e9ee);
+    font-family: var(--kui-font-family, "Microsoft YaHei", "PingFang SC", sans-serif);
+  }
+  .demo-bar {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: 10px 18px; border-bottom: 1px solid var(--kui-border, #2a1f26);
+    background: var(--kui-bg-1, #141018); flex-wrap: wrap;
+  }
+  .demo-bar__title { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+  .demo-bar__title strong { font-size: 16px; letter-spacing: .04em; }
+  .demo-tag {
+    padding: 2px 8px; border-radius: 999px; font-size: 11px;
+    color: var(--kui-accent-2, #d4af37); border: 1px solid var(--kui-accent-2, #d4af37);
+    opacity: .9;
+  }
+  .demo-bar__ops { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .demo-bar select {
+    background: var(--kui-control-bg, #1b141c); color: var(--kui-text-1, #f5e9ee);
+    border: 1px solid var(--kui-control-border, #3a2b33); border-radius: 6px;
+    height: 30px; padding: 0 8px; outline: none;
+  }
+  .demo-nav { display: flex; gap: 6px; flex-wrap: wrap; }
+  .demo-nav a {
+    color: var(--kui-text-2, #cbb8c0); text-decoration: none; font-size: 12px;
+    padding: 4px 9px; border-radius: 999px; border: 1px solid transparent;
+  }
+  .demo-nav a:hover { color: var(--kui-text-1); border-color: var(--kui-accent); }
+  .demo-nav a.is-current { color: var(--kui-text-1); border-color: var(--kui-accent); background: var(--kui-accent-soft); font-weight: 600; }
+  .demo-main {
+    display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 18px;
+    padding: 18px; align-items: start;
+  }
+  .demo-panel {
+    background: var(--kui-bg-1, #141018);
+    border: 1px solid var(--kui-border, #2a1f26);
+    border-radius: var(--kui-radius-lg, 10px);
+    padding: 14px; min-height: 120px;
+  }
+  .demo-panel__title { font-size: 13px; color: var(--kui-accent-2, #d4af37); margin: 0 0 10px; letter-spacing: .08em; }
+  .demo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+  .demo-card {
+    background: var(--kui-bg-1, #141018); border: 1px solid var(--kui-border, #2a1f26);
+    border-radius: var(--kui-radius-md, 6px); padding: 12px;
+  }
+  .demo-card h3 { margin: 0 0 6px; font-size: 13px; color: var(--kui-text-1, #f5e9ee); }
+  .demo-card p, .demo-card li { font-size: 12px; line-height: 1.7; color: var(--kui-text-2, #cbb8c0); margin: 0; }
+  .demo-card ul { margin: 0; padding-left: 16px; }
+  .demo-card code {
+    font-family: var(--kui-font-mono, Consolas, monospace); font-size: 11px;
+    color: var(--kui-accent-3, #8ee6d6); background: var(--kui-bg-2, #1d141d);
+    padding: 1px 5px; border-radius: 4px;
+  }
+  .demo-ops { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .demo-btn {
+    height: 30px; padding: 0 12px; cursor: pointer; font-size: 12px;
+    color: var(--kui-text-1, #f5e9ee); background: var(--kui-control-bg, #1b141c);
+    border: 1px solid var(--kui-control-border, #3a2b33); border-radius: 6px;
+  }
+    .demo-btn:not(.demo-btn--primary):hover { border-color: var(--kui-accent); color: var(--kui-text-1); background: var(--kui-control-bg-hover); }
+  .demo-btn--primary { background: linear-gradient(180deg, var(--kui-accent-hover), var(--kui-accent)); border-color: var(--kui-accent); color: var(--kui-on-accent, var(--kui-text-inverse)); }
+  .demo-btn--primary:hover { background: var(--kui-accent-hover); border-color: var(--kui-accent-hover); color: var(--kui-on-accent, var(--kui-text-inverse)); }
+  .demo-log {
+    margin: 0; padding: 10px 12px; min-height: 120px; max-height: 210px; overflow: auto;
+    background: var(--kui-bg-0, #08050a); border: 1px dashed var(--kui-border, #2a1f26);
+    border-radius: 6px; font-family: var(--kui-font-mono, Consolas, monospace);
+    font-size: 11px; line-height: 1.7; color: var(--kui-text-2, #cbb8c0); white-space: pre-wrap;
+  }
+  .demo-log .is-err { color: var(--kui-danger, #ff5c7a); }
+  .demo-error { color: var(--kui-danger, #ff5c7a); font-size: 12px; padding: 10px; }
+  @media (max-width: 860px) { .demo-main { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body data-kui-auto="false">
+<header class="demo-bar">
+  <div class="demo-bar__title">
+    <span class="demo-tag">独立渲染</span>
+    <strong>menu</strong>
+    <span>左侧菜单 · 分组 / 二级 / 徽标 / 折叠 / 底部动作</span>
+  </div>
+  <div class="demo-bar__ops">
+    <nav class="demo-nav" id="demoNav"></nav>
+    <label>主题
+      <select data-kui-native id="kuiThemeSwitch"><option value="kurumi">绯红刻刻帝</option></select>
+    </label>
+  </div>
+</header>
+<main class="demo-main">
+  <section class="demo-panel">
+    <h2 class="demo-panel__title">CONFIG / config/demos/menu.json</h2>
+    <div id="menuHost"><div class="demo-error">正在加载 config/demos/menu.json …</div></div>
+  </section>
+  <section>
+    <div class="demo-grid">
+      <div class="demo-card">
+        <h3>这个页面演示什么</h3>
+        <p>menu 组件只吃一个 JSON 节点：分组 <code>group</code>、菜单项 <code>item</code> 与 <code>divider</code>；二级菜单 = item 自带 <code>children</code>。点击菜单项时组件处理 <code>item.target</code>：<code>{tab}</code> 开标签、<code>{action}</code> 走动作、<code>{menu}</code> 切选中。</p>
+      </div>
+      <div class="demo-card">
+        <h3>可配置 props（节选）</h3>
+        <ul>
+          <li><code>brand</code> / <code>collapsible</code> / <code>width</code> / <code>collapsedWidth</code></li>
+          <li><code>items</code> / <code>footer</code> / <code>accordion</code> / <code>flyout</code></li>
+          <li><code>defaultActive</code> / <code>collapsed</code> / <code>tooltip</code></li>
+        </ul>
+      </div>
+      <div class="demo-card">
+        <h3>实例 API（通过 __kuiInstance 拿到）</h3>
+        <ul>
+          <li><code>setActive(id)</code> / <code>getActive()</code></li>
+          <li><code>toggle()</code> / <code>setCollapsed(bool)</code> / <code>expand()</code></li>
+          <li><code>setBadge(id, value)</code> / <code>setItems(items)</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="demo-panel" style="margin-top:12px">
+      <h2 class="demo-panel__title">API 操作台（改的是运行时状态，不是 JSON）</h2>
+      <div class="demo-ops">
+        <button class="demo-btn demo-btn--primary" id="btnCollapse">折叠 / 展开菜单</button>
+        <button class="demo-btn" id="btnActiveHome">选中 home</button>
+        <button class="demo-btn" id="btnActiveForm">选中 form-lab</button>
+        <button class="demo-btn" id="btnBadge">home 徽标 +1</button>
+        <button class="demo-btn" id="btnReload">重新读取 JSON</button>
+      </div>
+      <pre class="demo-log" id="demoLog">// 操作日志（点击菜单项也会记录）</pre>
+    </div>
+  </section>
+</main>
+<script src="embedded.js"></script>
+<script src="../src/core/kui-all.js" data-kui-profile="standalone"></script>
+<!-- menu 的 footer.actions 里是 button 节点（经 KUI.renderNode 渲染），需要 controls 注册 script -->
+<script>
+(function () {
+  'use strict';
+  var KUI = window.KUI;
+  var logEl = document.getElementById('demoLog');
+  var host = document.getElementById('menuHost');
+  var menuApi = null;
+
+  var PAGES = [
+    ['menu', 'menu'], ['menunav', 'menunav'], ['tabs', 'tabs'], ['dialog', 'dialog'],
+    ['toast', 'toast'], ['form', 'form'], ['controls', 'controls'], ['theme', 'theme'],
+    ['no-shell', 'no-shell']
+  ];
+  var CURRENT = 'menu';
+
+  function log(text, isError) {
+    var line = document.createElement('div');
+    if (isError) line.className = 'is-err';
+    line.textContent = '[' + new Date().toLocaleTimeString() + '] ' + text;
+    logEl.appendChild(line);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function nav() {
+    var box = document.getElementById('demoNav');
+    for (var i = 0; i < PAGES.length; i++) {
+      var a = document.createElement('a');
+      a.href = PAGES[i][0] + '.html';
+      a.textContent = PAGES[i][1];
+      if (PAGES[i][0] === CURRENT) a.className = 'is-current';
+      box.appendChild(a);
+    }
+  }
+
+  function fillThemeSelect() {
+    var sel = document.getElementById('kuiThemeSwitch');
+    var list = (KUI.theme && KUI.theme.list) ? KUI.theme.list() : [];
+    if (!list.length) return;
+    sel.innerHTML = '';
+    for (var i = 0; i < list.length; i++) {
+      var opt = document.createElement('option');
+      opt.value = list[i].id;
+      opt.textContent = list[i].name + '（' + list[i].id + '）';
+      sel.appendChild(opt);
+    }
+    sel.value = (KUI.theme.currentId && KUI.theme.currentId()) || list[0].id;
+    sel.onchange = function () { KUI.theme.apply(sel.value); };
+  }
+
+  function initTheme() {
+    var p = KUI.config.load('themes');
+    p.then(function (data) {
+      if (data && data.themes && KUI.theme.init) {
+        KUI.theme.init(data, { fallbackId: 'kurumi', storageKey: 'kui-demo-theme', persist: true, silent: true });
+      }
+      fillThemeSelect();
+    })['catch'](function (err) {
+      log('主题加载失败：' + (err && err.message ? err.message : err), true);
+      fillThemeSelect();
+    });
+  }
+
+  function bindMenu(el) {
+    if (!el) return;
+    var inst = el.__kuiInstance;
+    if (inst && inst.setActive) menuApi = inst;
+    if (menuApi && menuApi.on && typeof menuApi.on === 'function') {
+      menuApi.on('select', function (item) {
+        log('菜单选中：' + JSON.stringify(item && (item.id || item.label) || item));
+      });
+    }
+    // 兼容监听 DOM 自定义事件
+    el.addEventListener('kui:menu:select', function (e) {
+      log('菜单选中事件：' + JSON.stringify(e.detail || {}));
+    });
+  }
+
+  function loadMenu(force) {
+    host.innerHTML = '';
+    var name = 'demos/menu';
+    if (force && KUI.config.clear) KUI.config.clear(name);
+    KUI.config.load(name, force ? { force: true } : null).then(function (node) {
+      if (!node) {
+        host.innerHTML = '<div class="demo-error">未找到 config/demos/menu.json。请先运行 npm run build:config（file:// 下需要 config/bundle.js）。</div>';
+        return;
+      }
+      var el = KUI.renderNode(node, null);
+      if (!el) {
+        host.innerHTML = '<div class="demo-error">menu 组件未注册：请确认 src/components/menu.js 已加载。</div>';
+        return;
+      }
+      host.appendChild(el);
+      bindMenu(el);
+      log('已渲染 config/demos/menu.json（menu 组件独立挂载）');
+    })['catch'](function (err) {
+      host.innerHTML = '<div class="demo-error">渲染失败：' + (err && err.message ? err.message : err) + '</div>';
+      log('渲染失败：' + (err && err.message ? err.message : err), true);
+    });
+  }
+
+  function ensureApi() {
+    if (menuApi) return menuApi;
+    var el = host.querySelector('[class*="kui-menu"]');
+    if (el && el.__kuiInstance) menuApi = el.__kuiInstance;
+    return menuApi;
+  }
+
+  document.getElementById('btnCollapse').onclick = function () {
+    var api = ensureApi();
+    if (!api) { log('menu 实例未就绪', true); return; }
+    var el = host.querySelector('[class*="kui-menu"]');
+    var collapsed = el && el.className.indexOf('is-collapsed') !== -1;
+    if (api.setCollapsed) api.setCollapsed(!collapsed);
+    else if (api.toggle) api.toggle();
+    log('切换折叠状态 → ' + (!collapsed ? '折叠' : '展开'));
+  };
+  document.getElementById('btnActiveHome').onclick = function () {
+    var api = ensureApi();
+    if (api && api.setActive) { api.setActive('home'); log('setActive("home")'); }
+  };
+  document.getElementById('btnActiveForm').onclick = function () {
+    var api = ensureApi();
+    if (api && api.setActive) { api.setActive('form-lab'); log('setActive("form-lab")'); }
+  };
+  var badgeCount = 3;
+  document.getElementById('btnBadge').onclick = function () {
+    var api = ensureApi();
+    badgeCount++;
+    if (api && api.setBadge) { api.setBadge('home', String(badgeCount)); log('setBadge("home", "' + badgeCount + '")'); }
+  };
+  document.getElementById('btnReload').onclick = function () { loadMenu(true); };
+
+  nav();
+  initTheme();
+  loadMenu(false);
+})();
+</script>
+</body>
+</html>
+

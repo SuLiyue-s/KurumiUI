@@ -1,0 +1,744 @@
+{
+  "schema": "kurumi-app/1",
+  "app": {
+    "name": "KurumiUI",
+    "title": "刻刻帝终端",
+    "subtitle": "灵装回路 · 时间结界控制台",
+    "version": "1.0.5",
+    "documentTitle": "刻刻帝终端 · KurumiUI",
+    "logoIcon": "clock",
+    "logoText": "KUI",
+    "home": "pages/home.html",
+    "copyright": "© KurumiUI · 刻刻帝终端",
+    "loading": {
+      "icon": "spinner",
+      "text": "灵装回路接通中…",
+      "delay": 120
+    }
+  },
+  "ui": {
+    "tooltip": {
+      "enabled": true,
+      "delay": 140,
+      "hideDelay": 60,
+      "offset": 10,
+      "maxWidth": 340,
+      "placement": "top"
+    },
+    "toast": {
+      "position": "top-right",
+      "max": 4,
+      "duration": 3200
+    },
+    "dialog": {
+      "maskClosable": true,
+      "escClosable": true
+    }
+  },
+  "dialogs": {
+    "settings": {
+      "title": "终端设置",
+      "desc": "由 app.dialogs.settings 驱动：改这里即可改 settings.open 弹窗的内容",
+      "width": 540,
+      "okText": "保存设置",
+      "cancelText": "取消",
+      "draggable": true,
+      "layout": {
+        "columns": 1,
+        "gap": 14,
+        "labelWidth": 96,
+        "labelPosition": "left"
+      },
+      "data": {
+        "shellName": "刻刻帝终端",
+        "defaultTheme": "kurumi",
+        "startTab": "home",
+        "remember": true,
+        "density": "normal"
+      },
+      "nodes": [
+        {
+          "id": "shellName",
+          "type": "input",
+          "label": "终端名称",
+          "required": true,
+          "props": {
+            "placeholder": "显示在标题栏与品牌区",
+            "clearable": true
+          }
+        },
+        {
+          "id": "defaultTheme",
+          "type": "select",
+          "label": "默认主题",
+          "options": [
+            {
+              "label": "绯红刻刻帝",
+              "value": "kurumi"
+            },
+            {
+              "label": "白羽灵装",
+              "value": "kurumi-angel"
+            },
+            {
+              "label": "星夜观测",
+              "value": "starry"
+            },
+            {
+              "label": "樱雾通灵",
+              "value": "sakura"
+            },
+            {
+              "label": "深渊刻印",
+              "value": "abyss"
+            },
+            {
+              "label": "黎明绯光",
+              "value": "dawn"
+            }
+          ]
+        },
+        {
+          "id": "startTab",
+          "type": "select",
+          "label": "启动页",
+          "options": [
+            {
+              "label": "刻刻帝终端（总览）",
+              "value": "home"
+            },
+            {
+              "label": "未保存数据验证",
+              "value": "profile"
+            },
+            {
+              "label": "灵装表单",
+              "value": "form"
+            },
+            {
+              "label": "文本编辑结界",
+              "value": "editor"
+            },
+            {
+              "label": "弹窗剧场",
+              "value": "dialogs"
+            },
+            {
+              "label": "提醒讯号",
+              "value": "notify"
+            },
+            {
+              "label": "主题灵装",
+              "value": "theme-page"
+            }
+          ]
+        },
+        {
+          "id": "remember",
+          "type": "switch",
+          "label": "记住上次标签",
+          "props": {
+            "activeText": "记住",
+            "inactiveText": "不记住"
+          }
+        },
+        {
+          "id": "density",
+          "type": "radio-group",
+          "label": "界面密度",
+          "options": [
+            {
+              "label": "紧凑",
+              "value": "compact"
+            },
+            {
+              "label": "标准",
+              "value": "normal"
+            },
+            {
+              "label": "宽松",
+              "value": "loose"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "theme": {
+    "default": "kurumi",
+    "storageKey": "kui-theme",
+    "visible": [
+      "kurumi",
+      "kurumi-angel",
+      "starry",
+      "sakura",
+      "abyss",
+      "dawn"
+    ],
+    "picker": {
+      "title": "选择灵装主题",
+      "desc": "主题只替换 CSS Token，不改变结构与控件",
+      "columns": 3,
+      "showPreview": true,
+      "showScheme": true,
+      "position": "panel",
+      "maskClosable": true
+    }
+  },
+  "layout": {
+    "gap": 10,
+    "menu": {
+      "width": 252,
+      "collapsedWidth": 68,
+      "collapsed": false
+    },
+    "header": {
+      "height": 56
+    },
+    "tabbarHeight": 38
+  },
+  "menu": {
+    "type": "menu",
+    "props": {
+      "brand": {
+        "title": "刻刻帝终端",
+        "subtitle": "KurumiUI · 灵装回路",
+        "logoIcon": "clock",
+        "logoText": "KUI"
+      },
+      "collapsed": false,
+      "collapsible": true,
+      "width": 252,
+      "collapsedWidth": 68,
+      "defaultActive": "home",
+      "tooltip": true,
+      "accordion": false,
+      "flyout": true,
+      "items": [
+        {
+          "type": "group",
+          "id": "g-core",
+          "label": "时间中枢",
+          "icon": "clock",
+          "children": [
+            {
+              "type": "item",
+              "id": "home",
+              "label": "总览 · 刻刻帝终端",
+              "icon": "home",
+              "badge": "主",
+              "badgeType": "accent",
+              "tooltip": "控制台首页",
+              "target": {
+                "tab": {
+                  "id": "home",
+                  "title": "刻刻帝终端",
+                  "url": "pages/home.html",
+                  "icon": "clock",
+                  "pinned": true,
+                  "closable": false
+                }
+              }
+            },
+            {
+              "type": "item",
+              "id": "pages",
+              "label": "业务结界",
+              "icon": "folder",
+              "badge": "6",
+              "badgeType": "gold",
+              "children": [
+                {
+                  "type": "item",
+                  "id": "profile",
+                  "label": "未保存数据验证",
+                  "icon": "shield",
+                  "badge": "验证",
+                  "badgeType": "success",
+                  "target": {
+                    "tab": {
+                      "id": "profile",
+                      "title": "未保存数据验证",
+                      "url": "pages/profile.html",
+                      "icon": "shield"
+                    }
+                  }
+                },
+                {
+                  "type": "item",
+                  "id": "form",
+                  "label": "灵装表单",
+                  "icon": "list",
+                  "badge": "联动",
+                  "badgeType": "accent",
+                  "target": {
+                    "tab": {
+                      "id": "form",
+                      "title": "灵装表单",
+                      "url": "pages/form.html",
+                      "icon": "list"
+                    }
+                  }
+                },
+                {
+                  "type": "item",
+                  "id": "editor",
+                  "label": "文本编辑结界",
+                  "icon": "edit",
+                  "target": {
+                    "tab": {
+                      "id": "editor",
+                      "title": "文本编辑结界",
+                      "url": "pages/editor.html",
+                      "icon": "edit"
+                    }
+                  }
+                },
+                {
+                  "type": "item",
+                  "id": "dialogs",
+                  "label": "弹窗剧场",
+                  "icon": "message",
+                  "badge": "5",
+                  "badgeType": "danger",
+                  "target": {
+                    "tab": {
+                      "id": "dialogs",
+                      "title": "弹窗剧场",
+                      "url": "pages/dialogs.html",
+                      "icon": "message"
+                    }
+                  }
+                },
+                {
+                  "type": "item",
+                  "id": "notify",
+                  "label": "提醒讯号",
+                  "icon": "bell",
+                  "badge": "8",
+                  "badgeType": "warning",
+                  "target": {
+                    "tab": {
+                      "id": "notify",
+                      "title": "提醒讯号",
+                      "url": "pages/notify.html",
+                      "icon": "bell"
+                    }
+                  }
+                },
+                {
+                  "type": "item",
+                  "id": "theme-page",
+                  "label": "主题灵装",
+                  "icon": "palette",
+                  "badge": "6",
+                  "badgeType": "gold",
+                  "target": {
+                    "tab": {
+                      "id": "theme-page",
+                      "title": "主题灵装",
+                      "url": "pages/theme.html",
+                      "icon": "palette"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "divider"
+        },
+        {
+          "type": "group",
+          "id": "g-armor",
+          "label": "灵装回路",
+          "icon": "grid",
+          "children": [
+            {
+              "type": "item",
+              "id": "controls",
+              "label": "控件陈列",
+              "icon": "grid",
+              "badge": "25",
+              "badgeType": "accent",
+              "tooltip": "全部控件独立渲染",
+              "target": {
+                "tab": {
+                  "id": "controls",
+                  "title": "控件陈列",
+                  "url": "standalone/controls.html",
+                  "icon": "grid"
+                }
+              }
+            },
+            {
+              "type": "item",
+              "id": "form-lab",
+              "label": "表单联动",
+              "icon": "feather",
+              "badge": "deps",
+              "badgeType": "success",
+              "target": {
+                "tab": {
+                  "id": "form-lab",
+                  "title": "表单联动",
+                  "url": "standalone/form.html",
+                  "icon": "feather"
+                }
+              }
+            },
+            {
+              "type": "item",
+              "id": "theme-lab",
+              "label": "主题独立渲染",
+              "icon": "palette",
+              "badge": "6",
+              "badgeType": "gold",
+              "target": {
+                "tab": {
+                  "id": "theme-lab",
+                  "title": "主题独立渲染",
+                  "url": "standalone/theme.html",
+                  "icon": "palette"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "g-observe",
+          "label": "观测回廊",
+          "icon": "chart",
+          "children": [
+            {
+              "type": "item",
+              "id": "dialog-lab",
+              "label": "弹窗独立渲染",
+              "icon": "message",
+              "badge": "5",
+              "badgeType": "danger",
+              "target": {
+                "tab": {
+                  "id": "dialog-lab",
+                  "title": "弹窗独立渲染",
+                  "url": "standalone/dialog.html",
+                  "icon": "message"
+                }
+              }
+            },
+            {
+              "type": "item",
+              "id": "toast-lab",
+              "label": "提醒独立渲染",
+              "icon": "bell",
+              "badge": "8",
+              "badgeType": "warning",
+              "target": {
+                "tab": {
+                  "id": "toast-lab",
+                  "title": "提醒独立渲染",
+                  "url": "standalone/toast.html",
+                  "icon": "bell"
+                }
+              }
+            },
+            {
+              "type": "item",
+              "id": "handlers-lab",
+              "label": "JSON 业务函数",
+              "icon": "terminal",
+              "badge": "FN",
+              "badgeType": "success",
+              "tooltip": "JSON 只写函数名与入参，实现放在各组件 handlers.js",
+              "target": {
+                "tab": {
+                  "id": "handlers-lab",
+                  "title": "JSON 业务函数",
+                  "url": "standalone/handlers.html",
+                  "icon": "terminal"
+                }
+              }
+            },
+            {
+              "type": "item",
+              "id": "avatar-lab",
+              "label": "头像与齿轮框",
+              "icon": "user",
+              "badge": "NEW",
+              "badgeType": "success",
+              "tooltip": "配置 JSON 传入头像 URL；设置后自动绘制刻刻帝时间齿轮头像框（随主题变色）",
+              "target": {
+                "tab": {
+                  "id": "avatar-lab",
+                  "title": "头像与齿轮框",
+                  "url": "standalone/avatar.html",
+                  "icon": "user"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "g-seal",
+          "label": "刻印结界",
+          "icon": "shield",
+          "children": [
+            {
+              "type": "item",
+              "id": "no-shell",
+              "label": "无壳拼装",
+              "icon": "code",
+              "badge": "DIY",
+              "badgeType": "accent",
+              "target": {
+                "tab": {
+                  "id": "no-shell",
+                  "title": "无壳拼装",
+                  "url": "standalone/no-shell.html",
+                  "icon": "code"
+                }
+              }
+            },
+            {
+              "type": "item",
+              "id": "independent",
+              "label": "独立渲染验证",
+              "icon": "terminal",
+              "badge": "8",
+              "badgeType": "gold",
+              "children": [
+                {
+                  "type": "item",
+                  "id": "menu-lab",
+                  "label": "菜单",
+                  "icon": "menu",
+                  "target": {
+                    "tab": {
+                      "id": "menu-lab",
+                      "title": "菜单 · 独立渲染",
+                      "url": "standalone/menu.html",
+                      "icon": "menu"
+                    }
+                  }
+                },
+                {
+                  "type": "item",
+                  "id": "menunav-lab",
+                  "label": "菜单导航",
+                  "icon": "terminal",
+                  "target": {
+                    "tab": {
+                      "id": "menunav-lab",
+                      "title": "菜单导航 · 独立渲染",
+                      "url": "standalone/menunav.html",
+                      "icon": "terminal"
+                    }
+                  }
+                },
+                {
+                  "type": "item",
+                  "id": "tabs-lab",
+                  "label": "标签容器",
+                  "icon": "list",
+                  "target": {
+                    "tab": {
+                      "id": "tabs-lab",
+                      "title": "标签容器 · 独立渲染",
+                      "url": "standalone/tabs.html",
+                      "icon": "list"
+                    }
+                  }
+                },
+                {
+                  "type": "item",
+                  "id": "menu-demo",
+                  "label": "演示 · 菜单配置",
+                  "icon": "code",
+                  "target": {
+                    "tab": {
+                      "id": "menu-demo",
+                      "title": "演示 · 菜单配置",
+                      "url": "standalone/menu.html?demo=menu",
+                      "icon": "code"
+                    }
+                  }
+                },
+                {
+                  "type": "item",
+                  "id": "disabled-seal",
+                  "label": "封存的时间结界",
+                  "icon": "lock",
+                  "disabled": true,
+                  "tooltip": "演示禁用态：该菜单项不可点击"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "footer": {
+        "title": "灵装回路",
+        "subtitle": "v1.0.0 · 稳定",
+        "version": "KurumiUI",
+        "actions": [
+          {
+            "type": "button",
+            "props": {
+              "text": "切换灵装主题",
+              "icon": "palette",
+              "size": "sm",
+              "variant": "ghost",
+              "block": true
+            },
+            "on": {
+              "click": {
+                "action": "theme.picker"
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "menunav": {
+    "type": "menunav",
+    "props": {
+      "mode": "header",
+      "title": "刻刻帝终端",
+      "showCollapse": true,
+      "showHistory": true,
+      "showRefresh": true,
+      "showFullscreen": true,
+      "breadcrumb": {
+        "enabled": true,
+        "home": {
+          "id": "home",
+          "label": "刻刻帝终端",
+          "icon": "home"
+        },
+        "items": [],
+        "separator": "chevron-right",
+        "max": 4
+      },
+      "actions": [
+        {
+          "id": "search",
+          "icon": "search",
+          "label": "检索",
+          "title": "检索（search.toggle）",
+          "action": "search.toggle"
+        },
+        {
+          "id": "notify",
+          "icon": "bell",
+          "label": "提醒",
+          "title": "提醒讯号（notify.demo）",
+          "badge": 8,
+          "action": "notify.demo"
+        },
+        {
+          "id": "settings",
+          "icon": "settings",
+          "label": "设置",
+          "title": "终端设置（settings.open）",
+          "action": "settings.open"
+        },
+        {
+          "id": "theme",
+          "icon": "palette",
+          "label": "主题",
+          "title": "灵装主题（theme.picker）",
+          "action": "theme.picker"
+        }
+      ]
+    }
+  },
+  "tabs": {
+    "type": "tabs",
+    "props": {
+      "closable": true,
+      "pinnedClosable": false,
+      "keepAlive": true,
+      "maxTabs": 24,
+      "contextMenu": true,
+      "drag": false,
+      "emptyText": "暂无打开的结界",
+      "home": {
+        "id": "home",
+        "title": "刻刻帝终端",
+        "url": "pages/home.html",
+        "icon": "clock",
+        "pinned": true,
+        "closable": false
+      },
+      "initial": [
+        {
+          "id": "profile",
+          "title": "未保存数据验证",
+          "url": "pages/profile.html",
+          "icon": "shield"
+        },
+        {
+          "id": "theme-page",
+          "title": "主题灵装",
+          "url": "pages/theme.html",
+          "icon": "palette"
+        }
+      ],
+      "sandbox": ""
+    }
+  },
+  "text": {
+    "app": {
+      "subtitle": "灵装回路 · 时间结界控制台",
+      "copyright": "© KurumiUI · 刻刻帝终端"
+    },
+    "menu": {
+      "footerDefault": "灵装回路"
+    },
+    "shell": {
+      "searchPlaceholder": "检索时间线、结界与刻印…"
+    },
+    "page": {
+      "home": "刻刻帝终端"
+    }
+  },
+  "avatar": {
+    "url": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='31' fill='%23170a10'/%3E%3Ccircle cx='32' cy='32' r='23' fill='%232a0d16' stroke='%235c1626' stroke-width='1.5'/%3E%3Ccircle cx='32' cy='32' r='16' fill='%23c8102e'/%3E%3Ccircle cx='32' cy='32' r='9' fill='%23e11d3c'/%3E%3Ccircle cx='32' cy='32' r='4' fill='%2312070c'/%3E%3Ccircle cx='28' cy='27' r='3.2' fill='%23ffd9e2' opacity='0.92'/%3E%3Cpath d='M32 9 L27 16 L37 16 Z' fill='%23d4af37' opacity='0.9'/%3E%3C/svg%3E",
+    "editable": true,
+    "persist": true,
+    "storageKey": "kui-avatar",
+    "size": 42,
+    "shape": "circle",
+    "alt": "头像",
+    "title": "",
+    "clickTitle": "点击设置头像",
+    "fallbackIcon": "clock",
+    "frame": {
+      "enabled": true,
+      "style": "clock-gear",
+      "showTicks": true,
+      "showRoman": false,
+      "showHands": true,
+      "animated": true,
+      "spinDuration": 48
+    },
+    "picker": {
+      "title": "更换头像",
+      "width": 560,
+      "urlLabel": "头像图片地址",
+      "urlPlaceholder": "https://… 图片地址，或选择下方预设头像",
+      "urlTip": "支持 http(s)、相对路径与 data:image/…；勾选「清除」可恢复默认时钟图标",
+      "clearLabel": "清除自定义头像（恢复默认图标）",
+      "allowClear": true,
+      "okText": "应用",
+      "cancelText": "取消",
+      "mode": "url",
+      "accept": "image/*",
+      "maxSizeMB": 2
+    }
+  }
+}

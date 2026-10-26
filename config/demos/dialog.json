@@ -1,0 +1,296 @@
+{
+  "title": "弹窗 · dialog",
+  "desc": "alert / confirm / prompt / form / custom 五种弹窗 + 弹窗内再开弹窗。每个 demo 只描述 config，由 standalone/dialog.html 调用 KUI.dialog 对应方法渲染。",
+  "demos": [
+    {
+      "id": "alert-info",
+      "method": "alert",
+      "label": "alert · 结界通告",
+      "desc": "最简通告，Promise<void>，确定后关闭。",
+      "config": {
+        "type": "info",
+        "icon": "info",
+        "title": "结界通告",
+        "message": "灵装回路已在 03:00 完成一次时间回溯，所有未保存的刻印均已固化。",
+        "okText": "知道了"
+      }
+    },
+    {
+      "id": "alert-danger",
+      "method": "alert",
+      "label": "alert · 结界破裂",
+      "desc": "危险态通告：danger + 不可遮罩关闭。",
+      "config": {
+        "type": "error",
+        "icon": "warning",
+        "title": "结界破裂",
+        "message": "第三时区的时间结界出现裂隙，请立即前往观测回廊确认。",
+        "okText": "前往观测",
+        "danger": true,
+        "maskClosable": false,
+        "closeOnEsc": false
+      }
+    },
+    {
+      "id": "confirm-close",
+      "method": "confirm",
+      "label": "confirm · 关闭结界",
+      "desc": "Promise<boolean>：确定 true / 取消 false。",
+      "config": {
+        "type": "warning",
+        "icon": "question",
+        "title": "关闭时间结界",
+        "message": "关闭后该结界内的时间流将恢复流动，未固化的数据会丢失。",
+        "okText": "仍然关闭",
+        "cancelText": "再想想"
+      }
+    },
+    {
+      "id": "confirm-danger",
+      "method": "confirm",
+      "label": "confirm · 抹除刻印",
+      "desc": "danger 态确认，默认遮罩不可关闭。",
+      "config": {
+        "type": "error",
+        "icon": "trash",
+        "title": "抹除刻印",
+        "message": "该刻印一旦抹除将无法通过时间回溯恢复，确定继续？",
+        "okText": "抹除",
+        "cancelText": "取消",
+        "danger": true
+      }
+    },
+    {
+      "id": "prompt-name",
+      "method": "prompt",
+      "label": "prompt · 命名结界",
+      "desc": "Promise<string|null>：带校验规则与默认值。",
+      "config": {
+        "type": "info",
+        "icon": "edit",
+        "title": "命名时间结界",
+        "label": "结界名称",
+        "placeholder": "例如：一之弹 · 时之结界",
+        "defaultValue": "一之弹 · 时之结界",
+        "input": {
+          "type": "text",
+          "maxlength": 20
+        },
+        "rules": [
+          {
+            "required": true,
+            "message": "结界必须有名字"
+          },
+          {
+            "min": 2,
+            "max": 20,
+            "message": "名称需 2 ~ 20 个字符"
+          }
+        ],
+        "okText": "刻印",
+        "cancelText": "取消"
+      }
+    },
+    {
+      "id": "prompt-note",
+      "method": "prompt",
+      "label": "prompt · 时之低语",
+      "desc": "多行输入：input.type = textarea。",
+      "config": {
+        "type": "info",
+        "icon": "message",
+        "title": "时之低语",
+        "label": "备注",
+        "placeholder": "记录这次时间跳跃的观测结果…",
+        "input": {
+          "type": "textarea",
+          "maxlength": 120
+        },
+        "okText": "记录",
+        "cancelText": "取消"
+      }
+    },
+    {
+      "id": "form-seal",
+      "method": "form",
+      "label": "form · 灵装回路配置",
+      "desc": "内嵌 form：nodes + data + layout，提交 resolve 出数据；submitApi 可返回 false 阻止关闭。",
+      "config": {
+        "type": "info",
+        "icon": "settings",
+        "title": "灵装回路配置",
+        "width": 560,
+        "draggable": true,
+        "okText": "保存配置",
+        "cancelText": "放弃修改",
+        "layout": {
+          "columns": 1,
+          "gap": 14,
+          "labelWidth": 88,
+          "labelPosition": "left"
+        },
+        "data": {
+          "sealName": "刻刻帝 · 一之弹",
+          "mode": "timeline",
+          "reuse": true
+        },
+        "nodes": [
+          {
+            "id": "sealName",
+            "type": "input",
+            "label": "结界名称",
+            "required": true,
+            "props": {
+              "placeholder": "输入结界名称",
+              "clearable": true
+            }
+          },
+          {
+            "id": "mode",
+            "type": "select",
+            "label": "时间模式",
+            "options": [
+              {
+                "label": "时间线",
+                "value": "timeline"
+              },
+              {
+                "label": "封印",
+                "value": "seal"
+              },
+              {
+                "label": "自定义",
+                "value": "custom"
+              }
+            ]
+          },
+          {
+            "id": "reuse",
+            "type": "switch",
+            "label": "复用回路",
+            "props": {
+              "activeText": "复用",
+              "inactiveText": "新建"
+            }
+          },
+          {
+            "id": "remark",
+            "type": "textarea",
+            "label": "配置说明",
+            "span": 2,
+            "props": {
+              "rows": 3,
+              "maxlength": 200,
+              "showCount": true,
+              "placeholder": "为什么这样配置？"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "custom-actions",
+      "method": "custom",
+      "label": "custom · 自定义动作",
+      "desc": "custom：nodes + actions[]，close:true / 'resolve' / false 三种关闭行为。",
+      "config": {
+        "type": "info",
+        "icon": "shield",
+        "title": "刻印确认单",
+        "width": 520,
+        "nodes": [
+          {
+            "type": "alert",
+            "props": {
+              "type": "warning",
+              "message": "该操作会写入时间线历史，请确认刻印信息。"
+            }
+          },
+          {
+            "type": "text",
+            "props": {
+              "text": "刻印对象：时崎狂三 · 刻刻帝（第一形态）",
+              "strong": true
+            }
+          },
+          {
+            "type": "divider"
+          },
+          {
+            "type": "tag",
+            "props": {
+              "text": "不可逆",
+              "type": "danger",
+              "effect": "light"
+            }
+          }
+        ],
+        "actions": [
+          {
+            "id": "cancel",
+            "text": "取消",
+            "type": "default",
+            "close": true
+          },
+          {
+            "id": "trace",
+            "text": "记录并继续",
+            "type": "default",
+            "icon": "save",
+            "close": false,
+            "action": "demo.trace"
+          },
+          {
+            "id": "stamp",
+            "text": "确认刻印",
+            "type": "primary",
+            "icon": "check",
+            "close": "resolve",
+            "value": {
+              "seal": "刻刻帝",
+              "form": 1,
+              "stamped": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "nested",
+      "method": "custom",
+      "label": "custom · 弹窗内再开弹窗",
+      "desc": "在弹窗里再触发一层 confirm / form：验证 parentId、layer 与消息转发的嵌套能力。",
+      "config": {
+        "type": "info",
+        "icon": "layers",
+        "title": "嵌套结界（第 1 层）",
+        "width": 480,
+        "nodes": [
+          {
+            "type": "alert",
+            "props": {
+              "type": "info",
+              "message": "点击下方按钮，会在当前弹窗之上再打开一层 confirm，然后再开一层 form。"
+            }
+          }
+        ],
+        "actions": [
+          {
+            "id": "close",
+            "text": "关闭",
+            "type": "default",
+            "close": true
+          },
+          {
+            "id": "nest",
+            "text": "再开一层",
+            "type": "primary",
+            "icon": "plus",
+            "close": false,
+            "action": "demo.nested"
+          }
+        ]
+      }
+    }
+  ]
+}
