@@ -79,6 +79,7 @@ node tools/build-all.js      # 2) 按 config/kui-modules.json 的 app(28) / stan
 
 ```bash
 npm test                       # 30 项单元/集成用例（自带 DOM stub，零依赖）
+                               # 新克隆仓库没有 .tools/ 里的 Node13 时：29 通过 / 1 跳过（可选用例）
 npm run verify                 # 冒烟 94 项 + 业务函数演示页 + 弹窗动作桥
 npm run audit                  # 一致性审计 17 项 + 组件拆装审计 17 项
 node tools/check-compat.js     # Node 13.14 语法/API 兼容扫描

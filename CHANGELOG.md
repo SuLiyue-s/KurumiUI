@@ -42,6 +42,17 @@
 
 无破坏性变更：搜索入口（顶部导航「搜索」/ `search.toggle` 动作）行为增强 —— 单结果仍直接打开，多结果改为候选选择。
 
+### 六、仓库工程化（Git 初始化 / 只追踪源码 / README 构建流程）
+
+| 项 | 结果 |
+| --- | --- |
+| 仓库初始化 | `git init -b main`，首次提交 **116 个文件 / 2.3 MB**；远端 `git@github.com:SuLiyue-s/KurumiUI.git` |
+| 只追踪源码 | `config/bundle.js`、`src/core/kui-all.js` 入 `.gitignore`（由 `npm run build` 生成）；`.tools/`（本机 Node13 工具链、探针与一次性补丁脚本）与 `.shots/` 不入库 |
+| 审计脚本迁移 | `.tools/audit-*.js` → `tools/audit-*.js`（否则会被 `.gitignore` 忽略），同步 `package.json` 的 `audit` 脚本与 README / docs 引用 |
+| README 构建流程 | 新增「构建与发布（源码 → 生产代码）」：源码/产物对照、`npm run build` 一键构建、开发 vs 生产模式、三种部署方式、发布前验收命令、改配置/加模块/升版本的正确姿势、常见坑、SSH 443 说明 |
+| 测试兼容 | `compat: Node 13.14 可执行文件存在` 改为可选用例：本地无 `.tools/` Node13 时跳过（新克隆 29 通过 / 0 失败 / 1 跳过；含工具链时仍 30 / 0 / 0） |
+| 全新克隆验证 | clone → `npm run build` → 生成 `config/bundle.js`(112 KB) 与 `src/core/kui-all.js`(4 KB) → `test` 29/0/1、一致性审计 17/0/0 全绿 |
+| 推送通道 | 本机 22 端口被拦，`core.sshCommand` 走 `ssh.github.com:443`（仅本地 `.git/config`，不入库；远程 URL 仍为用户给定的 SSH 地址） |
 ---
 
 ## v1.3.5 — 源码 ↔ 测试一致性审计 + 组件可拆装审计
