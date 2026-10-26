@@ -55,6 +55,10 @@ npm run build        # = build:config + build-all（先产物 JSON，再产物 k
 npm start            # 起本地服务（启动时也会自动构建；含端口探测）
 ```
 
+> 若本机 **22 端口被拦**（公司网络 / 代理环境常见），可改走 GitHub 的 SSH 443：
+> `git config core.sshCommand "ssh -o HostName=ssh.github.com -p 443"`。
+> 远程地址仍是 `git@github.com:SuLiyue-s/KurumiUI.git`，之后 `git push` 照常使用。
+
 分步等价命令：
 
 ```bash
