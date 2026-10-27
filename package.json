@@ -13,6 +13,7 @@
     "smoke": "node tools/smoke.js",
     "check:assets": "node tools/check-assets.js",
     "check:compat": "node tools/check-compat.js",
+    "check:manual": "node tools/check-manual.js",
     "shot": "node tools/screenshot.js",
     "verify:handlers": "node tools/verify-handlers-demo.js",
     "verify:bridge": "node tools/verify-dialog-bridge.js",
