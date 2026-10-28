@@ -194,6 +194,7 @@ node -e "var m = require('./src/core/kui-all.js'); console.log(m.schema, Object.
 | `npm run build` | `node tools/build-config.js && node tools/build-all.js` | 两个产物全量重建 |
 | `npm run build:config` | **与 `build` 完全相同**（`package.json:10` 与 `package.json:24` 命令字符串一致） | 两个产物全量重建 |
 | `npm run build:all` | `node tools/build-all.js` | 只重建 `src/core/kui-all.js` |
+| `npm run verify:build` | `node tools/verify-build.js` | 不构建；校验源码 ↔ 产物/版本是否一致 |
 | `npm test` | `node test/run.js` | 不构建；依赖产物已存在 |
 | `verify`、`audit`、`check:*` | 见 2.7 | 不构建，多数会 `require` 产物 |
 
@@ -205,12 +206,12 @@ node -e "var m = require('./src/core/kui-all.js'); console.log(m.schema, Object.
 
 | 命令 | 校验对象 | 通过判据（当前仓库实测） | 退出码 |
 | --- | --- | --- | --- |
-| `npm test` | compat / config / server / render 四套件共 30 条用例 | 末行 `=> PASS`；缺 `.tools/` 时 Node 13 用例 SKIP | 0 / 1 |
-| `npm run verify` | 冒烟 94 项 + handlers 演示页 + 弹窗动作桥 | `94 通过 / 0 失败` 与两个 ✔ | 0 / 1（&&） |
-| `npm run audit` | 一致性审计 17 项 + 组件拆装审计 17 项 | `通过 17 项 / 失败 0 项 / 警告 0 项` 与 `通过 17 项 / 失败 0 项` | 0 / 1（&&） |
+| `npm test` | compat / config / server / render 四套件共 33 条用例 | 末行 `=> PASS`；缺 `.tools/` 时 Node 13 用例 SKIP | 0 / 1 |
+| `npm run verify` | 冒烟 104 项 + handlers 演示页 + 弹窗动作桥 + 产物一致性 | `104 通过 / 0 失败` 与三个 ✔ / PASS | 0 / 1（&&） |
+| `npm run audit` | 一致性审计 17 项 + 组件拆装审计 19 项 | `通过 17 项 / 失败 0 项 / 警告 0 项` 与 `通过 19 项 / 失败 0 项` | 0 / 1（&&） |
 | `node tools/check-compat.js` | 全项目 JS 与 HTML 内联脚本的禁用语法 / API，并用 Node 13.14 做语法校验 | `[PASS] 未发现禁用语法 / API`；`.tools/` 缺失时降级为当前运行时并打印 `[INFO]` | 0 / 1 |
-| `node tools/check-assets.js` | 20 个 HTML 的 `link` / `script` 引用：存在、非空、外链、重复、ESM | 末行 `汇总: 20 个 HTML，错误 0 个，警告 0 个` | 0 / 1 |
-| `node tools/audit-all-pages.js` | 18 个页面的注册表装配与 console.error | `18 / 18 页面通过，失败 0 项` | 0 / 1 |
+| `node tools/check-assets.js` | 21 个 HTML 的 `link` / `script` 引用：存在、非空、外链、重复、ESM | 末行 `汇总: 21 个 HTML，错误 0 个，警告 0 个` | 0 / 1 |
+| `node tools/audit-all-pages.js` | 19 个页面的注册表装配与 console.error | `19 / 19 页面通过，失败 0 项` | 0 / 1 |
 
 `kui-all.js` 不在生成文件白名单（`tools/check-compat.js:42`），构建后应再跑一次兼容扫描；`bundle.js` 被跳过。产物不入库（`.gitignore:5-6`），部署时随源码带上即可。
 
@@ -234,6 +235,7 @@ jobs:
       - run: npm run build
       - run: node tools/check-compat.js
       - run: node tools/check-assets.js
+      - run: node tools/verify-build.js
       - run: npm test
       - run: npm run verify
       - run: npm run audit
@@ -275,7 +277,7 @@ npm test
 kui-modules/1 [ 'app', 'standalone' ] 29 28
 app,text,themes,demos,meta 11
 [PASS] 未发现禁用语法 / API
-汇总: 20 个 HTML，错误 0 个，警告 0 个
+汇总: 21 个 HTML，错误 0 个，警告 0 个
 汇总: 33 通过 / 0 失败 / 0 跳过   总计 33   耗时 ...ms   => PASS
 ```
 

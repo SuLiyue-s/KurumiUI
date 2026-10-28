@@ -44,6 +44,11 @@
 - 手册 16 章 §5.5 改写为「历史缺陷 + v1.3.8 修复」，04/08/15 章同步；
 - 版本四处统一 1.3.8：`package.json`、`src/core/kui.js`、`src/frame/kui-frame.js`、`src/core/dom-enhance.js`。
 
+### 六、源码 ↔ 产物一致性校验（补记）
+
+- 新增 `tools/verify-build.js`（`npm run verify:build`，并入 `npm run verify` 链）：校验模块清单 ↔ 源码树、`src/core/kui-all.js` 内嵌模块表 ↔ 清单、重建产物逐字节一致、四处版本号一致、21 个 HTML 引用完整，以及本地 `config/bundle.js` 的模块版本/哈希是否与源码同步（忽略易变的 `meta.generatedAt`）；
+- 手册 04/16 章同步修正 v1.3.7 时代的「未消费 / 接线缺口」历史表述；02/01/12 章与 README 的验证口径更新（测试 33、冒烟 104、拆装 19、HTML 21、页面 19）。
+
 ## v1.3.7 — 加载层组件化（boot）+ 时钟指针进度动画
 
 > 需求（用户）："访问服务时或刷新时的 加载中 页面，也需要可以单独 自由拆卸、组装，且 时钟图案 增加一项 时钟指针动画，

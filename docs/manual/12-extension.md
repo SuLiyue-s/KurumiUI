@@ -774,8 +774,8 @@ KUI.diag.lines();              // ?kui_debug=1 后才可用
 
 ```powershell
 node tools/check-compat.js          # ES5 兼容性，无输出即通过
-npm run audit                       # 一致性 17 项 + 组件拆装 17 项
-npm run verify                      # 冒烟 94 项 + 2 个装配验证
+npm run audit                       # 一致性 17 项 + 组件拆装 19 项
+npm run verify                      # 冒烟 104 项 + 2 个装配验证 + 产物一致性
 
 # 运行时确认新类型/动作/业务函数都在表里
 node -e "var s=require('./test/dom-stub.js'),e=s.createEnvironment({root:process.cwd(),fileMode:true}),lk=require('./test/load-kui.js');lk.loadKui(e,{});var K=e.window.KUI;console.log('types',K.registry.count(),'actions',K.actions.list().length,'handlers',K.handlers.count());"

@@ -6,7 +6,7 @@
 
 - 说清 v1.3.8 的加载层改了什么：为什么从「`index.html` 里的一坨内联 HTML + 内联样式」变成「注册类型 `boot` + 独立 `boot.css` + 静态 API + 实例 API」。
 - 能背出「0% → 100% 对应 0 时 → 12 时」的指针算法，手算任意百分比的时针 / 分针角度与时钟读数，并能解释 0% 与 100% 都显示 `12:00` 的原因。
-- 能逐字段说出 `config/app.json` 的 `boot` 段与 `config/text.json` 的 `boot` 组每个键的含义、默认值与**真实消费状态**——其中有一处必须知道的**接线缺口**，本章会用源码行号证明并给出最小补丁。
+- 能逐字段说出 `config/app.json` 的 `boot` 段与 `config/text.json` 的 `boot` 组每个键的含义、默认值与**真实消费状态**——历史：v1.3.7 曾有一处**接线缺口**，v1.3.8 已接通，本章用源码行号与实测结果证明。
 - 会用 4 种装配方式（`type:"boot"` 节点渲染、`KUI.mount`、`KUI.bootLayer.create`、`KUI.bootLayer.attach`）与 14 个实例 API，并知道各自「坑」在哪里。
 - 能自己搭一个「只用加载层」的页面，或把这套加载层原样搬进别的项目（含最小文件清单与 HTML 模板）。
 - 能按排错表定位「加载层不出现 / 一直 `12:00` / 改成 `app.json` 不生效 / 关闭后仍显示」等问题，并跑完验收命令。
@@ -704,7 +704,7 @@ inst.done();
 
 ### 7.4 方式 D：`bootstrap.js` 默认流程
 
-不写任何代码，页面放 `#kui-app` + `kui-all.js` 即可（§6.1 的 19 步）。这是「主应用」的装法，也是唯一会自动读配置的路径（但 v1.3.8 有 §5.5 的接线缺口）。
+不写任何代码，页面放 `#kui-app` + `kui-all.js` 即可（§6.1 的 19 步）。这是「主应用」的装法，也是唯一会自动读配置的路径（v1.3.8 起 §5.5 的接线缺口已修复）。
 
 ### 7.5 四种方式对比
 
@@ -871,7 +871,7 @@ KUI.bus.on('boot:error', function (p) { console.error('启动失败', p.error); 
 
 ### 10.1 场景 1：完整主应用（默认）
 
-不改任何东西，按 §6.1 走。这是「开发时最省事」的方案，缺点是 `app.json` 配置目前不生效（§5.5）。
+不改任何东西，按 §6.1 走。这是「开发时最省事」的方案；v1.3.8 前 `app.json` 的 boot 配置不生效（§5.5），v1.3.8 起正常读取。
 
 ### 10.2 场景 2：拆掉组件，退回静态骨架（legacy）
 
@@ -1208,7 +1208,7 @@ KUI.bootLayer.instance().error('网络异常', 'HTTP 503');
 | 指针不动、只有数字变 | 指针元素被覆盖样式（`transform` 被 CSS `!important` 盖掉） | Elements 面板看 `.kui-boot__hand` 的 computed `transform` | 去掉覆盖；检查 `prefers-reduced-motion` 是否仅取消了过渡（不影响最终角度） |
 | 表盘不转（`spin` 模式） | 传的是 `clock.mode` 到 `configure` 的旧对象 / CSS 被禁用动画 | `data-boot-clock-mode` 属性值 | 确认属性为 `spin`；关闭系统「减少动态效果」不影响 `spin`（只影响过渡） |
 | 刻度数量改了没变化 | CSS 的 12 格是固定 `repeating-conic-gradient`；`--kui-boot-ticks` 只写变量 | 查看 `boot.css:121-135` | 要改刻度数需覆盖 `.kui-boot__dial` 的 background（自算角度） |
-| 改成 `app.json` 的 `boot` 完全没反应 | **v1.3.8 接线缺口**（§5.5） | `grep -rn "configureBootLayer" src/` 只有定义 | 打补丁（§5.5）或改用 API 写法 |
+| 改成 `app.json` 的 `boot` 完全没反应 | 历史缺陷：v1.3.7 及更早版本的接线缺口（§5.5） | 确认 `KUI.version` 是否 ≥ 1.3.8，并看 `KUI.boot.appliedBootConfig` | 升级到 v1.3.8+，或改用 `KUI.bootLayer.configure()` 写法 |
 | `boot.enabled: false` 关不掉 | 该字段无读取点 | `grep -rn "boot.enabled" src/` | 拆组件或改用 API 不创建 |
 | 错误卡片出现后无法恢复内容 | `show()` 不恢复 `__inner`（§9.3） | 看 `.kui-boot__inner` 的 `display` | 手动 `style.display=''` 或销毁重建 |
 | 出现多个加载层叠在一起 | 既 `attach()` 又 `create()`；或 `bootstrap` 跑了两次 | `document.querySelectorAll('#kui-boot').length` 与 `[data-boot-layer]` 数量 | 只保留一个 `attach`；多实例用 `create` 并挂在各自容器 |

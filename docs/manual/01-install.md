@@ -142,11 +142,11 @@ npx serve -l 8080 .
 | 命令 | 校验内容 | 通过判据 |
 | --- | --- | --- |
 | `npm run build` | 重建配置包与入口清单 | 见下方预期输出 |
-| `node tools/check-assets.js` | HTML 的 CSS / JS 引用存在性、空文件、外链、重复、ESM | 末行 `汇总: 20 个 HTML，错误 0 个，警告 0 个` |
+| `node tools/check-assets.js` | HTML 的 CSS / JS 引用存在性、空文件、外链、重复、ESM | 末行 `汇总: 21 个 HTML，错误 0 个，警告 0 个` |
 | `node tools/check-compat.js` | 禁用语法 / API 与 Node 13.14 语法校验 | 出现 `[PASS] 未发现禁用语法 / API` |
-| `npm test` | compat / config / server / render 四套件共 30 条用例 | 末行 `=> PASS` |
-| `npm run verify` | 冒烟 94 项 + handlers 演示页 + 弹窗动作桥 | 三段均打印 ✔ |
-| `npm run audit` | 一致性审计 17 项 + 组件拆装审计 17 项 | 两个脚本均 `失败 0 项` |
+| `npm test` | compat / config / server / render 四套件共 33 条用例 | 末行 `=> PASS` |
+| `npm run verify` | 冒烟 104 项 + handlers 演示页 + 弹窗动作桥 + 产物一致性 | 四段均打印 ✔ / PASS |
+| `npm run audit` | 一致性审计 17 项 + 组件拆装审计 19 项 | 两个脚本均 `失败 0 项` |
 
 `npm run build` 预期输出（数值以实际输出为准）：
 
@@ -246,7 +246,7 @@ npm test
 v24.14.0
 KurumiUI 配置打包完成
 [build-all] profiles: app=29, standalone=28
-汇总: 20 个 HTML，错误 0 个，警告 0 个
+汇总: 21 个 HTML，错误 0 个，警告 0 个
 汇总: 33 通过 / 0 失败 / 0 跳过   总计 33   耗时 ...ms   => PASS
 ```
 

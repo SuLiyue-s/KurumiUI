@@ -66,9 +66,9 @@ KUI.config.get('app.home', 'pages/home.html'); // ⚠️ 读 app.json 根（不�
 
 - `app`（3-18）名称/标题/版本/首页/启动层 → `bootstrap.js:689-718`、`app-shell.js:237-268`
 - `ui`（19-37）tooltip/toast/dialog 全局默认 → `bootstrap.js:727-745`
-- `boot`（38-48）启动层（加载中页面）与时钟指针动画 → 设计由 `bootstrap.js` 启动流程消费，但 **v1.3.8 存在接线缺口（配置不生效）**，详见 §8.5 与 [16-boot.md](16-boot.md) §5.5
+- `boot`（38-48）启动层（加载中页面）与时钟指针动画 → `bootstrap.js` 启动流程的 `applyBootConfig()`（v1.3.8 起生效，可用 `KUI.boot.appliedBootConfig` 观测），详见 §8.5 与 [16-boot.md](16-boot.md)
 - `dialogs`（49-177）弹窗预设（只有 settings）→ `bootstrap.js:627-665`
-- `theme`（178-198）默认主题/存储键/选择器 → `bootstrap.js:782-795`（picker 未消费，§6）
+- `theme`（178-198）默认主题/存储键/可见列表/选择器 → 主题初始化 + `openThemePicker`/`buildThemePickerNodes`（v1.3.8 起 `visible`/`picker` 全部生效，§6）
 - `layout`（199-210）菜单/头部/标签栏/间距尺寸 → `app-shell.js:146-193`
 - `menu`（211-616）左侧菜单（品牌/树/页脚）→ `app-shell.js:237-258` → `menu.js`
 - `menunav`（617-669）顶部导航（面包屑/动作）→ `app-shell.js:260-271` → `menunav.js`
@@ -108,15 +108,15 @@ KurumiUI 的“节点”没有强类型 schema，字段由渲染器按需读取�
 | `name` | string | `"KurumiUI"` | 否 | 应用名。启动层标题（`bootstrap.js:697-701`）、品牌区兜底（`app-shell.js:240-244`）、`app.info`（`app-shell.handlers.js:126-128`） |
 | `title` | string | `"刻刻帝终端"` | 否 | 应用标题。品牌/顶部导航标题默认（`:268-269`）；渲染后**改写 `document.title`**（`:535-537`），优先于 `documentTitle`；启动层标题实际取 `name` |
 | `subtitle` | string | `"灵装回路 · 时间结界控制台"` | 否 | 启动层副标题（`bootstrap.js:697-701`）、品牌/导航副标题默认（`:242,269`）；缺省回退 `text.app.subtitle` |
-| `version` | string | `"1.0.5"` | 否 | **未消费**。版本展示请写 `menu.props.footer.version`（`app.json:596`） |
+| `version` | string | `"1.0.5"` | 否 | 应用版本。v1.3.8 起注入 `menu.props.footer.version`（配置未写时补 `'v'+version`）；显式写 `menu.props.footer.version` 仍优先 |
 | `documentTitle` | string | `"刻刻帝终端 · KurumiUI"` | 否 | 浏览器标题兜底：仅 `title` 缺失时生效（`bootstrap.js:692-695`），实际被 `title` 覆盖 |
 | `logoIcon` | string | `"clock"` | 否 | 仅 `menu` 节点**没有** `props.brand` 时兜底品牌区图标（`app-shell.js:239-244`）；也作头像 `fallbackIcon` 兜底（`menu.js:180`） |
-| `logoText` | string | `"KUI"` | 否 | **未消费**（`text.json` 另有同名键）；品牌区只渲染 `logoIcon+title`，不显示文字 logo |
+| `logoText` | string | `"KUI"` | 否 | 品牌区图标旁徽记文字。v1.3.8 起：`menu.props.brand.logoText` 未写时回落到本字段，由 `menu.js` 渲染 `.kui-menu__logo-text`（有 `avatar` 时不显示） |
 | `home` | string | `"pages/home.html"` | 否 | 首页地址。**注意**：`app.home` 动作读取点写成 `get('app.home')`（`app-shell.handlers.js:96-98`），因 §1.4 前缀规则永远取兜底值，改本字段不影响该动作；业务代码请读 `get('app.app.home')` |
-| `copyright` | string | `"© KurumiUI · 刻刻帝终端"` | 否 | **未消费**。页脚版权写 `menu.props.footer`（`menu.js:733-749` 只渲染 `title/version/actions`，`footer.subtitle` 也不消费） |
-| `loading` | object | `{"icon":"spinner","text":"灵装回路接通中…","delay":120}` | 否 | **全部未消费**：启动层文案由 `index.html` 静态 DOM + `KUI.text('boot.loading', 原文本)` 决定（`bootstrap.js:700-701`），属配置契约保留位 |
+| `copyright` | string | `"© KurumiUI · 刻刻帝终端"` | 否 | 页脚版权。v1.3.8 起：`menu.props.footer.copyright` 未写时回落到本字段并渲染（页脚新增 `subtitle/copyright` 两行） |
+| `loading` | object | `{"icon":"spinner","text":"灵装回路接通中…","delay":120}` | 否 | 启动层旧字段别名（v1.3.8 起接管）：`icon:spinner`→`clock.mode:'spin'`、`icon:none`→`clock.enabled:false`、`delay`→`hideDelay`、`text`→文案（`bootConfigOf` legacy 分支）；新配置请用顶层 `boot`（§8.5） |
 
-> “未消费”字段写入不报错、也不改界面（无运行时校验）；判断生效最快的方式是 `grep -n "字段名" src/`。
+> v1.3.8 起字段读取点由 `npm run audit:config`（`tools/audit-config.js`）静态核对；写字段前先跑一遍，确认有读取点。
 
 ---
 
@@ -134,7 +134,7 @@ KurumiUI 的“节点”没有强类型 schema，字段由渲染器按需读取�
 | `ui.toast.max` | number | `4`（源码默认 5） | 否 | 同位置最多并存条数，超出移除最旧（`toast.js:123-138`） |
 | `ui.toast.duration` | number(ms) | `3200`（源码同） | 否 | 自动关闭时长；`0` 不自动消失（`toast.js:130`） |
 | `ui.dialog.maskClosable` | boolean | `true` | 否 | 点遮罩关闭（`dialog.js:137,427`），可被单弹窗 `props.maskClosable` 覆盖 |
-| `ui.dialog.escClosable` | boolean | `true` | 否 | **不生效**：框架读 `closeOnEsc`（`dialog.js:1055`）；`ui.dialog` 原样深合并（`:1147-1150`），全局关 ESC 写 `"closeOnEsc": false` |
+| `ui.dialog.escClosable` | boolean | `true` | 否 | ESC 关闭开关。v1.3.8 起 `escClosable`（顶层或 `ui.dialog` 内）会归一为内部字段 `closeOnEsc`，两者等价；单弹窗仍可 `props.closeOnEsc` 覆盖 |
 
 ## 5. layout.*：外壳尺寸与 CSS 变量
 
@@ -148,7 +148,7 @@ KurumiUI 的“节点”没有强类型 schema，字段由渲染器按需读取�
 | `layout.header.height` | number(px) | `56` | 否 | 顶栏高度 → `--kui-header-height`（`base.css:815`、`components.css:189`） |
 | `layout.tabbarHeight` | number(px) | `38` | 否 | 标签栏高度 → `--kui-tabbar-height`（`components.css:1386,1463`） |
 
-易错点：值可写数字（自动补 `px`）或带单位字符串（`app-shell.js:43-47`）；`menu.props.width/collapsedWidth`（`app.json:222-223`）只写内部变量 `--kui-menu-w`（`menu.js:716-717`），样式表**未消费**——改宽度请改 `layout.menu.*`。
+易错点：值可写数字（自动补 `px`）或带单位字符串（`app-shell.js:43-47`）；`menu.props.width/collapsedWidth`（`app.json:221-222`）只写内部变量 `--kui-menu-w`（`menu.js:720-721`），样式表**未消费**——改宽度请改 `layout.menu.*`。
 
 ## 6. theme.*：主题入口
 
@@ -157,10 +157,10 @@ KurumiUI 的“节点”没有强类型 schema，字段由渲染器按需读取�
 | `theme.default` | string | `"kurumi"` | 否 | 兜底主题 id（`bootstrap.js:787-792`）。生效优先级（`theme.js:402-415`）：`__KUI_EARLY_THEME__` > URL `?kuiTheme=` > localStorage[`storageKey`] > 本字段 > `themes.json` 的 default > 第一套 |
 | `theme.storageKey` | string | `"kui-theme"` | 否 | 持久化键（`theme.js:20`、`bootstrap.js:789`）；换键 = 换一份记忆 |
 | `theme.persist` | boolean | `true`（源码判断 `persist !== false`） | 否 | 是否写 localStorage（`bootstrap.js:790`）；关掉后每次刷新从 `default` 开始 |
-| `theme.visible` | array | 6 个主题 id | 否 | **未消费**：选择器列出 `KUI.theme.list()` 全部（`bootstrap.js:275-346`） |
-| `theme.picker` | object | `{title,desc,columns:3,showPreview:true,showScheme:true,position:"panel",maskClosable:true}` | 否 | **源码未消费**：选择弹窗在 `bootstrap.js:301-316` 硬编码 `id:"theme-picker"`、`width:680`、`maskClosable/closeOnEsc:true`、`footer:false`；节点由 `buildThemePickerNodes()`（`bootstrap.js:229`）生成，其中 `picker.columns` 无读取点、网格固定 3 列（`bootstrap.js:269`） |
+| `theme.visible` | array | 6 个主题 id | 否 | 可见主题白名单（v1.3.8 起生效）：选择器、随机/循环切换、设置弹窗默认项均按此过滤（`filterVisibleThemes`，`bootstrap.js`） |
+| `theme.picker` | object | `{title,desc,columns:3,width:680,showPreview:true,showScheme:true,maskClosable:true}` | 否 | 选择器外观（v1.3.8 起全部生效）：`openThemePicker` 消费 `title/desc/width/maskClosable`，`buildThemePickerNodes` 消费 `columns/showPreview/showScheme`；`showPreview:true` 时卡片用主题 token 绘制渐变块（非真实截图） |
 
-> 想改主题选择器外观，当前版本只能改 `src/app/bootstrap.js` 的 `openThemePicker`/`buildThemePickerNodes`（框架代码，见 [12-extension.md](12-extension.md)）；`theme.visible/picker` 是预留位。
+> 想改主题选择器外观：优先调 `theme.picker`（v1.3.8 起生效）；需要结构性改动（自定义节点、额外行为）才改 `src/app/bootstrap.js` 的 `openThemePicker`/`buildThemePickerNodes`（见 [12-extension.md](12-extension.md)）。
 
 ## 7. text.*：对 text.json 的增量覆盖
 
@@ -411,18 +411,18 @@ KUI.bootLayer.instance().error("配置损坏");   // 失败态卡片
 | 改完 JSON 刷新没变化 | 没重建配置包：file:// / fetch 失败时读旧 `bundle.js` | `npm run build:config` 后硬刷新，或 `npm start`（启动自动重建，`server.js:236-248`） |
 | 控制台报“配置 JSON 解析失败” | 语法错：尾逗号/注释/单引号 | 跑「本章自检」①；`config/*.json` 不能写注释 |
 | 启动报“未找到 config/app.json” | `BASE` 推导与页面层级不符 | 入口放仓库根（`BASE=''`）或 `pages/`（`BASE='../'`），见 `config.js:37-58` |
-| 字段写了完全没效果 | 该字段无源码消费点 | 查 §3/§6 的“未消费”标注，或 `grep` 读取点 |
-| `ui.dialog.escClosable` 无效 | 内部字段名是 `closeOnEsc` | 改 `ui.dialog.closeOnEsc` 或单弹窗 `props.closeOnEsc` |
+| 字段写了完全没效果 | 该字段无源码消费点 | 跑 `npm run audit:config` 看读取点，或 `grep -rn "字段名" src/` |
+| `ui.dialog.escClosable` 无效 | v1.3.8 前内部字段名是 `closeOnEsc` | v1.3.8 起两种写法等价；旧版本请写 `ui.dialog.closeOnEsc` 或单弹窗 `props.closeOnEsc` |
 | 面包屑不折叠 | 写成了 `breadcrumb.max` | 改 `menunav.props.maxBreadcrumb`（§10.2） |
 | 改 `menu.props.width` 没变宽 | 只写内部变量，无 CSS 消费 | 改 `layout.menu.width`（§5） |
 | 初始标签不对 | `home` 先开、`initial` 后补开 | 调 `tabs.props.initial` 顺序或改 `home`（§10.3） |
 | 改 `pages/*.html` 内联数据没反应 | 页面优先读 `config/demos/*.json` | 改 `config/demos/xxx.json`（`pages/form.html:195-197`） |
-| 主题默认值不生效 | localStorage 有上次选择 / URL 带 `?kuiTheme=` | 清 `localStorage['kui-theme']` 再刷新（§6）；`theme.visible/picker` 未消费，只能改框架代码 |
+| 主题默认值不生效 | localStorage 有上次选择 / URL 带 `?kuiTheme=` | 清 `localStorage['kui-theme']` 再刷新（§6）；`theme.visible/picker` v1.3.8 起已生效 |
 | `KUI.config.get('app.title')` 返回 undefined | 前缀后路径相对文件根 | 写 `get('app.app.title')`（§1.4） |
 
 ---
 
-## 本章自检（含 boot 自检）（含 boot 自检）
+## 本章自检（含 boot 自检）
 
 在仓库根目录用 `pwsh` 执行，四步全过即确认本章配置知识成立。
 

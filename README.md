@@ -52,6 +52,7 @@ npm run build:config
 ```bash
 git clone git@github.com:SuLiyue-s/KurumiUI.git && cd KurumiUI
 npm run build        # = build:config + build-all（先产物 JSON，再产物 kui-all.js）
+npm run verify:build # 校验源码 ↔ 产物/版本是否一致（清单 / 版本 / 产物哈希 / HTML 引用）
 npm start            # 起本地服务（启动时也会自动构建；含端口探测）
 ```
 
@@ -81,7 +82,7 @@ node tools/build-all.js      # 2) 按 config/kui-modules.json 的 app(28) / stan
 npm test                       # 30 项单元/集成用例（自带 DOM stub，零依赖）
                                # 新克隆仓库没有 .tools/ 里的 Node13 时：29 通过 / 1 跳过（可选用例）
 npm run verify                 # 冒烟 94 项 + 业务函数演示页 + 弹窗动作桥
-npm run audit                  # 一致性审计 17 项 + 组件拆装审计 17 项
+npm run audit                  # 一致性审计 17 项 + 组件拆装审计 19 项
 node tools/check-compat.js     # Node 13.14 语法/API 兼容扫描
 node tools/check-assets.js     # HTML 引用 JS/CSS 齐全性
 ```

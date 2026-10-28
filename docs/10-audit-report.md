@@ -218,3 +218,18 @@ npm test               # 测试
 ### 8.4 回归数字（本机 Node v24.14.0 + v13.14.0）
 
 `tools/smoke.js` 104/0；`test/run.js` 33/0/0；`test/render` 10/0；`test/config` 5/0；`audit-consistency` 17/0；`audit-components` 19/0；`audit-all-pages` 19/19；`check-assets` 21 HTML 0/0；`audit-config` 0 缺口；`check-manual` 0/0。
+
+## 9. 源码 ↔ 产物一致性核对（v1.3.8 补记）
+
+针对「源码和编译后运行代码是否一致 + 版本是否一致」新增 `tools/verify-build.js`（`npm run verify:build`），检查项与结论：
+
+| 检查 | 方法 | 结论 |
+| --- | --- | --- |
+| 模块清单 ↔ 构建脚本 | `config/kui-modules.json` 两个 profile 的文件必须存在于源码树 | 通过（app=29 / standalone=28） |
+| 产物 ↔ 清单 | `src/core/kui-all.js` 内嵌的模块表与清单逐项相同 | 通过（确定性产物，哈希可复现） |
+| 产物 ↔ 源码 | 重建后 `src/core/kui-all.js` 与仓库内文件逐字节相同 | 通过 |
+| 版本一致性 | `package.json` / `src/core/kui.js` / `src/frame/kui-frame.js` / `src/core/dom-enhance.js` | 通过（均为当前版本） |
+| HTML 引用 | 入口 HTML 引用的脚本与样式文件均存在 | 通过（21 HTML） |
+| `config/bundle.js` | 内嵌模块版本/哈希与源码一致 | 通过（`meta.generatedAt` 为时间戳，不参与哈希断言） |
+
+> 说明：`config/bundle.js` 是 git 忽略的本地运行产物，`meta.generatedAt` 每次重建都会变；判断是否过期看 `modules[].version`（模块内容哈希）而不是整文件哈希。
