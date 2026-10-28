@@ -1,6 +1,6 @@
 # KurumiUI 使用手册
 
-> **适用版本：KurumiUI v1.3.6** ｜ 适用仓库：`SuLiyue-s/KurumiUI`（main 分支）｜ 手册语言：中文
+> **适用版本：KurumiUI v1.3.7** ｜ 适用仓库：`SuLiyue-s/KurumiUI`（main 分支）｜ 手册语言：中文
 > 本手册的所有字段、默认值、数量与行为，均以**仓库源码与运行时可枚举结果**为准；与 `docs/` 下旧文档或 `README.md` 冲突时，以源码为准（旧文档是设计档案，本手册是操作指南）。
 
 ---
@@ -93,7 +93,7 @@ npm run build:config   # = node tools/build-config.js && node tools/build-all.js
 | --- | --- | --- |
 | KUI | 框架暴露在 `window.KUI` 上的全局命名空间（`KUI.registry`、`KUI.form` 等） | 11 |
 | 节点 / node | 一个 JSON 对象 `{ "type": "...", "props": {...}, ... }`，是界面描述的最小单位 | 03、04 |
-| type | 节点的类型名，决定用哪个注册器渲染（共 40 个，见附录 A） | 08 |
+| type | 节点的类型名，决定用哪个注册器渲染（共 41 个，见附录 A） | 08 |
 | props | 节点的属性包，字段由对应 type 的注册器定义 | 05–08 |
 | profile | 模块清单。`config/kui-modules.json` 里定义「一个入口要加载哪些 JS」，如 `app`、`standalone` | 02、03 |
 | 入口聚合文件 | `src/core/kui-all.js`，构建时按 profile 生成，浏览器只引它一个 | 02 |
@@ -124,7 +124,7 @@ npm run build:config   # = node tools/build-config.js && node tools/build-all.js
 
 | 项目 | 值 | 说明 |
 | --- | --- | --- |
-| 框架版本 | **1.3.6** | 需四处一致：`src/core/kui.js`、`src/frame/kui-frame.js`、`src/core/dom-enhance.js`、`package.json`（`npm run audit` 的 E1 校验） |
+| 框架版本 | **1.3.7** | 需四处一致：`src/core/kui.js`、`src/frame/kui-frame.js`、`src/core/dom-enhance.js`、`package.json`（`npm run audit` 的 E1 校验） |
 | Node.js | **≥ 13.14.0** | `package.json` 的 `engines`；仓库用 `.tools/node-v13.14.0-win-x64` 实测，与 Node 24 双版本通过 |
 | npm 依赖 | **0** | `package.json` 无 `dependencies` / `devDependencies`，克隆后无需 `npm install` |
 | 构建方式 | 无打包器 | 两个自研 Node 脚本：`tools/build-config.js`、`tools/build-all.js` |
@@ -185,7 +185,7 @@ node server.js [--port 8080] [--host 127.0.0.1] [--quiet]
 
 ---
 
-## 8. 附录 A：40 个注册类型（按 category 分组）
+## 8. 附录 A：41 个注册类型（按 category 分组）
 
 运行时枚举命令见 `02-build.md`；分类来自 `KUI.registry.list()` 的 `category` 字段。
 
@@ -254,7 +254,7 @@ node server.js [--port 8080] [--host 127.0.0.1] [--quiet]
 | `form` | 表单容器：布局、数据、校验、联动 | 07 |
 | `app-shell` | 应用外壳：菜单 + 导航 + 标签栏 + 内容区 | 08 |
 
-**shell（5）**
+**shell（6）**
 
 | type | 说明 | 章节 |
 | --- | --- | --- |
@@ -263,6 +263,7 @@ node server.js [--port 8080] [--host 127.0.0.1] [--quiet]
 | `tabs` | 标签工作区：关闭策略、keepAlive、右键菜单、拖拽 | 08 |
 | `dialog` | 对话框：标题/内容/按钮、可拖拽、遮罩/ESC 策略 | 08 |
 | `toast` | 轻提示：位置、停留时长、堆叠上限 | 08 |
+| `boot` | 加载层：时钟指针随进度 0→12 时、阶段文案、进度条（v1.3.7 新增） | 08 |
 
 ---
 
@@ -301,5 +302,5 @@ toast.notify      toast.show        toast.success     toast.warning
 ## 11. 手册的维护约定
 
 - **改配置不用改手册**；改源码（新增 type / action / handler / theme / 字段）时，按第 3 节索引更新对应章节，并跑 `node tools/check-manual.js`。
-- 手册中的数量口径（40 / 19 / 28 / 61 / 6）由校验脚本与运行时枚举比对；历史口径需加「截至 v1.3.6」等限定语。
+- 手册中的数量口径（41 / 19 / 28 / 61 / 6）由校验脚本与运行时枚举比对；历史口径需加「截至 v1.3.7」等限定语。
 - 报告手册问题请附：章节文件 + 小节标题 + 复现步骤（命令/配置片段）+ 期望 vs 实际。

@@ -26,7 +26,43 @@
     return isDom() ? doc().getElementById(BOOT_ID) : null;
   }
 
+  /* 加载层组件（src/components/boot.js）：存在时交给它渲染；组件被拆掉时退回下面的静态骨架。 */
+  function bootLayer() {
+    return (KUI.bootLayer && typeof KUI.bootLayer.instance === 'function') ? KUI.bootLayer.instance() : null;
+  }
+
+  function bootConfigOf(appCfg) {
+    if (appCfg && appCfg.boot && typeof appCfg.boot === 'object') { return appCfg.boot; }
+    var legacy = (appCfg && appCfg.app && appCfg.app.loading) || null;
+    if (legacy && typeof legacy === 'object') {
+      return { text: legacy.text, delay: legacy.delay };
+    }
+    return null;
+  }
+
+  function attachBootLayer(appCfg) {
+    if (!KUI.bootLayer || typeof KUI.bootLayer.attach !== 'function') { return null; }
+    try {
+      return KUI.bootLayer.attach(bootConfigOf(appCfg));
+    } catch (e) {
+      KUI.warnOnce('boot-layer', '启动层组件 attach 失败：' + ((e && e.message) || e));
+      return null;
+    }
+  }
+
+  function configureBootLayer(appCfg, textCfg) {
+    if (!KUI.bootLayer || typeof KUI.bootLayer.configure !== 'function') { return null; }
+    try {
+      return KUI.bootLayer.configure(bootConfigOf(appCfg) || {}, (textCfg && textCfg.boot) || null);
+    } catch (e2) {
+      KUI.warnOnce('boot-layer-config', '启动层配置无效：' + ((e2 && e2.message) || e2));
+      return null;
+    }
+  }
+
   function setBootText(text) {
+    var inst = bootLayer();
+    if (inst && inst.setText) { inst.setText(text); return; }
     if (!isDom()) return;
     var el = bootNode();
     if (!el) return;
@@ -35,6 +71,8 @@
   }
 
   function setBootStep(step) {
+    var inst = bootLayer();
+    if (inst && inst.setStep) { inst.setStep(step); return; }
     if (!isDom()) return;
     var el = bootNode();
     if (!el) return;
@@ -42,6 +80,8 @@
   }
 
   function hideBoot() {
+    var inst = bootLayer();
+    if (inst && inst.done) { inst.done(); return; }
     if (!isDom()) return;
     var el = bootNode();
     if (!el) return;
@@ -53,7 +93,13 @@
     } catch (e) { /* noop */ }
   }
 
-  function showBootError(message, detail) {    if (!isDom()) {
+  function showBootError(message, detail) {
+    var inst = bootLayer();
+    if (inst && inst.error) {
+      KUI.error('[boot] ' + message, detail);
+      inst.error(message, detail);
+      return;
+    }    if (!isDom()) {
       KUI.error('[boot] ' + message, detail);
       return;
     }
@@ -647,12 +693,19 @@
     if (title) {
       try { doc().title = String(title); } catch (e) { /* noop */ }
     }
+    var appText = (appCfg && appCfg.text && appCfg.text.app) || {};
+    var inst = bootLayer();
+    if (inst && inst.setMeta) {
+      inst.setMeta({ title: meta.name || title, subtitle: meta.subtitle || appText.subtitle });
+      var bootLoading = KUI.text('boot.loading');
+      if (bootLoading) inst.setText(bootLoading);
+      return;
+    }
     var el = bootNode();
     if (!el) return;
     var titleNode = el.querySelector('.kui-boot__title');
     var subNode = el.querySelector('.kui-boot__sub');
     var textNode = el.querySelector('[data-boot-text]');
-    var appText = (appCfg && appCfg.text && appCfg.text.app) || {};
     if (titleNode && (meta.name || title)) {
       titleNode.textContent = String(meta.name || title);
     }
@@ -702,6 +755,8 @@
       showBootError(KUI.text('boot.noHost', '页面缺少挂载点：#kui-app'), '请在页面中加入 <div id="kui-app"></div>');
       return Promise.reject(new Error('缺少挂载点 #kui-app'));
     }
+
+    attachBootLayer(null);
 
     var t0 = Date.now();
     setBootStep(1);

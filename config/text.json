@@ -73,6 +73,20 @@
     "seconds": "秒",
     "total": "共 {total} 项"
   },
+  "boot": {
+    "title": "KurumiUI",
+    "subtitle": "CONFIG-DRIVEN UI FRAMEWORK",
+    "loading": "正在加载界面配置…",
+    "theme": "正在应用界面风格…",
+    "shell": "正在构建界面…",
+    "ready": "结界已就绪",
+    "text": "正在加载界面配置…",
+    "errorTitle": "界面启动失败",
+    "errorTip": "排查建议：使用 npm start 通过 http:// 打开；或先运行 npm run build:config 生成 file:// 兜底配置。",
+    "retry": "重新加载",
+    "noHost": "页面缺少挂载点：#kui-app",
+    "noConfig": "未找到 config/app.json"
+  },
   "shell": {
     "search": "检索",
     "searchPlaceholder": "检索灵装、页面与命令…",

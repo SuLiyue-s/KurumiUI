@@ -16,7 +16,7 @@
  *
  * 校验项：
  *   [1] 章节文件完整性（README + NN-*.md）与编号唯一
- *   [2] 每章元信息行「> 适用版本：KurumiUI v1.3.6」与必备小节
+ *   [2] 每章元信息行「> 适用版本：KurumiUI v1.3.7」与必备小节
  *       「## 本章目标 / ## 本章自检 / ## 参考源码」
  *   [3] 所有 ```json 代码块可 JSON.parse；```jsonc 括号配对
  *   [4] 代码示例中的节点 type 属于运行时 40 个注册类型（变体值有白名单）
@@ -26,7 +26,7 @@
  *   [8] 章节内部链接目标文件存在
  *   [9] 数量口径（40 类型 / 19 表单控件 / 28 动作 / 61 业务函数 / 主题数）
  *      与运行时枚举一致（带「截至/历史」限定语的行豁免）
- *   [10] 版本号统一为 1.3.6（带「历史/旧版」限定语的行豁免）
+ *   [10] 版本号统一为 1.3.7（带「历史/旧版」限定语的行豁免）
  *   [11] README 索引覆盖所有章节
  *   [12] 章节体量下限（防止空壳章节）
  *
@@ -269,8 +269,8 @@ var EXEMPT_LINE = /(截至|历史|旧版|此前|以前|v1\.3\.5|1\.3\.5|from|旧
 
 function checkMeta(file, text, lines) {
   if (file === 'README.md') { return; }
-  if (!/^>\s*适用版本[:：]\s*KurumiUI v1\.3\.6/m.test(text)) {
-    addError(file, 1, 'META', '缺少元信息行「> 适用版本：KurumiUI v1.3.6 ｜ 前置章节：… ｜ 阅读时长：…」');
+  if (!/^>\s*适用版本[:：]\s*KurumiUI v1\.3\.7/m.test(text)) {
+    addError(file, 1, 'META', '缺少元信息行「> 适用版本：KurumiUI v1.3.7 ｜ 前置章节：… ｜ 阅读时长：…」');
   }
   var required = [
     { re: /^##\s+(?:\d+\.\s*)?本章目标/m, name: '## 本章目标' },
@@ -457,7 +457,7 @@ function checkNumbers(file, text, lines) {
         if (num === rule.expect) { continue; }
         if (rule.alt && num === rule.alt) { continue; }
         if (exempt || scoped) { continue; }
-        addWarning(file, idx + 1, 'COUNT', '数量口径可能不一致：' + rule.tag + '写为 ' + num + '，运行时为 ' + rule.expect + '（如为历史口径请加「截至 v1.3.6」等限定语）');
+        addWarning(file, idx + 1, 'COUNT', '数量口径可能不一致：' + rule.tag + '写为 ' + num + '，运行时为 ' + rule.expect + '（如为历史口径请加「截至 v1.3.7」等限定语）');
       }
     });
   });
@@ -469,8 +469,8 @@ function checkVersions(file, lines) {
     var re = /v?(1\.\d+\.\d+)/g;
     var m;
     while ((m = re.exec(line))) {
-      if (m[1] === '1.3.6') { continue; }
-      addWarning(file, idx + 1, 'VERSION', '出现非 1.3.6 的版本号：' + m[1] + '（历史说明请加「历史/旧版」限定语）');
+      if (m[1] === '1.3.7') { continue; }
+      addWarning(file, idx + 1, 'VERSION', '出现非 1.3.7 的版本号：' + m[1] + '（历史说明请加「历史/旧版」限定语）');
     }
   });
 }

@@ -1,6 +1,6 @@
 # 03 · 组装
 
-> 适用版本：KurumiUI v1.3.6 ｜ 前置章节：02-build.md ｜ 阅读时长：约 16 分钟
+> 适用版本：KurumiUI v1.3.7 ｜ 前置章节：02-build.md ｜ 阅读时长：约 16 分钟
 
 一个 KurumiUI 页面 = 几个 `<link>` + 一个 `<script>` + 一到两个挂载点。本章拆开 `index.html`，讲清单入口 `kui-all.js` 如何注入模块、`bootstrap.js` 如何四步起界面，并给 5 种装配配方。
 
@@ -129,11 +129,11 @@
 
 ### 4.1 完整主应用
 
-**适用**：后台、桌面工具主界面。**体积**：28 模块 + 约 211 KB CSS。**代价**：单实例，结构全靠 `app.json`。代码见 §2.4；要官方动画就把 `index.html:19-123` 与 `:131-139` 整段复制。
+**适用**：后台、桌面工具主界面。**体积**：29 模块 + 约 212 KB CSS。**代价**：单实例，结构全靠 `app.json`。代码见 §2.4；要官方加载动画就把 `index.html` 的 `#kui-boot` 骨架与 `src/styles/boot.css` 一起引入（或直接用组件 `KUI.bootLayer.attach()`）。
 
 ### 4.2 单组件独立页（standalone）
 
-**适用**：组件文档、验收页、可分享示例。**体积**：27 模块。**代价**：无壳，布局自己写；主题要手动初始化且用独立 `storageKey`。结构同 `standalone/controls.html`：head 首行 `theme-boot.js`，随后 4 个样式表；`<body data-kui-auto="false">`（`:42`）；末尾先 `embedded.js` 再 `kui-all.js`（`:70-71`）。
+**适用**：组件文档、验收页、可分享示例。**体积**：28 模块。**代价**：无壳，布局自己写；主题要手动初始化且用独立 `storageKey`。结构同 `standalone/controls.html`：head 首行 `theme-boot.js`，随后 4 个样式表；`<body data-kui-auto="false">`（`:42`）；末尾先 `embedded.js` 再 `kui-all.js`（`:70-71`）。
 
 ```html
 <!DOCTYPE html>
@@ -282,7 +282,7 @@ sandbox 去掉 `allow-same-origin` 会让 `localStorage` 抛异常，主题与�
 ```
 index.html       # 唯一主应用入口（profile=app）
 pages/           # 7 个业务页，跑在标签 iframe 内
-standalone/      # 11 个独立页 + embedded.js
+standalone/      # 12 个独立页 + embedded.js
 config/app.json  # 菜单/导航/标签，url 一律相对项目根
 ```
 

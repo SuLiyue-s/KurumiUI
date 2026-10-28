@@ -45,6 +45,7 @@
 │   tabs.js       标签容器 + 主体 iframe 区（保活核心）          │
 │   dialog.js     弹窗管理（每个弹窗一个 iframe、Promise API）    │
 │   toast.js      提醒信息（toast / notification，纯 DOM）       │
+│   boot.js       加载层（时钟指针进度，可拆装 / 可独立渲染）       │
 │   app-shell.js  把上面五者按 layout 组装成整页（可整体不用）    │
 └───────────────────────────┬─────────────────────────────────┘
                             │
@@ -114,6 +115,8 @@
 
 - 每个组件只依赖 `core`，不依赖 `app-shell`；没加载的兄弟组件会退化或跳过，不报错。
 - `standalone/*.html` 各演示一个组件或一类控件，只引必要脚本。
+- `boot`（加载层）同样遵守「组件只依赖 core」：`src/components/boot.js` 不引 app-shell / bootstrap，
+  拆掉它时 `bootstrap.js` 自动退回 `index.html` 的静态骨架（`legacy` 分支）。
 - `app-shell` 本身也可以不用：`KUI.menu.create(host, props)` 等可以直接在任意容器里创建。
 
 ## 6. 目录与文件职责

@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <script src="../src/core/theme-boot.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>boot · 加载层（时钟表盘 + 进度指针）| KurumiUI</title>
+<link rel="stylesheet" href="../src/styles/base.css">
+<link rel="stylesheet" href="../src/styles/controls.css">
+<link rel="stylesheet" href="../src/styles/components.css">
+<link rel="stylesheet" href="../src/styles/tooltip.css">
+<link rel="stylesheet" href="../src/styles/boot.css">
+<style>
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--kui-bg-0, #08050a); color: var(--kui-text-1, #f5e9ee); font-family: var(--kui-font-family, "Microsoft YaHei", "PingFang SC", sans-serif); }
+  .demo-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 18px; border-bottom: 1px solid var(--kui-border, #2a1f26); background: var(--kui-bg-1, #141018); flex-wrap: wrap; }
+  .demo-bar__title { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+  .demo-bar__title strong { font-size: 16px; letter-spacing: .04em; }
+  .demo-bar__title span.desc { color: var(--kui-text-2, #cbb8c0); font-size: 12px; }
+  .demo-tag { padding: 2px 8px; border-radius: 999px; font-size: 11px; color: var(--kui-accent-2, #d4af37); border: 1px solid var(--kui-accent-2, #d4af37); }
+  .demo-nav { display: flex; gap: 6px; flex-wrap: wrap; }
+  .demo-nav a { color: var(--kui-text-2, #cbb8c0); text-decoration: none; font-size: 12px; padding: 4px 9px; border-radius: 999px; border: 1px solid transparent; }
+  .demo-nav a:hover { color: var(--kui-text-1); border-color: var(--kui-accent); }
+  .demo-nav a.is-current { color: var(--kui-text-1); border-color: var(--kui-accent); background: var(--kui-accent-soft); font-weight: 600; }
+  .demo-main { padding: 18px; display: grid; gap: 12px; }
+  .demo-panel { background: var(--kui-bg-1, #141018); border: 1px solid var(--kui-border, #2a1f26); border-radius: var(--kui-radius-lg, 10px); padding: 14px; }
+  .demo-panel__title { font-size: 13px; color: var(--kui-accent-2, #d4af37); margin: 0 0 10px; letter-spacing: .08em; }
+  .demo-panel__desc { margin: 0 0 12px; font-size: 12px; line-height: 1.8; color: var(--kui-text-2, #cbb8c0); }
+  .demo-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+  .demo-btn { height: 30px; padding: 0 12px; cursor: pointer; font-size: 12px; color: var(--kui-text-1, #f5e9ee); background: var(--kui-control-bg, #1b141c); border: 1px solid var(--kui-control-border, #3a2b33); border-radius: 6px; }
+  .demo-btn:not(.demo-btn--primary):hover { border-color: var(--kui-accent); background: var(--kui-control-bg-hover); }
+  .demo-btn--primary { background: linear-gradient(180deg, var(--kui-accent-hover), var(--kui-accent)); border-color: var(--kui-accent); color: var(--kui-on-accent, #fff); }
+  .demo-btn--primary:hover { background: var(--kui-accent-hover); }
+  .demo-btn--danger { border-color: var(--kui-danger, #ff5c7a); color: var(--kui-danger, #ff5c7a); }
+  .demo-preview { position: relative; height: 280px; overflow: hidden; border: 1px dashed var(--kui-border, #2a1f26); border-radius: 8px; background: radial-gradient(60% 55% at 50% 42%, rgba(200,16,46,.10), transparent 70%), var(--kui-bg-0, #08050a); }
+  .demo-preview .kui-boot { position: absolute; inset: 0; }
+  .demo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+  .demo-card { display: flex; flex-direction: column; gap: 8px; }
+  .demo-card h3 { margin: 0; font-size: 13px; }
+  .demo-card p { margin: 0; font-size: 12px; line-height: 1.7; color: var(--kui-text-2, #cbb8c0); }
+  .demo-preview--sm { height: 210px; }
+  .demo-preview--sm .kui-boot__inner { width: min(260px, 86vw); }
+  .demo-log { margin: 0; padding: 10px 12px; min-height: 96px; max-height: 200px; overflow: auto; background: var(--kui-bg-0, #08050a); border: 1px dashed var(--kui-border, #2a1f26); border-radius: 6px; font-family: var(--kui-font-mono, Consolas, monospace); font-size: 11px; line-height: 1.7; color: var(--kui-text-2, #cbb8c0); white-space: pre-wrap; }
+  .demo-log .is-err { color: var(--kui-danger, #ff5c7a); }
+  .field-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .field-table th, .field-table td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--kui-divider, #2a1f26); vertical-align: top; }
+  .field-table th { color: var(--kui-accent-2, #d4af37); font-weight: 600; white-space: nowrap; }
+  .field-table td.is-name { font-family: var(--kui-font-mono, Consolas, monospace); color: var(--kui-accent-3, #8ee6d6); white-space: nowrap; }
+  .field-table td.is-type { color: var(--kui-text-3, #9c8d96); white-space: nowrap; }
+  .demo-code { margin: 0; padding: 10px 12px; overflow: auto; background: var(--kui-bg-0, #08050a); border: 1px solid var(--kui-border, #2a1f26); border-radius: 6px; font-family: var(--kui-font-mono, Consolas, monospace); font-size: 11px; line-height: 1.7; color: var(--kui-text-2, #cbb8c0); white-space: pre; }
+  .demo-hint { font-size: 12px; line-height: 1.8; color: var(--kui-text-2, #cbb8c0); }
+  .demo-hint code { font-family: var(--kui-font-mono, Consolas, monospace); color: var(--kui-accent-3, #8ee6d6); }
+</style>
+</head>
+<body data-kui-auto="false">
+<header class="demo-bar">
+  <div class="demo-bar__title">
+    <span class="demo-tag">独立渲染</span>
+    <strong>boot</strong>
+    <span class="desc">加载层 · 时钟表盘 + 进度指针（0%→0 时，100%→12 时）· 可单独拆装</span>
+  </div>
+  <nav class="demo-nav" id="demo-nav"></nav>
+</header>
+
+<main class="demo-main">
+
+  <!-- 一、交互测试台 -->
+  <section class="demo-panel">
+    <h2 class="demo-panel__title">一、交互测试台（内嵌预览 + 全屏演示）</h2>
+    <p class="demo-panel__desc">
+      预览框里是 <code>KUI.bootLayer.create(host, props)</code> 手动创建的<b>内嵌实例</b>（props.mode = "inline"）；
+      「全屏演示」是在 body 上 <code>attach()</code> 的单例，走的就是真实首屏加载那条路。
+      所有进度都会同步驱动时针/分针：<code>totalMinutes = percent / 100 × 720</code>。
+    </p>
+    <div class="demo-row">
+      <button class="demo-btn demo-btn--primary" id="btn-inline">重建内嵌预览</button>
+      <button class="demo-btn demo-btn--primary" id="btn-fullscreen">全屏加载演示（0→100）</button>
+      <button class="demo-btn" id="btn-fullscreen-hold">全屏常驻（停在 50%）</button>
+      <button class="demo-btn" id="btn-stage">推进一个阶段</button>
+      <button class="demo-btn" id="btn-anim">平滑动画 0→100（内嵌）</button>
+      <button class="demo-btn" id="btn-spin">指针随表盘旋转（spin）</button>
+      <button class="demo-btn demo-btn--danger" id="btn-error">模拟启动失败</button>
+      <button class="demo-btn" id="btn-state">读取实例状态</button>
+      <button class="demo-btn" id="btn-reset">重置</button>
+    </div>
+    <div class="demo-row">
+      <button class="demo-btn" data-percent="0">0%</button>
+      <button class="demo-btn" data-percent="12.5">12.5%</button>
+      <button class="demo-btn" data-percent="25">25%</button>
+      <button class="demo-btn" data-percent="50">50%</button>
+      <button class="demo-btn" data-percent="75">75%</button>
+      <button class="demo-btn" data-percent="100">100%</button>
+    </div>
+    <div class="demo-preview" id="preview-box"></div>
+    <p class="demo-hint" id="preview-state" style="margin-top:10px">实例状态：未创建</p>
+  </section>
+
+  <!-- 二、进度与时钟映射 -->
+  <section class="demo-panel">
+    <h2 class="demo-panel__title">二、进度 ↔ 时钟指针映射（纯函数 handsAt 计算）</h2>
+    <p class="demo-panel__desc">
+      进度不是直接转角度，而是先映射成「时间」再算角度：0% = 0 时 0 分（12 点位置），100% = 12 时 0 分（同样 12 点位置）；
+      12.5% = 1:30，25% = 3:00，50% = 6:00，75% = 9:00。时针按 12 小时整圈走，分针每 60 分钟转一整圈。
+    </p>
+    <table class="field-table" id="map-table">
+      <thead><tr><th>进度</th><th>时钟读数</th><th>时针角度</th><th>分针角度</th><th>指向说明</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <!-- 三、JSON 驱动独立渲染 -->
+  <section class="demo-panel">
+    <h2 class="demo-panel__title">三、JSON 驱动：只拿加载层单独渲染（registry / renderNode）</h2>
+    <p class="demo-panel__desc">
+      下面三块没有用 <code>create()</code>，而是让 registry 渲染节点：<code>KUI.renderNode({ type: 'boot', props: {...} })</code>。
+      组件可以被单独取出来用 —— 这正是「可自由拆解 / 组装」的要求：加载层不依赖 app-shell、菜单、标签，只依赖 base.css + boot.css。
+    </p>
+    <div class="demo-grid">
+      <div class="demo-card">
+        <h3>① 最小配置（默认表盘）</h3>
+        <p>只给 mode + title，其余全部走 DEFAULTS。</p>
+        <div class="demo-preview demo-preview--sm" id="demo-a"></div>
+        <pre class="demo-code">{ "type": "boot",
+  "props": { "mode": "inline",
+             "title": "最小配置" } }</pre>
+      </div>
+      <div class="demo-card">
+        <h3>② 小表盘 + 隐藏百分比</h3>
+        <p>clock.size = 52，meta = false，进度条用 indeterminate。</p>
+        <div class="demo-preview demo-preview--sm" id="demo-b"></div>
+        <pre class="demo-code">{ "clock": { "size": 52 },
+  "bar": { "mode": "indeterminate" },
+  "meta": false }</pre>
+      </div>
+      <div class="demo-card">
+        <h3>③ 半程进度 43%</h3>
+        <p>节点渲染后由页面调用 setProgress(43)；不调用则停在 0%。</p>
+        <div class="demo-preview demo-preview--sm" id="demo-c"></div>
+        <pre class="demo-code">el = KUI.renderNode(node)
+KUI.bootLayer.instance() // 不适用
+// 如需控制：改用 create()</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- 四、API 与配置 -->
+  <section class="demo-panel">
+    <h2 class="demo-panel__title">四、API 与配置字段</h2>
+    <div class="demo-grid" style="grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));">
+      <div>
+        <p class="demo-panel__desc"><b>静态 API</b>（<code>KUI.bootLayer.*</code>）</p>
+        <table class="field-table">
+          <thead><tr><th>方法</th><th>说明</th></tr></thead>
+          <tbody>
+            <tr><td class="is-name">create(host, props)</td><td>手动创建实例（不占用 #kui-boot），返回实例 API</td></tr>
+            <tr><td class="is-name">attach(props)</td><td>接管页面静态骨架或创建单例 #kui-boot</td></tr>
+            <tr><td class="is-name">configure(patch)</td><td>对单例做二次配置（bootstrap 读 app.json 后调用）</td></tr>
+            <tr><td class="is-name">instance()</td><td>取当前单例实例</td></tr>
+            <tr><td class="is-name">handsAt(percent)</td><td>纯函数：进度 → 指针角度 / 时钟读数</td></tr>
+            <tr><td class="is-name">destroy()</td><td>销毁单例并移除节点</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <p class="demo-panel__desc"><b>实例 API</b>（create/attach/instance 的返回值）</p>
+        <table class="field-table">
+          <thead><tr><th>方法</th><th>说明</th></tr></thead>
+          <tbody>
+            <tr><td class="is-name">setProgress(p)</td><td>0..100，同时驱动表盘、进度条、百分比与时钟读数</td></tr>
+            <tr><td class="is-name">setStep(n)</td><td>按 stages 里的 step 设文案 + 进度</td></tr>
+            <tr><td class="is-name">setText(s) / setMeta(obj)</td><td>改当前文案 / 标题副标题</td></tr>
+            <tr><td class="is-name">configure(patch)</td><td>运行时改配置（表盘尺寸、指针模式…）</td></tr>
+            <tr><td class="is-name">done() / hide() / show()</td><td>完成淡出 / 隐藏 / 重新显示</td></tr>
+            <tr><td class="is-name">error(msg, detail)</td><td>切换为失败卡片（带重试按钮）</td></tr>
+            <tr><td class="is-name">getState()</td><td>返回 { progress, step, visible, mode, clock… }</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <p class="demo-panel__desc" style="margin-top:12px">
+      <b>配置字段</b>：<code>clock.enabled/mode(progress|spin|none)/size/ticks/smooth</code>、
+      <code>bar.enabled/mode(progress|indeterminate)</code>、<code>meta</code>、<code>title/subtitle/text</code>、
+      <code>stages[{ step, text, progress }]</code>、<code>mode(fullscreen|inline)</code>、<code>hideDelay</code>。
+      文案也可以放在 <code>config/text.json</code> 的 <code>boot.*</code> 里。
+    </p>
+  </section>
+
+  <!-- 五、拆装说明 -->
+  <section class="demo-panel">
+    <h2 class="demo-panel__title">五、拆掉 / 单独用加载层</h2>
+    <ul class="demo-hint" style="margin:0;padding-left:18px">
+      <li><b>拆掉加载层</b>：把 <code>src/components/boot.js</code> 从 <code>config/kui-modules.json</code> 移除并重新 <code>npm run build:config</code> 即可。bootstrap 会退回到 <code>index.html</code> 里的静态骨架（<code>setBootText / setBootStep / hideBoot</code> 的 legacy 分支），功能不受影响。</li>
+      <li><b>只在某个页面用</b>：只引入 <code>base.css + boot.css</code> 和 boot.js 所在入口，然后 <code>KUI.bootLayer.attach()</code>；不需要菜单 / 标签 / app-shell。</li>
+      <li><b>换掉默认样式</b>：所有尺寸与颜色都走 <code>--kui-*</code> token 和 <code>--kui-boot-size / --kui-boot-ticks / --kui-boot-progress</code>，覆盖 CSS 变量即可，无需改组件代码。</li>
+      <li><b>真实首屏接入</b>：<code>src/app/bootstrap.js</code> 在启动第一步 <code>attachBootLayer()</code>，读完配置再 <code>configureBootLayer()</code>，四个阶段与 app.json 的 <code>boot.stages</code> 一一对应。</li>
+    </ul>
+  </section>
+
+  <!-- 六、日志 -->
+  <section class="demo-panel">
+    <h2 class="demo-panel__title">六、操作日志</h2>
+    <pre class="demo-log" id="demo-log"></pre>
+  </section>
+
+</main>
+
+<script src="../src/core/kui-all.js" data-kui-profile="standalone"></script>
+<script>
+(function () {
+  'use strict';
+  var KUI = window.KUI;
+  var PAGES = ['menu', 'menunav', 'tabs', 'dialog', 'toast', 'form', 'controls', 'theme', 'no-shell', 'handlers', 'avatar', 'boot'];
+  var logEl = document.getElementById('demo-log');
+  var stateEl = document.getElementById('preview-state');
+  var preview = null;
+  var stageCursor = 0;
+
+  function log(msg, isErr) {
+    var line = document.createElement('div');
+    if (isErr) line.className = 'is-err';
+    line.textContent = '[' + new Date().toTimeString().slice(0, 8) + '] ' + msg;
+    logEl.appendChild(line);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function buildNav() {
+    var nav = document.getElementById('demo-nav');
+    for (var i = 0; i < PAGES.length; i++) {
+      var a = document.createElement('a');
+      a.href = PAGES[i] + '.html';
+      a.textContent = PAGES[i];
+      if (PAGES[i] === 'boot') a.className = 'is-current';
+      nav.appendChild(a);
+    }
+  }
+
+  function refreshState() {
+    if (!preview) { stateEl.textContent = '实例状态：未创建'; return; }
+    var st = preview.getState ? preview.getState() : { progress: preview.getProgress() };
+    stateEl.textContent = '实例状态：' + JSON.stringify(st);
+  }
+
+  function createPreview() {
+    var box = document.getElementById('preview-box');
+    box.innerHTML = '';
+    preview = KUI.bootLayer.create(box, {
+      mode: 'inline',
+      title: 'KurumiUI',
+      subtitle: 'BOOT LAYER · INLINE PREVIEW',
+      clock: { enabled: true, mode: 'progress', size: 74, ticks: 12, smooth: true },
+      bar: { enabled: true, mode: 'progress' },
+      meta: true,
+      stages: [
+        { step: 1, text: '正在加载界面配置…', progress: 8 },
+        { step: 2, text: '正在应用界面风格…', progress: 46 },
+        { step: 3, text: '正在构建界面…', progress: 78 },
+        { step: 4, text: '结界已就绪', progress: 100 }
+      ]
+    });
+    preview.setProgress(0);
+    stageCursor = 0;
+    refreshState();
+    log('内嵌预览已创建：create(previewBox, { mode:"inline", clock.size:74 })');
+  }
+
+  function animate(inst, from, to, duration, onDone) {
+    var start = null;
+    var t0 = null;
+    function frame(ts) {
+      if (t0 === null) t0 = ts;
+      var p = Math.min(1, (ts - t0) / duration);
+      var eased = p < 0.5 ? 2 * p * p : -1 + (4 - 2 * p) * p; /* easeInOutQuad */
+      var value = from + (to - from) * eased;
+      inst.setProgress(value);
+      refreshState();
+      if (p < 1) {
+        window.requestAnimationFrame(frame);
+      } else if (onDone) {
+        onDone();
+      }
+    }
+    window.requestAnimationFrame(frame);
+  }
+
+  function bind() {
+    document.getElementById('btn-inline').addEventListener('click', createPreview);
+
+    document.getElementById('btn-fullscreen').addEventListener('click', function () {
+      var inst = KUI.bootLayer.attach({ clock: { size: 74 }, bar: { mode: 'progress' }, meta: true,
+        stages: [{ step: 1, text: '正在加载界面配置…', progress: 8 },
+                 { step: 2, text: '正在应用界面风格…', progress: 46 },
+                 { step: 3, text: '正在构建界面…', progress: 78 },
+                 { step: 4, text: '结界已就绪', progress: 100 }] });
+      if (!inst) { log('attach() 返回空：组件未加载？', true); return; }
+      inst.show();
+      inst.setStep(1);
+      log('全屏单例 attach() 完成，开始 0→100 演示');
+      animate(inst, 0, 100, 4200, function () {
+        inst.setStep(4);
+        inst.done();
+        log('全屏演示完成：done() 淡出并移除节点');
+      });
+    });
+
+    // 全屏常驻演示：Esc 关闭（演示页专用，正式启动层会自行 done()）
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      var cur = KUI.bootLayer.instance();
+      if (cur && cur.visible) { cur.done(); log('Esc：收掉全屏常驻'); }
+    });
+
+    document.getElementById('btn-fullscreen-hold').addEventListener('click', function () {
+      var cur = KUI.bootLayer.instance();
+      if (cur && cur.visible) { cur.done(); log('全屏常驻已收掉'); return; }
+      var inst = KUI.bootLayer.attach({ clock: { size: 74 }, bar: { mode: 'progress' }, meta: true });
+      if (!inst) { log('attach() 返回空：组件未加载？', true); return; }
+      inst.show();
+      inst.setProgress(50);
+      log('全屏常驻：attach + setProgress(50)（50% = 6:00，时针朝下、分针朝上）；按 Esc 可关闭');
+    });
+
+    document.getElementById('btn-stage').addEventListener('click', function () {
+      if (!preview) return;
+      stageCursor = stageCursor % 4 + 1;
+      preview.setStep(stageCursor);
+      refreshState();
+      log('setStep(' + stageCursor + ') → ' + preview.getProgress().toFixed(1) + '%');
+    });
+
+    document.getElementById('btn-anim').addEventListener('click', function () {
+      if (!preview) { createPreview(); }
+      stageCursor = 0;
+      log('开始平滑动画：setProgress 逐帧 0→100（4 秒）');
+      animate(preview, 0, 100, 4000, function () { log('平滑动画结束：100% = 12:00'); });
+    });
+
+    document.getElementById('btn-spin').addEventListener('click', function () {
+      if (!preview) return;
+      var spin = preview.config.clock.mode !== 'spin';
+      preview.configure({ clock: { mode: spin ? 'spin' : 'progress' } });
+      log('clock.mode → ' + (spin ? 'spin（表盘整体旋转）' : 'progress（指针随进度）'));
+    });
+
+    document.getElementById('btn-error').addEventListener('click', function () {
+      if (!preview) { createPreview(); }
+      preview.error('模拟启动失败：读取 config/app.json 超时（演示用）', 'Error: fetch config/app.json timeout\n  at loadMany (config.js:120)');
+      refreshState();
+      log('实例已切换为失败卡片（error()）', true);
+    });
+
+    document.getElementById('btn-state').addEventListener('click', function () {
+      if (!preview) { log('还没有实例', true); return; }
+      log('getState() = ' + JSON.stringify(preview.getState(), null, 0));
+      refreshState();
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', function () {
+      createPreview();
+      log('已重置预览实例');
+    });
+
+    var percentBtns = document.querySelectorAll('[data-percent]');
+    for (var i = 0; i < percentBtns.length; i++) {
+      percentBtns[i].addEventListener('click', function () {
+        if (!preview) createPreview();
+        var p = Number(this.getAttribute('data-percent'));
+        preview.setProgress(p);
+        refreshState();
+        var h = KUI.bootLayer.handsAt(p);
+        log('setProgress(' + p + ') → ' + h.clockText + '，时针 ' + h.hourAngle.toFixed(1) + '°，分针 ' + h.minuteAngle.toFixed(1) + '°');
+      });
+    }
+  }
+
+  function renderMapping() {
+    var tbody = document.querySelector('#map-table tbody');
+    var samples = [
+      [0, '12 点位置（12:00）'], [12.5, '1 与 2 之间（1:30）'], [25, '3 点（3:00）'],
+      [37.5, '4 与 5 之间（4:30）'], [50, '6 点（6:00）'], [62.5, '7 与 8 之间（7:30）'],
+      [75, '9 点（9:00）'], [87.5, '10 与 11 之间（10:30）'], [100, '12 点位置（12:00）']
+    ];
+    for (var i = 0; i < samples.length; i++) {
+      var p = samples[i][0];
+      var h = KUI.bootLayer.handsAt(p);
+      var tr = document.createElement('tr');
+      ['<td>' + p + '%</td>', '<td class="is-name">' + h.clockText + '</td>', '<td>' + h.hourAngle.toFixed(1) + '°</td>',
+        '<td>' + h.minuteAngle.toFixed(1) + '°</td>', '<td>' + samples[i][1] + '</td>'].forEach(function (cell) {
+        var td = document.createElement('td');
+        td.innerHTML = cell;
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    }
+  }
+
+  function renderConfigDemos() {
+    var a = KUI.renderNode({ type: 'boot', props: { mode: 'inline', title: '最小配置' } });
+    document.getElementById('demo-a').appendChild(a);
+
+    var b = KUI.renderNode({ type: 'boot', props: {
+      mode: 'inline', title: '紧凑表盘', meta: false,
+      clock: { size: 52, ticks: 8 }, bar: { mode: 'indeterminate' }
+    } });
+    document.getElementById('demo-b').appendChild(b);
+
+    var c = KUI.renderNode({ type: 'boot', props: { mode: 'inline', title: '接近一半' } });
+    document.getElementById('demo-c').appendChild(c);
+    /* 节点渲染不返回实例；这里用同配置再 create 一次演示 43% 静态角度（在卡片内） */
+    var c43 = KUI.bootLayer.create(document.getElementById('demo-c'), { mode: 'inline', title: '接近一半', meta: true });
+    c43.setProgress(43);
+    c.style.display = 'none';
+    log('JSON 驱动渲染完成：renderNode({ type:"boot", props:{...} }) × 3');
+  }
+
+  buildNav();
+  renderMapping();
+  createPreview();
+  renderConfigDemos();
+  bind();
+  log('页面就绪：KUI.version=' + KUI.version + '，boot = ' + (KUI.bootLayer ? KUI.bootLayer.version : '缺失'));
+})();
+</script>
+</body>
+</html>

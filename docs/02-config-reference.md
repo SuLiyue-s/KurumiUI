@@ -47,6 +47,7 @@ KUI.text(key, fallback) 的 fallback / 框架内置默认  ← 最低
   "dialogs": {},
   "theme": {},
   "layout": {},
+  "boot": {},
   "menu": { "type": "menu", "props": {} },
   "menunav": { "type": "menunav", "props": {} },
   "tabs": { "type": "tabs", "props": {} },
@@ -61,6 +62,7 @@ KUI.text(key, fallback) 的 fallback / 框架内置默认  ← 最低
 | `dialogs` | object | 由 JSON 驱动的内置弹窗内容，见 §1.3 |
 | `theme` | object | 默认主题与可见列表，见 §1.4 |
 | `ui` | object | 悬浮提示 / 提醒 / 弹窗的 UI 级参数，见 §1.7 |
+| `boot` | object | 启动层（加载中页面）与时钟指针动画，见 §1.8 |
 | `layout` | object | 外壳尺寸，见 §1.5 |
 | `menu` | node | 左侧菜单组件节点（`type: "menu"` + `props`） |
 | `menunav` | node | 顶部导航组件节点（`type: "menunav"` + `props`） |
@@ -233,6 +235,44 @@ bootstrap 的 `settings.open` 会读 `app.dialogs.settings`；`about.open` 会�
 
 单个元素也可覆盖：`<button title="刷新" data-kui-tip-placement="bottom" data-kui-tip-delay="240" data-kui-tip="刷新当前页面">`；保持原生行为的元素加 `data-kui-tip-disabled="true"`。
 
+### 1.8 boot（启动层 / 加载中页面，v1.3.7 起）
+
+控制**访问服务或刷新时**出现的加载中页面；它同时是一个可独立挂载的注册组件（`type: "boot"`）。
+全部字段可选，缺省值来自 `src/components/boot.js` 的 `DEFAULTS`。
+
+| 字段 | 类型 | 默认 | 说明 |
+| --- | --- | --- | --- |
+| `boot.enabled` | boolean | `true` | `false` 时不渲染启动层（`#kui-boot` 静态骨架也不显示） |
+| `boot.mode` | string | `"fullscreen"` | `fullscreen`（页面级遮罩）/ `inline`（嵌在容器里，用于演示页） |
+| `boot.meta` | boolean | `true` | 是否显示底部「百分比 + 时钟读数」 |
+| `boot.text` | object | `{}` | 覆盖阶段文案（键名同 `stages[].textKey`） |
+| `boot.stages` | array | 4 段 | 每项 `{ step, text, progress }`；`progress` 是 0–100 的百分比 |
+| `boot.clock.enabled` | boolean | `true` | 时钟图形（钟面 + 时针 + 分针 + 12 刻度）是否显示 |
+| `boot.clock.mode` | string | `"progress"` | `progress` 指针随进度 / `spin` 匀速自转 / `none` 不转 |
+| `boot.clock.size` | number | `74` | 钟面直径（px），指针长度按比例缩放 |
+| `boot.clock.ticks` | number | `12` | 刻度数量（0 表示不画刻度） |
+| `boot.clock.smooth` | boolean | `true` | 指针是否带过渡动画（`false` 时逐格跳变） |
+| `boot.bar.enabled` | boolean | `true` | 进度条是否显示 |
+| `boot.bar.mode` | string | `"progress"` | `progress` 普通进度 / `indeterminate` 不确定态循环 |
+
+示例（改文案 + 改成 6 段进度 + 匀速自转钟）：
+
+```json
+"boot": {
+  "enabled": true,
+  "clock": { "mode": "spin", "size": 82, "ticks": 12 },
+  "stages": [
+    { "step": 1, "progress": 5,  "text": "正在读取结界配置…" },
+    { "step": 2, "progress": 30, "text": "正在召唤灵装…" },
+    { "step": 3, "progress": 62, "text": "正在铺开时间结界…" },
+    { "step": 4, "progress": 88, "text": "正在刻印通道…" },
+    { "step": 5, "progress": 100, "text": "结界已就绪" }
+  ]
+}
+```
+
+> 运行时可随时改：`KUI.bootLayer.configure({ clock: { mode: "spin" }, stages: [...] })`；
+> 演示页 `standalone/boot.html` 的「按进度设置」滑块可直接核对 0%↔0 时、100%↔12 时的指针位置。
 ## 2. 节点通用字段
 
 所有配置里出现的可渲染对象（`nodes`、`children`、`actions`、`items` 里的按钮等）都是「节点」。节点由 `KUI.renderNode(node, ctx)` 渲染，遵循同一套规则。
@@ -904,6 +944,39 @@ props 字段：
 
 ---
 
+### 3.7 boot（加载层组件，v1.3.7 起）
+
+启动层被实现为注册组件 `boot`（`category: "shell"`），既可被 `bootstrap.js` 自动接管，也可独立渲染：
+
+```json
+{ "type": "boot", "props": { "mode": "inline", "clock": { "mode": "progress" } } }
+```
+
+字段与 `app.json:boot` 完全一致（见 §1.8），另有两个运行时开关：
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `props.auto` | boolean | 仅 `bootstrap` 使用：`false` 表示不自动隐藏（调试加载动画时用） |
+| `props.progress` | number | 初值进度（0–100，缺省 0） |
+
+**静态 API `KUI.bootLayer`**
+
+| 方法 | 说明 |
+| --- | --- |
+| `create(host, props)` | 在 `host` 内从零渲染一个加载层，返回实例（`standalone/boot.html` 的内嵌预览用这个） |
+| `attach(props, textCfg)` | 接管页面既有 `#kui-boot`（单例）；没有则新建并挂到 `body` |
+| `configure(patch, textCfg)` | 合并配置到当前实例/默认值（不传实例时同时更新后续 `create` 的默认值） |
+| `instance()` | 当前单例（没有则 `null`） |
+| `handsAt(percent)` | 纯函数：返回 `{ percent, totalMinutes, hourAngle, minuteAngle, hour12, minute, clockText }` |
+| `isReady()` | `boot.js` 是否已加载并注册（拆装探测用） |
+
+**实例 API**：`setProgress(p)` / `setStep(n)` / `setText(t)` / `setMeta(app)` / `done()` / `error(msg, detail)` /
+`reset()` / `show()` / `hide()` / `destroy()` / `getState()` / `setConfig(patch)` / `handsAt(p)` / `el` / `config`。
+
+**事件**：`boot:progress`（`{ percent, step, clockText }`）、`boot:done`（`{}`）、`boot:error`（`{ message, detail }`）。
+
+**拆装**：不引 `boot.js` 时 `bootstrap.js` 走 `legacy` 分支（只改 `index.html` 静态骨架的文案与进度条），
+不抛错；`standalone/*.html` 若不需要加载层可以不引它。
 ## 4. 控件字段表（33 种）
 
 > 值既可以写在 `props`，也可以写在节点顶层（等价）。`form` 内控件的值写在 `props.value` 或节点 `value`；`form` 外也可用 `value` 设初值。

@@ -1,3 +1,47 @@
+## v1.3.7 — 加载层组件化（boot）+ 时钟指针进度动画
+
+> 需求（用户）："访问服务时或刷新时的 加载中 页面，也需要可以单独 自由拆卸、组装，且 时钟图案 增加一项 时钟指针动画，
+> 加载进度 0% 至 100% 分别对应时钟的 0 时至 12 时，要注意时钟的时针和分针的指向位置。还需要一个单独的测试页面，观察效果。"
+
+### 一、新增组件：`src/components/boot.js` + `src/styles/boot.css`
+
+| 能力 | 实现 |
+| --- | --- |
+| 注册 | `type: "boot"`（`category: "shell"`），`KUI.mount("boot", host, node)` / `KUI.renderNode({type:"boot"})` 均可渲染 |
+| 静态 API | `KUI.bootLayer`：`create` / `attach` / `configure` / `instance` / `handsAt` / `isReady` |
+| 实例 API | `setProgress` / `setStep` / `setText` / `setMeta` / `done` / `error` / `reset` / `show` / `hide` / `destroy` / `getState` |
+| 单例接管 | `attach()` 直接接管 `index.html` 既有 `#kui-boot`，只重建内部结构（不闪一下白屏） |
+| 可拆装 | `boot.js` 缺失时 `bootstrap.js` 退回静态骨架 legacy 分支；`standalone/boot.html` 可内嵌 `mode:"inline"` 独立渲染 |
+
+### 二、时钟指针动画（进度 ↔ 时刻）
+
+- `handsAt(percent)` 纯函数：总分钟 `p/100*720`；时针 `总分钟/720*360`（连续走）；分针 `(总分钟%60)/60*360`；
+- `0%` 与 `100%` 均为 12 点整（读数统一 `12:00`），`25% → 3:00`、`50% → 6:00`、`75% → 9:00`；
+- 钟面 12 刻度 + 红时针 / 金分针，颜色全部走主题 token（随换肤变化）；
+- `clock.mode` 支持 `progress`（默认）/ `spin`（匀速自转）/ `none`；`clock.smooth` 控制过渡动画。
+
+### 三、配置与文案（纯 JSON，无代码）
+
+- `config/app.json` 新增 `boot` 段：`enabled / mode / meta / text / stages / clock / bar`；
+- `config/text.json` 新增 `boot` 段（加载层阶段文案，可由 app.json `text` 覆盖）；
+- 默认 4 阶段：`8% 正在加载界面配置…` → `46% 正在应用界面风格…` → `78% 正在构建界面…` → `100% 结界已就绪`。
+
+### 四、接线与构建
+
+- `index.html`：内联启动层样式抽到 `src/styles/boot.css`，静态骨架 `#kui-boot` 保留作降级；
+- `src/app/bootstrap.js`：`ensureBootLayer()` + `setBootText/setBootStep/hideBoot/showBootError` 委派组件；`applyAppMeta` 同步 `setMeta`；
+- `config/kui-modules.json`：app / standalone 两个 profile 均加入 `boot.js`（app=29 / standalone=28）；
+- 版本号四处统一 **1.3.7**：`src/core/kui.js`、`src/frame/kui-frame.js`、`src/core/dom-enhance.js`、`package.json`。
+
+### 五、验证
+
+- 冒烟新增 **[27] 加载层组件** 5 项（注册与静态 API / handsAt 六采样 / create 内嵌实例 / attach 接管与 legacy 降级 / 独立页）；
+- `audit-components` 新增 boot 拆装用例（19 项通过）；`check-assets` 21 个 HTML 0 错 0 警；
+- 全量：`tools/smoke.js` **99/0**、`test/run.js` **30/0/0**（Node 13.14 / 24）、`audit-consistency` 17/0；
+- 真实 Chromium 截图核对 `standalone/boot.html` 的内嵌 / 全屏两种模式与 0→100 指针走位。
+
+---
+
 ## 文档 — 用户手册 `docs/manual/`（v1.3.6 基线，2026-10-27）
 
 > 需求（用户）："写项目用户手册"。产出面向使用者的完整手册，并附一个可自动校验的手册一致性脚本，防止文档与源码漂移。

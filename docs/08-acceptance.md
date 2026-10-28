@@ -314,3 +314,13 @@ node tools/check-assets.js                # HTML 引用完整性
 | --- | --- | --- | --- | --- |
 | 1 | 遗留建议中「需要修复的」 | `test/config.test.js` 控件类型写死、冒烟无分节过滤 | 控件类型改为注册表派生 + 审计 E4 静态扫描；冒烟支持 `--only=list` / `--only=N` | 一致性审计 17/0（E4 PASS）；`--only=26` 5/0 |
 | 2 | 搜索多结果时直接打开首个 | `openSearch()` 命中即 `openTab(first)`，无候选 UI | `searchMenu()` 6 档评分 + `showSearchPicker()` 候选弹窗（最多 10 项，显示父路径），由用户点选 | 冒烟 [26] 4 项；真实 Chromium：2 个候选 → 点选后新增标签并关闭弹窗 |
+
+### v1.3.7 · 加载层组件化 + 时钟指针进度动画
+
+| # | 反馈 | 根因 | 修复 | 验证 |
+| --- | --- | --- | --- | --- |
+| 1 | 加载中页面不能单独拆装 | 启动层是 `index.html` 内联样式 + 骨架，无注册组件、无 API | 新增 `src/components/boot.js`（注册 `type:"boot"` + `KUI.bootLayer`）+ `src/styles/boot.css`；`bootstrap.js` 委派并保留 legacy 降级 | 冒烟 [27.1]/[27.3]/[27.4]；`audit-components` boot 用例；拆掉 boot.js 后启动页仍显示 |
+| 2 | 时钟图案要有时针/分针动画，进度 0%→100% 对应 0 时→12 时 | 原静态钟 `::before/::after` 固定角度，只做 5.2s 匀速转 | `handsAt()` 纯函数：`totalMinutes=p/100*720`、时针 `totalMinutes/720*360`、分针 `(totalMinutes%60)/60*360`；0%/100% 均为 12 点、25%→3:00、50%→6:00、75%→9:00 | 冒烟 [27.2] 6 个采样点（0/12.5/25/50/75/100）；`standalone/boot.html` 滑块逐格核对 |
+| 3 | 需要一个单独测试页观察效果 | 无独立页 | 新增 `standalone/boot.html`：内嵌 `mode:inline` 预览、0→100 自动演示、阶段推进、平滑/跳变切换、spin 模式、错误态、JSON 驱动重渲染 | 冒烟 [27.5]；`check-assets` 21 HTML 0 错；导航 12 个独立页全部可达 |
+
+回归：`tools/smoke.js` **99/0**（Node 13.14 / 24 双版本）；`test/run.js` **30/0/0**；`audit-consistency` 17/0；`audit-components` 19/0；`check-assets` 21 HTML / 0 错 0 警。

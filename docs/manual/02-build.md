@@ -1,6 +1,6 @@
 # 02 · 构建与产物
 
-> 适用版本：KurumiUI v1.3.6 ｜ 前置章节：01 · 安装与首次运行 ｜ 阅读时长：约 20 分钟
+> 适用版本：KurumiUI v1.3.7 ｜ 前置章节：01 · 安装与首次运行 ｜ 阅读时长：约 20 分钟
 
 ## 本章目标
 
@@ -269,7 +269,7 @@ npm test
 预期输出（节选，数值以实际输出为准）：
 
 ```text
-1.3.6
+1.3.7
 [build-all] 已生成 src\core\kui-all.js (3982 字节)
 [build-all] profiles: app=28, standalone=27
 kui-modules/1 [ 'app', 'standalone' ] 28 27

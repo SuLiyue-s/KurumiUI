@@ -1283,7 +1283,7 @@ function main() {
     assert(!miss.length, 'kui-all 漏模块：' + miss.join(','));
     return app.length + ' 个模块';
   });
-  check('19 个 HTML 均为单入口装配', function () {
+  check('20 个 HTML 均为单入口装配', function () {
     var files = ['index.html']
       .concat(fs.readdirSync(path.join(ROOT, 'pages')).filter(function (f) { return /\.html$/.test(f); }).map(function (f) { return 'pages/' + f; }))
       .concat(fs.readdirSync(path.join(ROOT, 'standalone')).filter(function (f) { return /\.html$/.test(f); }).map(function (f) { return 'standalone/' + f; }));
@@ -1341,6 +1341,111 @@ currentSection = 26;   console.log('\n[26] 菜单搜索：多结果先展示再�
     var after = KUI.app.instance.tabs.count();
     assert(after >= before, '打开候选后标签数异常（' + before + '→' + after + '）');
     return 'opened ' + target.label;
+  });
+
+
+currentSection = 27;   console.log('\n[27] 加载层组件：可拆装 + 进度驱动时钟指针（v1.3.7）');
+  check('[27.1] 注册与静态 API：type=boot 已注册，KUI.bootLayer 就绪', function () {
+    var def = KUI.registry.get('boot');
+    assert(def, 'registry 未注册 boot 类型');
+    assert(def.category === 'shell', 'boot.category 应为 shell，实际 ' + def.category);
+    assert(KUI.bootLayer, 'KUI.bootLayer 缺失');
+    ['create', 'attach', 'configure', 'instance', 'handsAt', 'destroy'].forEach(function (k) {
+      assert(typeof KUI.bootLayer[k] === 'function', 'KUI.bootLayer.' + k + ' 缺失');
+    });
+    return 'type boot · KUI.bootLayer v' + KUI.bootLayer.version;
+  });
+
+  check('[27.2] handsAt：0/12.5/25/50/75/100% 的读数与两针角度', function () {
+    var cases = [
+      [0, '12:00', 0, 0], [12.5, '01:30', 45, 180], [25, '03:00', 90, 0],
+      [50, '06:00', 180, 0], [75, '09:00', 270, 0], [100, '12:00', 360, 0]
+    ];
+    cases.forEach(function (c) {
+      var h = KUI.bootLayer.handsAt(c[0]);
+      assert(h.clockText === c[1], c[0] + '% 读数应为 ' + c[1] + '，实际 ' + h.clockText);
+      assert(Math.abs(h.hourAngle - c[2]) < 0.01, c[0] + '% 时针应为 ' + c[2] + '°，实际 ' + h.hourAngle);
+      assert(Math.abs(h.minuteAngle - c[3]) < 0.01, c[0] + '% 分针应为 ' + c[3] + '°，实际 ' + h.minuteAngle);
+    });
+    /* 超范围入参要被夹到 0..100 */
+    assert(KUI.bootLayer.handsAt(-10).percent === 0 && KUI.bootLayer.handsAt(180).percent === 100, 'handsAt 未夹取范围');
+    return '6 个采样点 + 范围夹取';
+  });
+
+  check('[27.3] dom-stub：create() 内嵌实例的进度/指针/阶段文案/销毁', function () {
+    var host = env.document.createElement('div');
+    env.document.body.appendChild(host);
+    var inst = KUI.bootLayer.create(host, {
+      mode: 'inline', title: 'T',
+      stages: [{ step: 1, text: '阶段一', progress: 10 }, { step: 2, text: '阶段二', progress: 50 }]
+    });
+    assert(inst && inst.el && inst.el.nodeType, 'create 未返回实例');
+    assert(inst.el.className.indexOf('kui-boot--inline') >= 0, 'mode=inline 未生效');
+    assert(!inst.el.id, 'create() 实例不应占用 #kui-boot id');
+    inst.setProgress(25);
+    assert(inst.getProgress() === 25, 'setProgress 未记录进度');
+    assert(inst.el.getAttribute('data-boot-percent') === '25', 'data-boot-percent 未更新');
+    var hour = inst.el.querySelector('.kui-boot__hand--hour');
+    var minute = inst.el.querySelector('.kui-boot__hand--minute');
+    assert(hour && /rotate\(90deg\)/.test(hour.style.transform), '时针未转到 90°，实际 ' + (hour && hour.style.transform));
+    assert(minute && /rotate\(0deg\)/.test(minute.style.transform), '分针应为 0°，实际 ' + (minute && minute.style.transform));
+    var text = inst.el.querySelector('[data-boot-text]');
+    assert(text && text.textContent === '正在加载界面配置…', '初始文案应回退到默认值，实际 ' + (text && text.textContent));
+    inst.setStep(2);
+    assert(text.textContent === '阶段二', 'setStep 未应用阶段文案');
+    assert(inst.getProgress() === 50, 'setStep 未应用阶段进度');
+    var st = inst.getState();
+    assert(st.mode === 'inline' && st.step === 2 && st.hands.clockText === '06:00', 'getState 结果异常');
+    inst.destroy();
+    assert(!host.childNodes.length, 'destroy 未移除节点');
+    return '25%→03:00/90°/0°；阶段 2→50%';
+  });
+
+  check('[27.4] 可拆装：attach() 接管静态骨架，bootstrap 缺组件时走 legacy', function () {
+    /* 先清掉启动流程可能残留的单例，确保测的是「接管」这条路径 */
+    KUI.bootLayer.destroy();
+    var shell = env.document.createElement('div');
+    shell.setAttribute('id', 'kui-boot');
+    shell.className = 'kui-boot';
+    env.document.body.appendChild(shell);
+    var inst = KUI.bootLayer.attach(null);
+    assert(inst && inst.el === shell, 'attach 未接管既有 #kui-boot 节点');
+    assert(KUI.bootLayer.instance() === inst, 'attach 后 instance() 未指向单例');
+    assert(KUI.bootLayer.attach(null) === inst, '重复 attach 不应新建实例');
+    inst.destroy();
+
+    var bs = fs.readFileSync(path.join(ROOT, 'src/app/bootstrap.js'), 'utf8');
+    ['attachBootLayer', 'configureBootLayer', 'bootConfigOf', 'KUI.bootLayer.attach'].forEach(function (k) {
+      assert(bs.indexOf(k) >= 0, 'bootstrap.js 缺少 ' + k);
+    });
+    ['querySelector(\'[data-boot-text]\')', 'kui-boot__error'].forEach(function (k) {
+      assert(bs.indexOf(k) >= 0, 'bootstrap.js 缺少 legacy 分支标记：' + k);
+    });
+    var app = JSON.parse(fs.readFileSync(path.join(ROOT, 'config/app.json'), 'utf8'));
+    assert(app.boot && Array.isArray(app.boot.stages) && app.boot.stages.length === 4, 'app.json 的 boot.stages 应为 4 段');
+    var text = JSON.parse(fs.readFileSync(path.join(ROOT, 'config/text.json'), 'utf8'));
+    assert(text.boot && text.boot.loading, 'text.json 缺少 boot.loading');
+    var mods = JSON.parse(fs.readFileSync(path.join(ROOT, 'config/kui-modules.json'), 'utf8'));
+    ['app', 'standalone'].forEach(function (p) {
+      assert(mods.profiles[p].files.indexOf('src/components/boot.js') >= 0, p + ' profile 缺少 boot.js');
+    });
+    return '静态骨架接管 + 委派标记 + 配置齐备';
+  });
+
+  check('[27.5] 独立测试页 standalone/boot.html：单入口 + 导航 + JSON 渲染示例', function () {
+    var rel = 'standalone/boot.html';
+    assert(fs.existsSync(path.join(ROOT, rel)), '缺少 ' + rel);
+    var html = fs.readFileSync(path.join(ROOT, rel), 'utf8');
+    ['src/core/kui-all.js', 'data-kui-profile="standalone"', 'data-kui-auto="false"',
+     'src/styles/boot.css', 'handsAt', 'KUI.bootLayer.create', "renderNode({ type: 'boot'", "'boot'"].forEach(function (k) {
+      assert(html.indexOf(k) >= 0, 'boot.html 缺少：' + k);
+    });
+    /* 所有独立页导航都收录 boot */
+    fs.readdirSync(path.join(ROOT, 'standalone')).filter(function (f) { return /\.html$/.test(f); }).forEach(function (f) {
+      var s = fs.readFileSync(path.join(ROOT, 'standalone/' + f), 'utf8');
+      assert(s.indexOf("'boot'") >= 0 || s.indexOf('"boot"') >= 0, 'standalone/' + f + ' 导航未收录 boot');
+    });
+    return 'boot.html + 12 页导航';
   });
 
 currentSection = 6;   console.log('\n[6] 控制台与错误汇总');

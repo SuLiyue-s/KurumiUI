@@ -1,6 +1,6 @@
 # 14 · 部署与跨项目复用
 
-> 适用版本：KurumiUI v1.3.6 ｜ 前置章节：03-assembly.md ｜ 阅读时长：约 18 分钟
+> 适用版本：KurumiUI v1.3.7 ｜ 前置章节：03-assembly.md ｜ 阅读时长：约 18 分钟
 
 KurumiUI 是纯前端 + JSON 配置，部署就是把「源码 + 两个构建产物」放到任意静态服务器上。本章先讲内置 `server.js` 的边界，再覆盖静态托管、子路径、file://、iframe 嵌入，最后是整框架/单组件复用、升级、回滚与上线清单。
 
@@ -252,7 +252,7 @@ window.addEventListener('message', function (e) {
 
 ### 6.1 方式 A：整个框架复制
 
-适合把 KurumiUI 当自家后台的技术底座。复制清单（按 v1.3.6 实测）：
+适合把 KurumiUI 当自家后台的技术底座。复制清单（按 v1.3.7 实测）：
 
 | 路径 | 作用 | 必须 |
 | --- | --- | --- |
@@ -304,7 +304,7 @@ window.addEventListener('message', function (e) {
 
 ### 7.3 回滚
 
-- 推荐发布包按版本目录保存：`/var/www/kurumi-v1.3.5`、`/var/www/kurumi-v1.3.6`，用软链 `/var/www/kurumi -> kurumi-v1.3.6`，回滚只改软链并 reload nginx。
+- 推荐发布包按版本目录保存：`/var/www/kurumi-v1.3.5`、`/var/www/kurumi-v1.3.7`，用软链 `/var/www/kurumi -> kurumi-v1.3.7`，回滚只改软链并 reload nginx。
 - 只换代码不换配置时，至少回滚两个产物；`config/app.json` 结构变化大的版本，回滚要连配置一起换。
 - 回滚后清 CDN 与浏览器强缓存路径（HTML 已 no-cache，一般无需强刷）。
 

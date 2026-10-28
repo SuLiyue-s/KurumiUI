@@ -70,6 +70,7 @@ var CASES = [
     'src/components/controls/index.js',
     'src/components/form.js'
   ]), demo: 'form', needsControls: true },
+  { type: 'boot', files: CORE_UI.concat(['src/components/boot.js']), demo: 'boot' },
   { type: 'app-shell', files: CORE_UI.concat([
     'src/components/menu.js', 'src/components/menunav.js', 'src/components/tabs.js',
     'src/components/dialog.js', 'src/components/toast.js', 'src/components/app-shell.js'
@@ -215,11 +216,21 @@ ok('注册表分类快照', catText + ' / TOTAL=' + registryList.length);
   });
 });
 
+check('组装：完整装配下可创建 boot', function () {
+  if (!KUI.bootLayer || typeof KUI.bootLayer.create !== 'function') { throw new Error('KUI.bootLayer.create 不存在'); }
+  var host = envFull.document.createElement('div');
+  envFull.document.body.appendChild(host);
+  var inst = KUI.bootLayer.create(host, { mode: 'inline' });
+  if (!inst || !inst.el || !inst.el.nodeType) { throw new Error('boot 实例无 DOM'); }
+  inst.destroy();
+  return 'create() 成功';
+});
+
 /* ============================================================
  * 三、独立渲染页面矩阵（standalone/*.html）
  * ============================================================ */
 
-var pages = ['menu', 'menunav', 'tabs', 'dialog', 'toast', 'form', 'controls', 'theme', 'no-shell', 'handlers', 'avatar'];
+var pages = ['menu', 'menunav', 'tabs', 'dialog', 'toast', 'form', 'controls', 'theme', 'no-shell', 'handlers', 'avatar', 'boot'];
 var missingPages = [];
 var badPages = [];
 pages.forEach(function (p) {
@@ -246,7 +257,7 @@ else { ok('独立渲染页：JSON 驱动', demoPages.length + ' 个页面各有 
  * ============================================================ */
 
 var componentFiles = ['src/components/menu.js', 'src/components/menunav.js', 'src/components/tabs.js',
-  'src/components/dialog.js', 'src/components/toast.js'];
+  'src/components/dialog.js', 'src/components/toast.js', 'src/components/boot.js'];
 var strongDeps = [];
 componentFiles.forEach(function (f) {
   var src = fs.readFileSync(path.join(ROOT, f), 'utf8');

@@ -1,6 +1,6 @@
 # 04 · 配置总览 + app.json 全字段
 
-> 适用版本：KurumiUI v1.3.6 ｜ 前置章节：[03-assembly.md](03-assembly.md) ｜ 阅读时长：约 40 分钟
+> 适用版本：KurumiUI v1.3.7 ｜ 前置章节：[03-assembly.md](03-assembly.md) ｜ 阅读时长：约 40 分钟
 
 ## 本章目标
 
@@ -66,6 +66,8 @@ KUI.config.get('app.home', 'pages/home.html'); // ⚠️ 读 app.json 根（不�
 
 - `app`（3-18）名称/标题/版本/首页/启动层 → `bootstrap.js:643-665`、`app-shell.js:237-268`
 - `ui`（19-37）tooltip/toast/dialog 全局默认 → `bootstrap.js:674-692`
+- `boot`（38-51）启动层（加载中页面）与时钟指针动画 → `bootstrap.js` 启动流程 + `src/components/boot.js`（见 §8.5）
+- `boot`（38-51）启动层（加载中页面）与时钟指针动画 → `bootstrap.js` 启动流程 + `src/components/boot.js`（见 §8.5）
 - `dialogs`（38-166）弹窗预设（只有 settings）→ `bootstrap.js:581-633`
 - `theme`（167-187）默认主题/存储键/选择器 → `bootstrap.js:726-740`（picker 未消费，§6）
 - `layout`（188-199）菜单/头部/标签栏/间距尺寸 → `app-shell.js:146-193`
@@ -83,7 +85,7 @@ KurumiUI 的“节点”没有强类型 schema，字段由渲染器按需读取�
 
 | 字段 | 类型 | 默认值 | 必填 | 作用与取值 |
 | --- | --- | --- | --- | --- |
-| `type` | string | — | 是（渲染节点） | 渲染器类型（注册表 40 个；外壳用 `app-shell/menu/menunav/tabs`），菜单树内为 `item/group/divider`（`menu.js:282-293`） |
+| `type` | string | — | 是（渲染节点） | 渲染器类型（注册表 41 个；外壳用 `app-shell/menu/menunav/tabs`），菜单树内为 `item/group/divider`（`menu.js:282-293`） |
 | `id` | string | 自动生成 | 否 | 节点/菜单项标识；tab id、表单字段 id、菜单激活 id 共用 |
 | `props` | object | `{}` | 否 | 组件属性包；**外壳三节点只读它**（`app-shell.js:76-85`） |
 | `label` | string | — | 否 | 菜单项/分组/表单项显示文字（`menu.js:300,326`） |
@@ -203,6 +205,45 @@ KurumiUI 的“节点”没有强类型 schema，字段由渲染器按需读取�
 | `picker.fileLabel` / `fileTip` | string | `"选择本地图片"` / … | 否 | 未写；`file` 模式按钮/提示文案 |
 
 ---
+
+## 8.5 boot.*：加载层与时钟指针（v1.3.7 新增）
+
+**作用**：控制「访问服务或刷新时」出现的加载中页面。它是注册组件 `boot`（`KUI.bootLayer`），
+可被主应用自动接管，也可在任意容器里独立渲染。
+
+**默认表现**：全屏深色遮罩 + 时钟图形（12 刻度、红时针、金分针）+ 进度条 + 阶段文案；
+指针随进度从 12 点走到 12 点（0% ↔ 0 时，100% ↔ 12 时），25% 指向 3:00、50% 指向 6:00、75% 指向 9:00。
+
+**字段表**（全部可选，改完 `npm run build:config` 生效）：
+
+| 字段 | 默认 | 说明 |
+| --- | --- | --- |
+| `boot.enabled` | `true` | `false` 时不显示启动层 |
+| `boot.mode` | `"fullscreen"` | `fullscreen` 页面级遮罩 / `inline` 内嵌演示 |
+| `boot.meta` | `true` | 底部「百分比 + 时钟读数」 |
+| `boot.stages` | 4 段 | `[{ step, progress, text }]`，`progress` 为 0–100 |
+| `boot.clock.mode` | `"progress"` | `progress` 跟进度 / `spin` 匀速自转 / `none` 静止 |
+| `boot.clock.size` | `74` | 钟面直径 px |
+| `boot.clock.ticks` | `12` | 刻度数（0 = 不画） |
+| `boot.clock.smooth` | `true` | 指针是否过渡动画 |
+| `boot.bar.mode` | `"progress"` | `progress` / `indeterminate`（不确定态） |
+
+**改文案**：`config/text.json` 的 `boot` 段（`title / subtitle / loading / theme / shell / ready / errorTitle / retry …`），
+或在 `config/app.json` 的 `text` 里做增量覆盖。
+
+**运行时调试**（控制台）：
+
+```js
+KUI.bootLayer.instance().setProgress(42);   // 指针指到 42% → 5:02 附近
+KUI.bootLayer.handsAt(42);                   // { percent:42, hourAngle:126, minuteAngle:144, clockText:"05:02", … }
+KUI.bootLayer.configure({ clock: { mode: "spin" } });
+KUI.bootLayer.instance().error("配置损坏");   // 失败态卡片
+```
+
+**拆装**：不需要加载层时，从 `config/kui-modules.json` 的清单里去掉 `src/components/boot.js` 并重跑 `npm run build:all`，
+`bootstrap.js` 会退回 `index.html` 静态骨架；也可以只保留组件而在 `app.json` 里 `"boot": { "enabled": false }`。
+
+**观察效果**：打开 `standalone/boot.html`（独立页，内嵌预览 + 0→100 自动演示 + 按进度设置 + spin/错误态按钮）。
 
 ## 9. dialogs.settings：打开设置弹窗
 
@@ -379,7 +420,7 @@ KurumiUI 的“节点”没有强类型 schema，字段由渲染器按需读取�
 
 ---
 
-## 本章自检
+## 本章自检（含 boot 自检）（含 boot 自检）
 
 在仓库根目录用 `pwsh` 执行，四步全过即确认本章配置知识成立。
 

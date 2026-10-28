@@ -1,6 +1,6 @@
 # 15 · 排错手册、FAQ 与上线验收清单
 
-> 适用版本：KurumiUI v1.3.6 ｜ 前置章节：[03-assembly.md](03-assembly.md)、[11-api-messaging.md](11-api-messaging.md) ｜ 阅读时长：约 20 分钟
+> 适用版本：KurumiUI v1.3.7 ｜ 前置章节：[03-assembly.md](03-assembly.md)、[11-api-messaging.md](11-api-messaging.md) ｜ 阅读时长：约 20 分钟
 
 ## 本章目标
 
@@ -45,7 +45,7 @@
 
 ```js
 KUI.info()
-// => { name: "KurumiUI", version: "1.3.6", controls: 40, themes: 6, env: {...} }
+// => { name: "KurumiUI", version: "1.3.7", controls: 41, themes: 6, env: {...} }
 ```
 
 | 返回字段 | 含义 | 异常时的含义 |
@@ -56,7 +56,7 @@ KUI.info()
 | `themes` | `KUI.theme.list().length` | 为 0 → `themes.json` 没加载或 `theme.load()` 未执行 |
 | `env` | `isBrowser / isNode / nodeVersion` | 在浏览器里 `isBrowser` 应为 true |
 
-严格来说 `controls` 统计的是**所有注册类型**（含组件），v1.3.6 是 40 个，不是 19 个表单控件。实现见 [src/core/kui.js:1322-1330](../../src/core/kui.js#L1322-L1330)。
+严格来说 `controls` 统计的是**所有注册类型**（含组件），v1.3.7 是 41 个，不是 19 个表单控件。实现见 [src/core/kui.js:1322-1330](../../src/core/kui.js#L1322-L1330)。
 
 ### 1.2 `?kui_debug=1` 诊断面板（推荐第一时间打开）
 
@@ -87,7 +87,7 @@ http://127.0.0.1:8080/?kui_debug=1
 
 面板也可以不通过 URL 启用——在控制台执行 `localStorage.setItem('kui-debug', '1')` 后刷新；清除用 `localStorage.removeItem('kui-debug')`（判断逻辑见 [src/core/diag.js:235-241](../../src/core/diag.js#L235-L241)）。
 
-> 面板自身有独立版本号（历史值为 `1.1.0`，与框架 1.3.6 无关），不要混淆。
+> 面板自身有独立版本号（历史值为 `1.1.0`，与框架 1.3.7 无关），不要混淆。
 
 ### 1.3 控制台错误关键词对照表（源码原话 → 处理）
 
@@ -149,7 +149,7 @@ KurumiUI 的告警都带明确前缀，直接按关键词搜：
 node -e "var fs=require('fs');['config/bundle.js','src/core/kui-all.js'].forEach(function(f){try{var s=fs.statSync(f);console.log(f,s.size+'B',s.mtime.toISOString())}catch(e){console.log(f,'MISSING')}})"
 ```
 
-判断标准（v1.3.6 参考值）：
+判断标准（v1.3.7 参考值）：
 
 | 文件 | 参考大小 | 内容特征 |
 | --- | --- | --- |
@@ -176,7 +176,7 @@ node -e "var fs=require('fs');['config/bundle.js','src/core/kui-all.js'].forEach
 | 杀毒软件拦截 `node server.js` | 监听本地端口被拦 | 放行 node，或换静态服务器 |
 | 删除 `node_modules` 后项目照常运行 | 正常——零依赖 | 无需恢复 |
 
-> 判断「是否需要安装依赖」只看一件事：`package.json` 里有没有 `dependencies`。v1.3.6 **一个都没有**，[package.json](../../package.json) 里只有 `engines.node >= 13.14.0` 这条环境声明。
+> 判断「是否需要安装依赖」只看一件事：`package.json` 里有没有 `dependencies`。v1.3.7 **一个都没有**，[package.json](../../package.json) 里只有 `engines.node >= 13.14.0` 这条环境声明。
 
 ---
 
@@ -278,7 +278,7 @@ npm start
 
 先确认三件事：
 
-1. **type 拼写**：40 个已注册类型见 README 附录 A，19 个表单控件见 [05-controls-input.md](05-controls-input.md)；
+1. **type 拼写**：41 个已注册类型见 README 附录 A，19 个表单控件见 [05-controls-input.md](05-controls-input.md)；
 2. **脚本是否加载**：`KUI.registry.has('input')` 返回 `true` 才算加载；`false` 说明 profile 里漏了对应文件，或 `kui-all.js` 是旧的；
 3. **是否被 `visible:false` / `deps` 隐藏**：控制台执行 `KUI.registry.get('input')` 看 defaults 是否被覆盖。
 
@@ -547,7 +547,7 @@ curl -I https://your.site/src/themes.json
     A：沙箱里 server 套件可能降级同进程；以「30 通过/0 失败」为准，失败先看具体断言。
 
 29. **Q：如何确认当前页面加载的是哪个版本？**
-    A：控制台 `KUI.info().version`，应为 `1.3.6`。
+    A：控制台 `KUI.info().version`，应为 `1.3.7`。
 
 30. **Q：出问题该提供什么信息？**
     A：`KUI.info()` 输出 + `?kui_debug=1` 面板全文 + 控制台截图 + 复现步骤。
@@ -566,7 +566,7 @@ curl -I https://your.site/src/themes.json
 - [ ] 6. `config/bundle.js` 存在且非空、时间戳是本次构建
 - [ ] 7. `src/core/kui-all.js` 存在且 profile 数量正确（app 28 / standalone 27）
 - [ ] 8. 首页 200、无控制台红色错误
-- [ ] 9. 控制台 `KUI.info()` → version `1.3.6`、controls 40、themes 6
+- [ ] 9. 控制台 `KUI.info()` → version `1.3.7`、controls 41、themes 6
 - [ ] 10. 6 套主题逐一切换无闪烁、无样式丢失
 - [ ] 11. 菜单每一项都能打开对应 tab，子页无 404
 - [ ] 12. tab 关闭/刷新/保活行为符合预期
@@ -595,10 +595,10 @@ node tools/check-compat.js
 # 3) 浏览器里打开诊断面板，确认面板出现
 #    访问 http://127.0.0.1:8080/?kui_debug=1
 # 4) 控制台确认版本与加载量
-#    KUI.info()  // version 1.3.6, controls 40, themes 6
+#    KUI.info()  // version 1.3.7, controls 41, themes 6
 ```
 
-预期：自检脚本退出码 0；`npm test` 30 通过；面板右下角出现且 `env` 行版本为 1.3.6。
+预期：自检脚本退出码 0；`npm test` 30 通过；面板右下角出现且 `env` 行版本为 1.3.7。
 
 ## 参考源码
 

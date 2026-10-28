@@ -278,6 +278,8 @@ destroy()
 
 ## 8. 组件规格（shell 队友必须实现）
 
+> v1.3.7 起组件清单为 8 个：`menu / menunav / tabs / dialog / toast / form / app-shell / boot`（`boot` 见 §20）。
+
 ### 8.1 menu（左侧菜单）
 node: `{ "type": "menu", "props": { ... } }`
 ```
@@ -634,3 +636,45 @@ dialog iframe→主框架：
 - 每写完全部文件后自测（能跑的命令自己跑，node13 路径见 §15），把命令与结果贴给 Lead。
 - 不要运行会删除/移动工作区外文件的命令；不要 `npm install`（项目零依赖）。
 - 中文注释、中文文档、中文汇报。
+
+## 20. 启动层组件（boot，v1.3.7）
+
+> 需求（用户）："访问服务时或刷新时的 加载中 页面，也需要可以单独 自由拆卸、组装，且 时钟图案 增加一项 时钟指针动画，
+> 加载进度 0% 至 100% 分别对应时钟的 0 时至 12 时，要注意时钟的时针和分针的指向位置。还需要一个单独的测试页面，观察效果。"
+
+启动层（加载中页面）从 `index.html` 的内联样式/骨架升级为**可注册、可拆装、可独立渲染**的组件：
+
+| 项 | 约定 |
+| --- | --- |
+| 文件 | `src/components/boot.js`（逻辑 + 注册）、`src/styles/boot.css`（样式） |
+| 注册 | `KUI.registry.register("boot", { category: "shell", defaults, render(props, ctx) })` |
+| 静态 API | `KUI.bootLayer`：`create(host, props)` / `attach(props, textCfg)` / `configure(patch, textCfg)` / `instance()` / `handsAt(p)` / `isReady()` |
+| 实例 API | `setProgress(p)` / `setStep(n)` / `setText(t)` / `setMeta(app)` / `done()` / `error(msg, detail)` / `reset()` / `show()` / `hide()` / `destroy()` / `getState()` |
+| 单例 | `attach()` 接管页面既有 `#kui-boot`（只重建内部结构，不整层重建）；`create()` 可在任意容器内嵌（`mode: "inline"`） |
+| 拆装 | `boot.js` 未加载时 `bootstrap.js` 退回 `index.html` 静态骨架（legacy 分支），不报错、不白屏 |
+| 配置 | `config/app.json` 的 `boot` 段（enabled / mode / stages / clock / bar / meta / text） |
+| 文案 | `config/text.json` 的 `boot` 段；`KUI.text("boot.*")` 可被 app.json `text` 覆盖 |
+
+### 20.1 进度 → 时钟位姿（纯函数，可单测）
+
+```
+总分钟 totalMinutes = p / 100 * 720         // 12 小时 = 720 分钟
+时针角度 hourAngle  = totalMinutes / 720 * 360   // 连续走，每分钟 0.5°
+分针角度 minuteAngle = (totalMinutes % 60) / 60 * 360
+```
+
+- `0%` 与 `100%` 都指向 12 点整（读数统一显示 `12:00`，两针重合朝上）；
+- `25% → 3:00`、`50% → 6:00`、`75% → 9:00`，可在 `boot.html` 的「按进度设置」里逐格核对；
+- 指针平滑过渡由 `clock.smooth` 控制（CSS `transition`），关闭后逐格跳变。
+
+### 20.2 bootstrap 接线
+
+- `boot()` 开始时 `ensureBootLayer()`：有组件则 `attach()`（接管静态骨架）并 `configure(app.boot, text.boot)`；无组件则保持 legacy；
+- 原有 `setBootText / setBootStep / hideBoot / showBootError` 保留为对外函数，内部优先委派给组件实例（拆掉组件后行为回到 v1.3.6）；
+- `applyAppMeta()` 同时调用 `inst.setMeta(app)`，品牌/副标题/首页标题改动即时反映到加载层；
+- 阶段进度：`step1 → 8%`、`step2 → 46%`、`step3 → 78%`、`step4 → 100%`（可在 `boot.stages` 改）。
+
+### 20.3 独立性要求
+
+- `standalone/boot.html` 只引 `kui-all.js`（standalone profile）+ `theme-boot.js` + 必要样式，不引 app-shell / bootstrap；
+- 同理 `boot.js` 不依赖 app-shell、不依赖 bootstrap，缺 `KUI.config` / `KUI.text` 时走内部默认值。

@@ -1,10 +1,10 @@
-# 08 · 组件详解：menu / menunav / tabs / dialog / toast / app-shell
+# 08 · 组件详解：menu / menunav / tabs / dialog / toast / app-shell / boot / boot
 
-> 适用版本：KurumiUI v1.3.6 ｜ 前置章节：[03-assembly.md](03-assembly.md)、[04-config-app.md](04-config-app.md)、[07-form-engine.md](07-form-engine.md) ｜ 阅读时长：约 45 分钟
+> 适用版本：KurumiUI v1.3.7 ｜ 前置章节：[03-assembly.md](03-assembly.md)、[04-config-app.md](04-config-app.md)、[07-form-engine.md](07-form-engine.md) ｜ 阅读时长：约 45 分钟
 
 ## 本章目标
 
-- 掌握六个外壳组件（`menu`、`menunav`、`tabs`、`dialog`、`toast`、`app-shell`）的 **props 全字段、源码默认值与必填项**，能判断「不配会怎样」。
+- 掌握七个外壳组件（`menu`、`menunav`、`tabs`、`dialog`、`toast`、`app-shell`、`boot`）的 **props 全字段、源码默认值与必填项**，能判断「不配会怎样」。
 - 会用 `el.__kuiInstance` 与组件专属句柄拿到实例，完成 `setActive`、`open`、`setBreadcrumb` 之类的运行时操作。
 - 能区分「props 回调事件」与「全局总线事件」，知道哪些事件可以被取消、哪些只能观察。
 - 能写出「菜单树 + 多标签 + 面包屑」的联动代码，并解释保活（keepAlive）与 iframe 生命周期的关系。
@@ -139,7 +139,7 @@ var menu = el.__kuiMenu;               // 等价：el.__kuiInstance
 | `footer` | object \| null | `null` | 否 | 页脚配置；`null` 时不渲染页脚 |
 | `footer.title` | string | 无（`undefined`） | 否 | 页脚标题 |
 | `footer.subtitle` | string | 源码未读取 | 否 | **源码未渲染**：`menu.js` 只渲染 `title`/`version`/`actions`，`subtitle` 配了不显示 |
-| `footer.version` | string | 无（`undefined`） | 否 | 版本文字（例：`v1.3.6`） |
+| `footer.version` | string | 无（`undefined`） | 否 | 版本文字（例：`v1.3.7`） |
 | `footer.actions` | array | 无（`undefined`） | 否 | 页脚动作：字符串（按钮文本）或节点对象（`button` 等，经 `KUI.renderNode`），对象也可写 `{text,icon,on:{click}}` |
 | `accordion` | boolean | `true` | 否 | 同级子菜单是否互斥展开（手风琴） |
 | `flyout` | boolean | `true` | 否 | 折叠态是否悬停弹出浮出子菜单（flyout） |
@@ -1234,7 +1234,7 @@ KUI.toast.notify({
 {
   "type": "app-shell",
   "props": {
-    "app": { "title": "刻刻帝终端", "subtitle": "KurumiUI v1.3.6", "logoIcon": "clock", "home": "pages/home.html" },
+    "app": { "title": "刻刻帝终端", "subtitle": "KurumiUI v1.3.7", "logoIcon": "clock", "home": "pages/home.html" },
     "layout": {
       "gap": 10,
       "menu": { "width": 252, "collapsedWidth": 68, "collapsed": false },
@@ -1346,7 +1346,7 @@ console.log(app.isCollapsed(), app.getActiveTab());
 
 ```json
 {
-  "app": { "title": "刻刻帝终端", "subtitle": "KurumiUI v1.3.6", "logoIcon": "clock", "home": "pages/home.html" },
+  "app": { "title": "刻刻帝终端", "subtitle": "KurumiUI v1.3.7", "logoIcon": "clock", "home": "pages/home.html" },
   "layout": { "gap": 10, "menu": { "width": 252, "collapsedWidth": 68 }, "header": { "height": 56 }, "tabbarHeight": 38 },
   "menu": {
     "type": "menu",
@@ -1457,6 +1457,83 @@ KUI.bus.on('tabs:activate', function (payload) {
 | 创建了两次，事件重复触发 | 多次 `KUI.app.create`，`KUI.app.instance` 只指向最后一个 | 单页只创建一次；先 `destroy()` 再创建 |
 | 面包屑分隔符显示成文字 `chevron-right` | `separator` 只按文本渲染 | 想用图标请用 CSS 给 `.kui-menunav__crumb-sep` 加伪元素，别传图标名 |
 
+## 6.5 boot：加载层（时钟指针进度，v1.3.7 新增）
+
+### 6.5.1 作用与在整体界面中的位置
+
+`boot` 是「访问服务 / 刷新页面」到「主界面就绪」之间那一屏：全屏遮罩里一棵时钟图形 + 进度条 + 阶段文案。
+它是可拆装组件：`index.html` 里保留静态骨架 `#kui-boot`，组件加载后 `attach()` 接管（只重建内部，不闪屏）；
+`bootstrap.js` 在启动的 4 个阶段调用 `setProgress / setText / setStep`，100% 后 `done()` 淡出。
+
+### 6.5.2 最小可运行示例（独立页）
+
+```html
+<div id="host"></div>
+<script src="../src/core/kui-all.js" data-kui-profile="standalone"></script>
+<script>
+  var inst = KUI.bootLayer.create(document.getElementById("host"), {
+    mode: "inline",
+    clock: { mode: "progress", size: 96 },
+    stages: [{ step: 1, progress: 0, text: "开始" }, { step: 2, progress: 100, text: "完成" }]
+  });
+  inst.setProgress(25);      // 指针 → 3:00
+  inst.setProgress(50);      // 指针 → 6:00
+</script>
+```
+
+### 6.5.3 进度与指针的换算（要改动画逻辑时看这里）
+
+| 进度 | 时刻 | 时针角度 | 分针角度 |
+| --- | --- | --- | --- |
+| 0% | 12:00 | 0° | 0° |
+| 25% | 03:00 | 90° | 0° |
+| 50% | 06:00 | 180° | 0° |
+| 75% | 09:00 | 270° | 0° |
+| 100% | 12:00 | 360°（=0°） | 0° |
+
+公式：`总分钟 = p/100*720`；`时针 = 总分钟/720*360`；`分针 = (总分钟%60)/60*360`。
+两针是**连续**走的（不是整点跳），所以 12.5% 时读数 01:30、时针 45° 分针 180°。
+
+### 6.5.4 props 字段
+
+与 `app.json:boot` 完全一致（`mode / meta / clock / bar / stages / text`），另有两个运行时字段：
+
+| 字段 | 类型 | 默认 | 说明 |
+| --- | --- | --- | --- |
+| `props.auto` | boolean | `true` | 仅 `bootstrap` 使用：`false` 时不自动隐藏 |
+| `props.progress` | number | `0` | 初始进度 |
+
+### 6.5.5 实例 API
+
+| 方法 | 说明 |
+| --- | --- |
+| `el` / `config` | 根节点 / 当前配置 |
+| `setProgress(p, { silent })` | 设置进度（0–100），驱动两针、进度条、百分比 |
+| `setStep(n)` | 切到第 n 阶段（同步该阶段的 progress / 文案） |
+| `setText(t)` / `setMeta({ title, subtitle })` | 改阶段文案 / 品牌两行 |
+| `done()` / `error(msg, detail)` / `reset()` | 淡出完成 / 失败卡片 / 回到初始 |
+| `show()` / `hide()` / `destroy()` | 显示 / 隐藏 / 销毁（移除 DOM 与单例） |
+| `getState()` / `handsAt(p)` | 当前状态 / 纯函数位姿 |
+
+### 6.5.6 事件表
+
+| 事件 | 参数 | 说明 |
+| --- | --- | --- |
+| `boot:progress` | `{ percent, step, clockText }` | 每次进度变化（`silent` 不触发） |
+| `boot:done` | `{}` | `done()` 之后 |
+| `boot:error` | `{ message, detail }` | 失败态出现时 |
+
+### 6.5.7 常见错误与排查
+
+| 现象 | 原因 | 处理 |
+| --- | --- | --- |
+| 刷新后没有加载动画，直接出界面 | 组件被拆掉且静态骨架也没有；或 `boot.enabled=false` | 检查 `config/kui-modules.json` 是否含 `boot.js`、`index.html` 是否保留 `#kui-boot` |
+| 时钟不动 | 组件缺失（legacy 分支只有 CSS 转圈） | 控制台 `KUI.bootLayer.isReady()`；`false` 说明 `boot.js` 没加载 |
+| 指针不动或乱跳 | `clock.mode` 是 `spin`（匀速自转，与进度无关） | 改回 `progress` |
+| 进度到 100% 不消失 | `auto:false`（调试模式） | 调 `KUI.bootLayer.instance().done()` |
+
+---
+
 ## 7. 组件间联动全景
 
 ### 7.1 责任矩阵
@@ -1533,6 +1610,16 @@ KUI.dialog.alert('自检弹窗');                // 出现一个 iframe 弹窗
 - 点菜单项：标签打开、菜单高亮；若已按 6.7 接线，面包屑同步。
 - 点标签关闭按钮：可关闭标签；固定标签（`pinned:true`）点关闭无效。
 - 点导航条后退按钮：标签回到上一个；再点前进回到最新。
+
+## 参考源码（boot 追加）
+
+- `src/components/boot.js:1-40` —— 文件头契约与进度换算说明；`:38-152` —— `DEFAULTS` 与 `state`；`:160-360` —— `buildNode()` 骨架（钟面/刻度/两针/进度条/阶段文案）；`:400-470` —— 单例与 `attach()` 接管；`:470-560` —— `configure / create`；`:560-708` —— 实例 API 与 `handsAt` 纯函数；`:708-782` —— 注册与 `KUI.bootLayer`。
+- `src/styles/boot.css` —— 遮罩、钟面、指针、进度条、失败态、内嵌模式；`config/app.json:38-51`；`config/text.json:76-90`；`standalone/boot.html`。
+
+## 参考源码（boot 追加）
+
+- `src/components/boot.js:1-40` —— 文件头契约与进度换算说明；`:38-152` —— `DEFAULTS` 与 `state`；`:160-360` —— `buildNode()` 骨架（钟面/刻度/两针/进度条/阶段文案）；`:400-470` —— 单例与 `attach()` 接管；`:470-560` —— `configure / create`；`:560-708` —— 实例 API 与 `handsAt` 纯函数；`:708-782` —— 注册与 `KUI.bootLayer`。
+- `src/styles/boot.css` —— 遮罩、钟面、指针、进度条、失败态、内嵌模式；`config/app.json:38-51`；`config/text.json:76-90`；`standalone/boot.html`。
 
 ## 参考源码
 

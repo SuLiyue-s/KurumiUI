@@ -1,6 +1,6 @@
 # 01 · 安装与首次运行
 
-> 适用版本：KurumiUI v1.3.6 ｜ 前置章节：无（本手册起点）｜ 阅读时长：约 14 分钟
+> 适用版本：KurumiUI v1.3.7 ｜ 前置章节：无（本手册起点）｜ 阅读时长：约 14 分钟
 
 ## 本章目标
 
@@ -133,7 +133,7 @@ npx serve -l 8080 .
 | --- | --- | --- |
 | `?kui_debug=1` | 打开诊断面板（`src/core/diag.js:237`） | `http://127.0.0.1:8080/?kui_debug=1` |
 | `?kuiTheme=<id>` | 强制主题（`src/core/theme.js:166`） | `http://127.0.0.1:8080/?kuiTheme=starry` |
-| `?kui_v=<版本>` | 由框架自动追加到 iframe 子页 URL 做缓存穿透，手加一般无意义 | `.../pages/home.html?kui_v=1.3.6` |
+| `?kui_v=<版本>` | 由框架自动追加到 iframe 子页 URL 做缓存穿透，手加一般无意义 | `.../pages/home.html?kui_v=1.3.7` |
 
 > `?demo=<name>` 只出现在菜单项的静态 URL（`config/app.json:564` 的 `standalone/menu.html?demo=menu`），框架层与 `standalone/*.html` 都不解析它，不要写进验收脚本。
 
@@ -161,9 +161,9 @@ KurumiUI 配置打包完成
 浏览器控制台检查（http 模式打开 `http://127.0.0.1:8080/`，F12 → Console）：
 
 ```js
-KUI.version                  // '1.3.6'
+KUI.version                  // '1.3.7'
 KUI.env.isBrowser            // true
-KUI.registry.list().length   // 40（其中 19 个是表单控件）
+KUI.registry.list().length   // 41（其中 19 个是表单控件）
 KUI.actions.list().length    // 28
 KUI.handlers.list().length   // 61
 KUI.config.isHttp()          // true；file:// 下为 false
@@ -191,7 +191,7 @@ typeof window.__KUI_BUNDLE__ // 'object'
 | `src/frame/` | 框架页 | `kui-frame.js` 内嵌页框架；`dialog-frame.html` + `dialog-frame.js` 弹窗页 |
 | `src/styles/` | 样式 | `base.css` / `controls.css` / `components.css` / `tooltip.css` / `avatar.css`，主题 token 在 `themes/` |
 | `src/themes.json` | 主题数据 | 6 套主题（kurumi 默认、kurumi-angel、starry、sakura、abyss、dawn） |
-| `pages/`、`standalone/` | 页面 | 7 个配置驱动业务页；11 个独立渲染页 + `embedded.js` |
+| `pages/`、`standalone/` | 页面 | 7 个配置驱动业务页；12 个独立渲染页 + `embedded.js` |
 | `test/`、`tools/` | 测试与工程工具 | `run.js` + 四个套件 + `dom-stub.js`；构建 2 个脚本；校验 / 审计 / 冒烟 9 个（含手册校验器 `check-manual.js`，`node tools/check-manual.js [--json] [--strict]`）；截图 1 个 |
 
 `index.html:154` 只引一行 `src/core/kui-all.js`，加载哪些模块由 `config/kui-modules.json` 的 `files` 数组决定，详见 [02-build.md](02-build.md) 与第 03 章。
@@ -249,7 +249,7 @@ KurumiUI 配置打包完成
 汇总: 30 通过 / 0 失败 / 0 跳过   总计 30   耗时 ...ms   => PASS
 ```
 
-最后 `npm start`，打开 `http://127.0.0.1:8080/`，在控制台执行 1.6 节检查，得到 `1.3.6 / true / 40 / 28 / 61 / true` 即安装完成。
+最后 `npm start`，打开 `http://127.0.0.1:8080/`，在控制台执行 1.6 节检查，得到 `1.3.7 / true / 41 / 28 / 61 / true` 即安装完成。
 
 ## 参考源码
 

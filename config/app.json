@@ -35,6 +35,17 @@
       "escClosable": true
     }
   },
+  "boot": {
+    "clock": { "enabled": true, "mode": "progress", "size": 74, "ticks": 12, "smooth": true },
+    "bar": { "enabled": true, "mode": "progress" },
+    "meta": true,
+    "stages": [
+      { "step": 1, "text": "正在加载界面配置…", "progress": 8 },
+      { "step": 2, "text": "正在应用界面风格…", "progress": 46 },
+      { "step": 3, "text": "正在构建界面…", "progress": 78 },
+      { "step": 4, "text": "结界已就绪", "progress": 100 }
+    ]
+  },
   "dialogs": {
     "settings": {
       "title": "终端设置",

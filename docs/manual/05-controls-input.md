@@ -1,6 +1,6 @@
 # 05 · 表单控件：19 个 control 类型
 
-> 适用版本：KurumiUI v1.3.6 ｜ 前置章节：[04-config-app.md](04-config-app.md) ｜ 阅读时长：约 25 分钟
+> 适用版本：KurumiUI v1.3.7 ｜ 前置章节：[04-config-app.md](04-config-app.md) ｜ 阅读时长：约 25 分钟
 
 `KUI.registry.list()` 里 `category==='control'` 共 **19** 个。本章逐控件给：作用、最小 JSON、字段表、通用默认、事件/API、坑、表单内写法；默认值取自源码 `*_DEFAULTS`。
 

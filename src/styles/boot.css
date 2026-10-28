@@ -1,0 +1,334 @@
+/*!
+ * KurumiUI · 启动层 boot.css
+ * ---------------------------------------------------------------
+ * 访问服务 / 刷新页面时的「加载中」整层：时钟表盘 + 时针/分针 + 进度条 + 文案。
+ *
+ * 结构（由 src/components/boot.js 渲染）：
+ *   .kui-boot                       整层（fixed 全屏，或 --inline 相对定位）
+ *     .kui-boot__inner              居中的一列
+ *       .kui-boot__clock            时钟（--kui-boot-size 控制直径）
+ *         .kui-boot__dial           表盘刻度（纯 CSS）
+ *         .kui-boot__hand--hour     时针（短粗）
+ *         .kui-boot__hand--minute   分针（长细）
+ *         .kui-boot__pin            轴心
+ *       .kui-boot__title / __sub
+ *       .kui-boot__bar > span       进度条（--kui-boot-progress 0..100）
+ *       .kui-boot__text             当前步骤文案
+ *       .kui-boot__meta             百分比 + 时钟读数（可选）
+ *       .kui-boot__error            启动失败卡片
+ *
+ * 主题：全部走 CSS Token（src/themes.json），不写死色值；var() 第二参为
+ * 与「绯红刻刻帝 / kurumi」主题一致的兜底值，未被主题系统接管时也能看。
+ * 时钟的角度由 JS 写入内联 transform（0%→0 时，100%→12 时，见 boot.js）。
+ * 契约：docs/00-contract.md §4、§23（启动层组件）
+ */
+
+/* ============================================================
+ * 一、整层与静态降级骨架
+ * ============================================================ */
+
+.kui-boot {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background:
+    radial-gradient(60% 55% at 50% 42%, rgba(200, 16, 46, .16), transparent 70%),
+    radial-gradient(38% 32% at 76% 24%, rgba(212, 175, 55, .10), transparent 72%),
+    var(--kui-bg-0, #08050a);
+  color: var(--kui-text-1, #ece6ee);
+  transition: opacity .32s ease, visibility .32s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 内嵌模式：不铺满视口，由调用方容器定位（独立测试页 / iframe 内预览） */
+.kui-boot--inline {
+  position: absolute;
+  inset: 0;
+}
+
+.kui-boot.is-done { opacity: 0; visibility: hidden; pointer-events: none; }
+.kui-boot.is-error { cursor: default; }
+
+.kui-boot__inner {
+  width: min(360px, 78vw);
+  text-align: center;
+  animation: kui-boot-rise .42s ease-out both;
+}
+
+@keyframes kui-boot-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* 静态降级：如果只用 index.html 的裸骨架（没有加载 boot.js 组件），
+ * 显示一个会转的齿轮环，保证首屏仍然完整。组件接管后 .kui-boot__logo 会被替换。 */
+.kui-boot__logo {
+  width: 74px;
+  height: 74px;
+  margin: 0 auto 18px;
+  border-radius: 50%;
+  border: 1px solid rgba(200, 16, 46, .55);
+  box-shadow: 0 0 24px rgba(200, 16, 46, .35), inset 0 0 18px rgba(200, 16, 46, .22);
+  position: relative;
+  animation: kui-boot-logo-spin 5.2s linear infinite;
+}
+.kui-boot__logo::before,
+.kui-boot__logo::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform-origin: 50% 100%;
+  background: rgba(200, 16, 46, .85);
+  border-radius: 2px;
+}
+.kui-boot__logo::before { width: 2px; height: 24px; margin-left: -1px; margin-top: -24px; }
+.kui-boot__logo::after {
+  width: 2px;
+  height: 17px;
+  margin-left: -1px;
+  margin-top: -17px;
+  background: rgba(212, 175, 55, .9);
+  transform: rotate(120deg);
+}
+@keyframes kui-boot-logo-spin { to { transform: rotate(360deg); } }
+
+/* ============================================================
+ * 二、时钟表盘（进度 0%→100% = 0 时→12 时）
+ * ============================================================ */
+
+.kui-boot__clock {
+  --kui-boot-size: 74px;
+  width: var(--kui-boot-size);
+  height: var(--kui-boot-size);
+  margin: 0 auto 18px;
+  position: relative;
+  border-radius: 50%;
+  border: 1px solid var(--kui-border, rgba(200, 16, 46, .45));
+  background:
+    radial-gradient(circle at 50% 42%, rgba(200, 16, 46, .18), rgba(8, 5, 10, 0) 62%),
+    var(--kui-bg-1, #141018);
+  box-shadow:
+    0 0 26px rgba(200, 16, 46, .28),
+    inset 0 0 20px rgba(200, 16, 46, .20);
+}
+
+/* 12 条刻度：repeating-conic-gradient，避免 12 个 DOM 节点 */
+.kui-boot__dial {
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background:
+    repeating-conic-gradient(
+      from -0.4deg,
+      var(--kui-accent-2, #d4af37) 0deg 0.8deg,
+      transparent 0.8deg 30deg
+    );
+  -webkit-mask: radial-gradient(circle, transparent 0 62%, #000 62.5% 100%);
+          mask: radial-gradient(circle, transparent 0 62%, #000 62.5% 100%);
+  opacity: .72;
+  pointer-events: none;
+}
+
+/* 时针：短、粗，主题强调色 */
+.kui-boot__hand {
+  position: absolute;
+  left: 50%;
+  bottom: 50%;
+  border-radius: 3px;
+  transform-origin: 50% 100%;
+  will-change: transform;
+  transition: transform .5s cubic-bezier(.22, .68, .28, 1);
+}
+.kui-boot__hand--hour {
+  width: 3px;
+  height: 26%;
+  margin-left: -1.5px;
+  background: linear-gradient(to top, var(--kui-accent, #c8102e), var(--kui-accent-hover, #e01436));
+  box-shadow: 0 0 8px rgba(200, 16, 46, .55);
+}
+/* 分针：长、细，鎏金副强调色（与时针区分，便于观察指向） */
+.kui-boot__hand--minute {
+  width: 2px;
+  height: 38%;
+  margin-left: -1px;
+  background: linear-gradient(to top, var(--kui-accent-2, #d4af37), var(--kui-accent-2-soft, rgba(212, 175, 55, .65)));
+  box-shadow: 0 0 7px rgba(212, 175, 55, .45);
+}
+
+.kui-boot__pin {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  margin: -2.5px 0 0 -2.5px;
+  border-radius: 50%;
+  background: var(--kui-accent-2, #d4af37);
+  box-shadow: 0 0 6px rgba(212, 175, 55, .8);
+}
+
+/* 平滑关闭（prefers-reduced-motion） */
+@media (prefers-reduced-motion: reduce) {
+  .kui-boot__hand { transition: none; }
+  .kui-boot__logo { animation: none; }
+  .kui-boot__inner { animation: none; }
+}
+
+/* 装饰性旋转模式（clock.mode: "spin"）：整块表盘匀速转，用于不确定进度场景 */
+.kui-boot[data-boot-clock-mode="spin"] .kui-boot__clock {
+  animation: kui-boot-clock-spin 5.2s linear infinite;
+}
+.kui-boot[data-boot-clock-mode="spin"] .kui-boot__hand { transition: none; }
+@keyframes kui-boot-clock-spin { to { transform: rotate(360deg); } }
+
+/* ============================================================
+ * 三、文字 / 进度条 / 读数
+ * ============================================================ */
+
+.kui-boot__title {
+  font-size: 18px;
+  letter-spacing: .32em;
+  text-transform: uppercase;
+  color: var(--kui-text-1, #ece6ee);
+  margin-bottom: 4px;
+}
+
+.kui-boot__sub {
+  font-size: 11px;
+  letter-spacing: .22em;
+  color: var(--kui-accent-2, rgba(212, 175, 55, .72));
+  margin-bottom: 20px;
+  opacity: .85;
+}
+
+.kui-boot__bar {
+  height: 2px;
+  border-radius: 2px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, .08);
+}
+.kui-boot__bar > span {
+  display: block;
+  height: 100%;
+  width: var(--kui-boot-progress, 0%);
+  background: linear-gradient(90deg, var(--kui-accent, #c8102e), var(--kui-accent-2, #d4af37));
+  transition: width .5s cubic-bezier(.22, .68, .28, 1);
+}
+
+/* 不确定进度（mode: indeterminate）：保留旧的流光动画 */
+.kui-boot[data-boot-bar="indeterminate"] .kui-boot__bar > span {
+  width: 38%;
+  animation: kui-boot-bar 1.15s ease-in-out infinite;
+}
+@keyframes kui-boot-bar {
+  0%   { transform: translateX(-100%); }
+  60%  { transform: translateX(160%); }
+  100% { transform: translateX(160%); }
+}
+
+.kui-boot__text {
+  margin-top: 12px;
+  font-size: 12px;
+  letter-spacing: .06em;
+  color: rgba(236, 230, 238, .6);
+  min-height: 18px;
+}
+
+.kui-boot__meta {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-family: var(--kui-font-mono, ui-monospace, Consolas, monospace);
+  font-size: 11px;
+  color: var(--kui-accent-2, rgba(212, 175, 55, .82));
+  opacity: .9;
+}
+.kui-boot__meta[hidden] { display: none; }
+.kui-boot__meta-sep { opacity: .45; }
+
+/* 无表盘 / 无进度条时收窄间距 */
+.kui-boot[data-boot-clock="off"] .kui-boot__clock { display: none; }
+.kui-boot[data-boot-bar="off"] .kui-boot__bar { display: none; }
+
+/* ============================================================
+ * 四、启动失败卡片
+ * ============================================================ */
+
+.kui-boot__error {
+  max-width: 620px;
+  padding: 22px 24px;
+  text-align: left;
+  border: 1px solid rgba(200, 16, 46, .5);
+  border-radius: 8px;
+  background: rgba(18, 10, 16, .92);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, .6);
+}
+.kui-boot__error-title {
+  font-size: 15px;
+  margin-bottom: 10px;
+  color: #ff8f9c;
+  letter-spacing: .04em;
+}
+.kui-boot__error-msg {
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--kui-text-1, #ece6ee);
+  word-break: break-word;
+}
+.kui-boot__error-detail {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  max-height: 180px;
+  overflow: auto;
+  font-family: var(--kui-font-mono, ui-monospace, Consolas, monospace);
+  font-size: 11px;
+  line-height: 1.6;
+  color: rgba(236, 230, 238, .62);
+  background: rgba(0, 0, 0, .35);
+  border-radius: 6px;
+  white-space: pre-wrap;
+}
+.kui-boot__error-tip {
+  margin-top: 12px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: rgba(212, 175, 55, .8);
+}
+.kui-boot__error button {
+  margin-top: 16px;
+  cursor: pointer;
+  padding: 7px 18px;
+  font: inherit;
+  font-size: 13px;
+  color: #fff;
+  background: #c8102e;
+  border: 1px solid rgba(255, 255, 255, .16);
+  border-radius: 4px;
+  transition: background .18s ease;
+}
+.kui-boot__error button:hover { background: #e01436; }
+.kui-boot__error button:focus-visible {
+  outline: 2px solid var(--kui-accent-2, #d4af37);
+  outline-offset: 2px;
+}
+
+/* ============================================================
+ * 五、内嵌预览容器（standalone/boot.html 演示用）
+ * ============================================================ */
+
+.kui-boot-preview {
+  position: relative;
+  height: 380px;
+  border: 1px solid var(--kui-border, #2a1f26);
+  border-radius: var(--kui-radius-lg, 10px);
+  overflow: hidden;
+  background: var(--kui-bg-0, #08050a);
+}
+.kui-boot-preview > .kui-boot { padding: 16px; }

@@ -16,111 +16,8 @@
   <link rel="stylesheet" href="src/styles/components.css">
 <link rel="stylesheet" href="src/styles/tooltip.css">
 
-  <!-- 启动层：保证在任何脚本/样式加载完成前也有像样的首屏（纯 CSS，不依赖主题） -->
-  <style>
-    html, body { height: 100%; margin: 0; }
-    body {
-      background: var(--kui-bg-0, #08050a);
-      color: var(--kui-text-1, #ece6ee);
-      font-family: var(--kui-font-family, system-ui, "Segoe UI", "Microsoft YaHei", sans-serif);
-      overflow: hidden;
-    }
-    #kui-app { height: 100%; }
-
-    .kui-boot {
-      position: fixed;
-      inset: 0;
-      z-index: 99999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background:
-        radial-gradient(60% 55% at 50% 42%, rgba(200, 16, 46, .16), transparent 70%),
-        radial-gradient(38% 32% at 76% 24%, rgba(212, 175, 55, .10), transparent 72%),
-        var(--kui-bg-0, #08050a);
-      transition: opacity .32s ease, visibility .32s ease;
-    }
-    .kui-boot.is-done { opacity: 0; visibility: hidden; pointer-events: none; }
-    .kui-boot__inner {
-      width: min(360px, 78vw);
-      text-align: center;
-    }
-    .kui-boot__logo {
-      width: 74px; height: 74px; margin: 0 auto 18px;
-      border-radius: 50%;
-      border: 1px solid rgba(200, 16, 46, .55);
-      box-shadow: 0 0 24px rgba(200, 16, 46, .35), inset 0 0 18px rgba(200, 16, 46, .22);
-      position: relative;
-      animation: kui-boot-spin 5.2s linear infinite;
-    }
-    .kui-boot__logo::before,
-    .kui-boot__logo::after {
-      content: "";
-      position: absolute;
-      left: 50%; top: 50%;
-      transform-origin: 50% 100%;
-      background: rgba(200, 16, 46, .85);
-      border-radius: 2px;
-    }
-    .kui-boot__logo::before { width: 2px; height: 24px; margin-left: -1px; margin-top: -24px; }
-    .kui-boot__logo::after {
-      width: 2px; height: 17px; margin-left: -1px; margin-top: -17px;
-      background: rgba(212, 175, 55, .9);
-      transform: rotate(120deg);
-    }
-    .kui-boot__title {
-      font-size: 18px; letter-spacing: .32em; text-transform: uppercase;
-      color: var(--kui-text-1, #ece6ee);
-      margin-bottom: 4px;
-    }
-    .kui-boot__sub {
-      font-size: 11px; letter-spacing: .22em;
-      color: rgba(212, 175, 55, .72);
-      margin-bottom: 20px;
-    }
-    .kui-boot__bar {
-      height: 2px; border-radius: 2px; overflow: hidden;
-      background: rgba(255, 255, 255, .08);
-    }
-    .kui-boot__bar > span {
-      display: block; height: 100%; width: 38%;
-      background: linear-gradient(90deg, transparent, var(--kui-accent, #c8102e), var(--kui-accent-2, #d4af37));
-      animation: kui-boot-bar 1.15s ease-in-out infinite;
-    }
-    .kui-boot__text {
-      margin-top: 12px; font-size: 12px; letter-spacing: .06em;
-      color: rgba(236, 230, 238, .6); min-height: 18px;
-    }
-    @keyframes kui-boot-spin { to { transform: rotate(360deg); } }
-    @keyframes kui-boot-bar {
-      0%   { transform: translateX(-100%); }
-      60%  { transform: translateX(160%); }
-      100% { transform: translateX(160%); }
-    }
-    .kui-boot__error {
-      max-width: 620px; padding: 22px 24px; text-align: left;
-      border: 1px solid rgba(200, 16, 46, .5);
-      border-radius: 8px;
-      background: rgba(18, 10, 16, .92);
-      box-shadow: 0 18px 48px rgba(0, 0, 0, .6);
-    }
-    .kui-boot__error-title { font-size: 15px; margin-bottom: 10px; color: #ff8f9c; letter-spacing: .04em; }
-    .kui-boot__error-msg { font-size: 13px; line-height: 1.7; color: var(--kui-text-1, #ece6ee); word-break: break-word; }
-    .kui-boot__error-detail {
-      margin: 12px 0 0; padding: 10px 12px; max-height: 180px; overflow: auto;
-      font-family: var(--kui-font-mono, ui-monospace, Consolas, monospace);
-      font-size: 11px; line-height: 1.6; color: rgba(236, 230, 238, .62);
-      background: rgba(0, 0, 0, .35); border-radius: 6px; white-space: pre-wrap;
-    }
-    .kui-boot__error-tip { margin-top: 12px; font-size: 12px; line-height: 1.7; color: rgba(212, 175, 55, .8); }
-    .kui-boot__error button {
-      margin-top: 16px; cursor: pointer;
-      padding: 7px 18px; font: inherit; font-size: 13px;
-      color: #fff; background: #c8102e;
-      border: 1px solid rgba(255, 255, 255, .16); border-radius: 4px;
-    }
-    .kui-boot__error button:hover { background: #e01436; }
-  </style>
+  <!-- 启动层样式：组件 src/components/boot.js 渲染；组件缺位时静态骨架仍可降级显示 -->
+  <link rel="stylesheet" href="src/styles/boot.css">
 </head>
 <body>
 
@@ -148,7 +45,7 @@
       2. core：命名空间 / 图标 / 注册表 / 配置 / 主题
       3. 元素控件（controls/index.js 会自动按顺序加载全部控件脚本）
       4. 表单引擎（含 deps 联动）
-      5. 框架组件：menu / menunav / tabs / dialog / toast
+      5. 框架组件：menu / menunav / tabs / dialog / toast / boot（加载层）
       6. app-shell 与启动器
   -->
 <script src="src/core/kui-all.js" data-kui-profile="app"></script>
