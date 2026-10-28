@@ -502,6 +502,42 @@
     iconEl.innerHTML = iconHtml(name);
   }
 
+  /** 副标题（config.subtitle；v1.3.8 起渲染，之前该字段被丢弃） */
+  function renderSubtitle(config) {
+    if (!headerEl) { return; }
+    var node = headerEl.querySelector('.kui-dialog__subtitle');
+    var text = config.subtitle !== undefined && config.subtitle !== null ? String(config.subtitle) : '';
+    if (!text) {
+      if (node) { node.parentNode.removeChild(node); }
+      return;
+    }
+    if (!node) {
+      node = el('p', 'kui-dialog__subtitle');
+      node.setAttribute('data-dialog-subtitle', '');
+      if (titleEl && titleEl.nextSibling) { headerEl.insertBefore(node, titleEl.nextSibling); }
+      else { headerEl.appendChild(node); }
+    }
+    node.textContent = text;
+  }
+
+  /** 副标题（config.subtitle；v1.3.8 起渲染，之前该字段被丢弃） */
+  function renderSubtitle(config) {
+    if (!headerEl) { return; }
+    var node = headerEl.querySelector('.kui-dialog__subtitle');
+    var text = config.subtitle !== undefined && config.subtitle !== null ? String(config.subtitle) : '';
+    if (!text) {
+      if (node) { node.parentNode.removeChild(node); }
+      return;
+    }
+    if (!node) {
+      node = el('p', 'kui-dialog__subtitle');
+      node.setAttribute('data-dialog-subtitle', '');
+      if (titleEl && titleEl.nextSibling) { headerEl.insertBefore(node, titleEl.nextSibling); }
+      else { headerEl.appendChild(node); }
+    }
+    node.textContent = text;
+  }
+
   function renderTitle(config) {
     if (!titleEl) { return; }
     var title = config.title !== undefined && config.title !== null ? String(config.title) : '';
@@ -1056,6 +1092,7 @@
     }
     renderTitle(config);
     renderIcon(config);
+    renderSubtitle(config);
     if (bodyEl) {
       clear(bodyEl);
       try {

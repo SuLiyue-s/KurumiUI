@@ -1,3 +1,49 @@
+## v1.3.8 — 配置接线修复 + 配置读取点一致性审计
+
+> 需求（用户）：「接线缺口：app.json 的 boot 段运行时完全不生效。是否有配置字段无读取点，配置也不生效的。
+> 修复一下，修复完成后审计一下代码，查看是否有类似缺陷。」
+
+### 一、boot 段接线（主修复）
+
+| 项 | 实现 |
+| --- | --- |
+| 接线点 | `src/app/bootstrap.js` 新增 `applyBootConfig(appCfg, textCfg)`，在 `boot()` 的 `i18n.set` 之后调用 |
+| 应用 | `configureBootLayer` → `KUI.bootLayer.configure(bootConfigOf(appCfg) \|\| {}, textCfg.boot)` |
+| 关闭开关 | `boot.enabled === false`：不创建启动层，已有实例 `destroy()` |
+| 可核对 | `KUI.boot.appliedBootConfig`（应用后的配置快照） |
+| legacy | `app.app.loading` 映射到 `bootConfigOf` 的旧分支，仍兼容 v1.3.6 写法 |
+
+### 二、同类「配置无读取点」缺陷（审计发现并修复）
+
+| 字段 | 缺陷 | 修复 |
+| --- | --- | --- |
+| `app.app.version / logoIcon / logoText / copyright`、`menu.props.brand.logoText`、`menu.props.footer.subtitle / copyright` | 文档承诺可配，源码无渲染点 | `applyAppMeta` 注入默认值 + `menu.js` 渲染 `logoText` / `footer.subtitle` / `footer.copyright` + `components.css` 样式 |
+| `theme.picker.title / desc / columns / maskClosable / showPreview / showScheme` | 选择器写死 `KUI.text` 与 3 列布局 | `openThemePicker` / `buildThemePickerNodes` 读取配置 |
+| `ui.dialog.escClosable` | 只认 `closeOnEsc` | `dialog.config()` 别名映射 |
+| `boot.clock.smooth` | 仅默认值，无消费 | 写 `data-boot-smooth`，CSS 控制指针过渡 |
+| `tabs.props.keepAlive` | 声明但从未使用 | `false` 时切回重建 iframe |
+| `dialog.config()` | 深合并结果未写回 DEFAULTS，`ui.dialog.*` 不生效 | 回写 |
+| 容器节点 `class / style / attrs` | 无 `type` 的容器分支丢弃 style/attrs，`theme.picker.columns` 视觉无效 | `KUI.renderNode` 容器分支统一 `decorate()` |
+| 弹窗 `subtitle` | `dialog-frame` 从未渲染，`theme.picker.desc` 恒定丢失 | 新增 `renderSubtitle()` 与 `.kui-dialog__subtitle` 样式 |
+
+### 三、新增审计工具 `tools/audit-config.js`
+
+- 静态核对 `config/app.json` 的 468 个叶子键在 `src/**/*.js` 是否有属性读取点；动态数据白名单 37 项，待核对 431 项；
+- 命令：`node tools/audit-config.js`（`npm run audit:config`），有缺口时退出码 1；结果 **0 缺口**。
+
+### 四、测试与验收
+
+- `tools/smoke.js` 新增 `[28]` 五组断言（boot 应用 / enabled:false 销毁 / app.* 注入 / 菜单渲染 / keepAlive 行为），**104 / 0**；
+- `test/render.test.js` 新增 keepAlive 用例（**9 / 0**）；`test/config.test.js` 新增用例 5（**5 / 0**）；
+- `test/run.js` **32 / 0 / 0**；`audit-consistency` 17/0；`audit-components` 19/0；`audit-all-pages` 19/19；`check-assets` 21 HTML 0/0；`check-manual` 0 错 0 警。
+
+### 五、文档与版本
+
+- 契约 [`docs/00-contract.md`](docs/00-contract.md) 新增 §20.4「配置接通性修复」，并修正 §20 实例 API 列表；
+- 配置参考 §1.8 / §3.6 / §3.5 补接线说明；设计与验收见 [`docs/08-acceptance.md`](docs/08-acceptance.md)；
+- 手册 16 章 §5.5 改写为「历史缺陷 + v1.3.8 修复」，04/08/15 章同步；
+- 版本四处统一 1.3.8：`package.json`、`src/core/kui.js`、`src/frame/kui-frame.js`、`src/core/dom-enhance.js`。
+
 ## v1.3.7 — 加载层组件化（boot）+ 时钟指针进度动画
 
 > 需求（用户）："访问服务时或刷新时的 加载中 页面，也需要可以单独 自由拆卸、组装，且 时钟图案 增加一项 时钟指针动画，
@@ -190,6 +236,7 @@
 2. 提示**正在显示**时，组件改写 `title` 没有任何刷新机制（要等移开再悬浮一次）。
 
 ### 修复
+- `KUI.setStyle` 支持驼峰键（`gridTemplateColumns` → `grid-template-columns`）：此前 `CSSStyleDeclaration.setProperty` 静默忽略驼峰键，容器内联样式失效（主题选择器 6 卡变 1 列、卡片边框色丢失）。
 
 - `textOf()`：以「当前 `title`」为最高优先级，同步写入 `data-kui-tip` 后删除 `title`；
 - `restore()`：还原 `title` 时一并清掉临时 `data-kui-tip`，杜绝残留旧文案；

@@ -1,6 +1,6 @@
 # 02 · 构建与产物
 
-> 适用版本：KurumiUI v1.3.7 ｜ 前置章节：01 · 安装与首次运行 ｜ 阅读时长：约 20 分钟
+> 适用版本：KurumiUI v1.3.8 ｜ 前置章节：01 · 安装与首次运行 ｜ 阅读时长：约 20 分钟
 
 ## 本章目标
 
@@ -20,7 +20,7 @@
 
 运行路径决定「要不要重建」：**http 模式**优先 `fetch` 原始 JSON（带 `no-cache`），改完刷新即生效，`bundle.js` 只作兜底；**file:// 模式**读不到原始 JSON，只能使用 `__KUI_BUNDLE__`，改任何配置都必须重建配置包；**静态部署 / 离线分发**必须把两个产物随源码一起带上。
 
-`index.html:154` 只有一行入口 `<script src="src/core/kui-all.js" data-kui-profile="app"></script>`；`config/bundle.js` 不在页面里，它被入口清单列为第一个模块、由 `kui-all.js` 注入。
+`index.html:51` 只有一行入口 `<script src="src/core/kui-all.js" data-kui-profile="app"></script>`；`config/bundle.js` 不在页面里，它被入口清单列为第一个模块、由 `kui-all.js` 注入。
 
 ## 2.2 配置包：`tools/build-config.js`
 
@@ -93,11 +93,11 @@ KurumiUI 配置打包完成
 
 1. `build()` 组装 `payload = { schema, note, profiles: { 名称: { desc, files } } }`（`tools/build-all.js:39-47`）；
 2. 生成 banner + 一段 IIFE，写入 `src/core/kui-all.js`（覆盖写，`tools/build-all.js:49-106`）；
-3. 返回值：`{ out, bytes, profiles, counts }`，其中 `counts` 形如 `app=28, standalone=27`；CLI 打印两行（`tools/build-all.js:115-119`）：
+3. 返回值：`{ out, bytes, profiles, counts }`，其中 `counts` 形如 `app=29, standalone=28`；CLI 打印两行（`tools/build-all.js:115-119`）：
 
 ```text
 [build-all] 已生成 src\core\kui-all.js (3982 字节)
-[build-all] profiles: app=28, standalone=27
+[build-all] profiles: app=29, standalone=28
 ```
 
 ### 产物运行时逻辑（最重要的一段）
@@ -123,7 +123,7 @@ KurumiUI 配置打包完成
 | `out` | string | — | 是 | 产物相对路径 `src\core\kui-all.js` |
 | `bytes` | number | — | 是 | 产物字节数，约 4 KB |
 | `profiles` | string[] | — | 是 | `['app', 'standalone']` |
-| `counts` | string | — | 是 | 如 `app=28, standalone=27` |
+| `counts` | string | — | 是 | 如 `app=29, standalone=28` |
 
 ## 2.4 产物结构
 
@@ -156,8 +156,8 @@ KurumiUI 配置打包完成
 
 | profile | 文件数 | 用途 | 含 app-shell / bootstrap |
 | --- | --- | --- | --- |
-| `app` | 28 | 主应用 `index.html`（末尾 `src/app/bootstrap.js`） | 是 |
-| `standalone` | 27 | `standalone/*.html`、`pages/*.html`（末尾 `src/frame/kui-frame.js`） | 否 |
+| `app` | 29 | 主应用 `index.html`（末尾 `src/app/bootstrap.js`） | 是 |
+| `standalone` | 28 | `standalone/*.html`、`pages/*.html`（末尾 `src/frame/kui-frame.js`） | 否 |
 
 Node 侧验证（可供 CI 使用）：
 
@@ -169,7 +169,7 @@ node -e "var m = require('./src/core/kui-all.js'); console.log(m.schema, Object.
 node -e "var m = require('./src/core/kui-all.js'); console.log(m.schema, Object.keys(m.profiles)); console.log(m.profiles.app.files.length, m.profiles.standalone.files.length)"
 ```
 
-预期输出：`kui-modules/1 [ 'app', 'standalone' ]` 与 `28 27`。
+预期输出：`kui-modules/1 [ 'app', 'standalone' ]` 与 `29 28`。
 
 ## 2.5 构建矩阵
 
@@ -269,22 +269,22 @@ npm test
 预期输出（节选，数值以实际输出为准）：
 
 ```text
-1.3.7
+1.3.8
 [build-all] 已生成 src\core\kui-all.js (3982 字节)
-[build-all] profiles: app=28, standalone=27
-kui-modules/1 [ 'app', 'standalone' ] 28 27
+[build-all] profiles: app=29, standalone=28
+kui-modules/1 [ 'app', 'standalone' ] 29 28
 app,text,themes,demos,meta 11
 [PASS] 未发现禁用语法 / API
 汇总: 20 个 HTML，错误 0 个，警告 0 个
-汇总: 30 通过 / 0 失败 / 0 跳过   总计 30   耗时 ...ms   => PASS
+汇总: 33 通过 / 0 失败 / 0 跳过   总计 33   耗时 ...ms   => PASS
 ```
 
 ## 参考源码
 
-- `config/kui-modules.json:2-3`（schema 与 note）、`config/kui-modules.json:5-37`（app profile 28 个文件）、`config/kui-modules.json:38-69`（standalone profile 27 个文件）
+- `config/kui-modules.json:2-3`（schema 与 note）、`config/kui-modules.json:5-38`（app profile 29 个文件）、`config/kui-modules.json:39-72`（standalone profile 28 个文件）
 - `tools/build-config.js:21`（ROOT）、`tools/build-config.js:23-43`（readJson / listJson）、`tools/build-config.js:45-91`（build / tryRead / demos）、`tools/build-config.js:93-108`（序列化、banner、写文件）、`tools/build-config.js:110-133`（返回值与控制台输出）、`tools/build-config.js:145-153`（CLI 退出行为）
 - `tools/build-all.js:19-21`（三个常量）、`tools/build-all.js:23-37`（readManifest 校验）、`tools/build-all.js:39-47`（payload）、`tools/build-all.js:49-104`（banner 与注入逻辑）、`tools/build-all.js:106-112`（写文件与返回值）、`tools/build-all.js:115-119`（CLI）
 - `src/core/config.js:6-9`（读取优先级）、`src/core/config.js:148-212`（fetch → bundle 回退）
 - `package.json:8-25`（scripts 全表）、`server.js:233-253`（启动时静默构建）
-- `.gitignore:5-6`（两个产物忽略规则）、`index.html:154`（唯一入口脚本）
+- `.gitignore:5-6`（两个产物忽略规则）、`index.html:51`（唯一入口脚本）
 - `tools/check-compat.js:42`、`tools/check-compat.js:197-234`、`tools/check-assets.js:25-28`、`tools/check-assets.js:136-162`、`test/run.js:21`、`test/run.js:32-56`

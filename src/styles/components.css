@@ -2571,3 +2571,41 @@ label > .kui-native-select {
   user-select: text;
   scrollbar-width: thin;
 }
+
+/* v1.3.8：配置字段的真实读取点（app.logoText / footer.subtitle / app.copyright） */
+.kui-menu__logo-text {
+  position: relative;
+  display: block;
+  margin-top: -2px;
+  font-family: var(--kui-font-mono);
+  font-size: 8.5px;
+  line-height: 1;
+  letter-spacing: 0.1em;
+  color: var(--kui-text-inverse);
+  opacity: 0.92;
+}
+
+.kui-menu__footer-subtitle {
+  order: 2;
+  flex: 1 1 100%;
+  min-width: 0;
+  font-size: 11px;
+  color: var(--kui-text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kui-menu__footer-copyright {
+  order: 3;
+  flex: 1 1 100%;
+  min-width: 0;
+  font-size: 10.5px;
+  color: var(--kui-text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kui-menu--collapsed .kui-menu__logo-text,
+.kui-menu.is-collapsed .kui-menu__logo-text { display: none; }

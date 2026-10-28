@@ -760,7 +760,7 @@
   }
 
   var api = {
-    version: currentVersion() || '1.3.7',
+    version: currentVersion() || '1.3.8',
     /* 生命周期 */
     ready: ready,
     boot: boot,

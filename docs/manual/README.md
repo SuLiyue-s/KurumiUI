@@ -1,6 +1,6 @@
 # KurumiUI 使用手册
 
-> **适用版本：KurumiUI v1.3.7** ｜ 适用仓库：`SuLiyue-s/KurumiUI`（main 分支）｜ 手册语言：中文
+> **适用版本：KurumiUI v1.3.8** ｜ 适用仓库：`SuLiyue-s/KurumiUI`（main 分支）｜ 手册语言：中文
 > 本手册的所有字段、默认值、数量与行为，均以**仓库源码与运行时可枚举结果**为准；与 `docs/` 下旧文档或 `README.md` 冲突时，以源码为准（旧文档是设计档案，本手册是操作指南）。
 
 ---
@@ -9,13 +9,13 @@
 
 KurumiUI 是一个**配置驱动、可拆解**的 UI 框架：界面由 JSON 配置 + 少量 HTML 骨架拼装而成，浏览器用传统 `<script>` 直接加载（零构建产物依赖打包器、零运行时依赖），`file://` 双击 `index.html` 也能打开。
 
-本手册按一个真实使用者的路径组织，共 **六个部分、15 章**：
+本手册按一个真实使用者的路径组织，共 **六个部分、16 章**：
 
 | 部分 | 章节 | 回答的问题 |
 | --- | --- | --- |
 | 一、快速上手 | 01、02 | 怎么装、怎么跑、怎么构建 |
 | 二、组装与配置 | 03、04 | 页面由哪些零件组成、`app.json` 每个字段是干什么的 |
-| 三、组件与交互 | 05–08、10、11 | 每个控件/组件/动作/API 怎么用 |
+| 三、组件与交互 | 05–08、10、11、16 | 每个控件/组件/动作/API 怎么用；加载层怎么装配与拆走 |
 | 四、主题与扩展 | 09、12 | 怎么换肤、怎么加自己的控件与页面 |
 | 五、实战与部署 | 13、14 | 从零做一个页面、怎么部署与跨项目复用 |
 | 六、维护 | 15 | 出问题怎么查、上线前怎么验收 |
@@ -49,7 +49,7 @@ npm run build:config   # = node tools/build-config.js && node tools/build-all.js
 
 ---
 
-## 2. 手册怎么读（5 条路线）
+## 2. 手册怎么读（6 条路线）
 
 | 路线 | 适合谁 | 阅读顺序 | 预计 |
 | --- | --- | --- | --- |
@@ -58,6 +58,7 @@ npm run build:config   # = node tools/build-config.js && node tools/build-all.js
 | C. 把组件搬进现有项目 | 已有站点、只想要某些组件 | 03 → 06 / 08（按需）→ 11 → 14 | 2 小时 |
 | D. 扩展框架 | 框架开发者 | 12 → 08 / 09 → 10 / 11 | 半天 |
 | E. 部署与维护 | 运维 / 负责人 | 14 → 02 → 15 | 1.5 小时 |
+| F. 定制启动屏 / 加载动画 | 想改开屏体验的人 | 16 → 04（`boot` 段）→ 09（token 换色） | 1 小时 |
 
 读之前建议先记住三个词：**节点（node）**、**配置（config）**、**装配（profile）**；它们的含义见第 4 节术语表。
 
@@ -74,7 +75,7 @@ npm run build:config   # = node tools/build-config.js && node tools/build-all.js
 | 05 | [05-controls-input.md](05-controls-input.md) | 19 个表单控件（input、select、date、slider…）逐字段、事件、实例 API | 04 |
 | 06 | [06-controls-display.md](06-controls-display.md) | 其余控件（按钮、图标、表格、分页、上传、头像、标签…）逐字段 | 04 |
 | 07 | [07-form-engine.md](07-form-engine.md) | 表单引擎：布局、数据绑定、校验、依赖联动、实例 API、`dialog.form` | 05 |
-| 08 | [08-components.md](08-components.md) | 六大组件：`menu`、`menunav`、`tabs`、`dialog`、`toast`、`app-shell` 的 props / 事件 / API | 04 |
+| 08 | [08-components.md](08-components.md) | 七大组件：`menu`、`menunav`、`tabs`、`dialog`、`toast`、`app-shell`、`boot` 的 props / 事件 / API（`boot` 的完整配置与拆装见 [16-boot.md](16-boot.md)） | 04 |
 | 09 | [09-theme.md](09-theme.md) | 主题系统：`themes.json` 结构、token 全表、装饰层、切换与自定义主题 | 04 |
 | 10 | [10-actions-handlers.md](10-actions-handlers.md) | `on` 事件语法、28 个内置动作、7 个 scope 共 61 个业务函数 | 08 |
 | 11 | [11-api-messaging.md](11-api-messaging.md) | `KUI.*` API 全表、`kui-frame` / `dialog-frame`、postMessage 协议 | 08 |
@@ -82,6 +83,7 @@ npm run build:config   # = node tools/build-config.js && node tools/build-all.js
 | 13 | [13-walkthrough.md](13-walkthrough.md) | 三个端到端实战（管理台 / 嵌入现有站点 / 离线工具页） | 03–12 |
 | 14 | [14-deploy.md](14-deploy.md) | 部署与跨项目复用：静态托管、子路径、iframe、抽取复用、升级 | 02、03 |
 | 15 | [15-troubleshooting.md](15-troubleshooting.md) | 排错手册、FAQ、诊断工具、上线验收清单 | 全部 |
+| 16 | [16-boot.md](16-boot.md) | 加载层组件 `boot`：启动屏、时钟指针进度算法、结构化拆装、接入自有项目/跨项目复用 | 03、04、08 |
 
 > 手册配套校验脚本：`node tools/check-manual.js`（检查 JSON 示例可解析、字段/类型/动作/链接/数量口径与运行时一致）。改动手册后建议跑一次。
 
@@ -124,7 +126,7 @@ npm run build:config   # = node tools/build-config.js && node tools/build-all.js
 
 | 项目 | 值 | 说明 |
 | --- | --- | --- |
-| 框架版本 | **1.3.7** | 需四处一致：`src/core/kui.js`、`src/frame/kui-frame.js`、`src/core/dom-enhance.js`、`package.json`（`npm run audit` 的 E1 校验） |
+| 框架版本 | **1.3.8** | 需四处一致：`src/core/kui.js`、`src/frame/kui-frame.js`、`src/core/dom-enhance.js`、`package.json`（`npm run audit` 的 E1 校验） |
 | Node.js | **≥ 13.14.0** | `package.json` 的 `engines`；仓库用 `.tools/node-v13.14.0-win-x64` 实测，与 Node 24 双版本通过 |
 | npm 依赖 | **0** | `package.json` 无 `dependencies` / `devDependencies`，克隆后无需 `npm install` |
 | 构建方式 | 无打包器 | 两个自研 Node 脚本：`tools/build-config.js`、`tools/build-all.js` |
@@ -263,7 +265,7 @@ node server.js [--port 8080] [--host 127.0.0.1] [--quiet]
 | `tabs` | 标签工作区：关闭策略、keepAlive、右键菜单、拖拽 | 08 |
 | `dialog` | 对话框：标题/内容/按钮、可拖拽、遮罩/ESC 策略 | 08 |
 | `toast` | 轻提示：位置、停留时长、堆叠上限 | 08 |
-| `boot` | 加载层：时钟指针随进度 0→12 时、阶段文案、进度条（v1.3.7 新增） | 08 |
+| `boot` | 加载层：时钟指针随进度 0→12 时、阶段文案、进度条（v1.3.8 新增；完整用法见 [16-boot.md](16-boot.md)） | 08、16 |
 
 ---
 
@@ -302,5 +304,5 @@ toast.notify      toast.show        toast.success     toast.warning
 ## 11. 手册的维护约定
 
 - **改配置不用改手册**；改源码（新增 type / action / handler / theme / 字段）时，按第 3 节索引更新对应章节，并跑 `node tools/check-manual.js`。
-- 手册中的数量口径（41 / 19 / 28 / 61 / 6）由校验脚本与运行时枚举比对；历史口径需加「截至 v1.3.7」等限定语。
+- 手册中的数量口径（41 / 19 / 28 / 61 / 6）由校验脚本与运行时枚举比对；历史口径需加「截至 v1.3.8」等限定语。
 - 报告手册问题请附：章节文件 + 小节标题 + 复现步骤（命令/配置片段）+ 期望 vs 实际。

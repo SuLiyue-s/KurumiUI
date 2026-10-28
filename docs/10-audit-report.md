@@ -185,3 +185,36 @@ npm test               # 测试
 ---
 
 *本报告由 Lead 生成；所有数字均为 2026-10-27 在本机（Windows / Node v24.14.0 + v13.14.0）真实执行所得。*
+
+---
+
+## 8. v1.3.8 配置读取点审计（新增）
+
+> 触发：用户 m07686 指出「`app.json` 的 `boot` 段运行时完全不生效」，要求一次同类缺陷的全面审计。
+
+### 8.1 方法
+
+1. **静态读取点扫描**：新增 `tools/audit-config.js`，读取 `config/app.json` 全部 468 个叶子键，在 `src/**/*.js` 中查找 `键名` / `键名:` / `["键名"]` / `'键名'` / `props.键名` 等读取形态；动态数据子树（`text.*` 字典、`dialogs.settings.data`、`menu.items`、`boot.stages`、`theme.picker.…` 等）进白名单（37 项）；
+2. **运行时证据**：dom-stub 加载完整运行时，调用 `KUI.boot.appliedBootConfig`、`KUI.dialog.config()`、`KUI.registry` 核对；
+3. **真实浏览器**：DSH 浏览器打开 `index.html` / `standalone/boot.html`，核对页脚版本/版权、品牌 `logoText`、主题选择器标题与列数、`boot.clock.size` 生效。
+
+### 8.2 发现（4 类，全部修复）
+
+| # | 问题 | 影响 | 修复 |
+| --- | --- | --- | --- |
+| P1 | `configureBootLayer` 有定义无调用 | `app.json.boot` 整段失效 | `applyBootConfig()` 接线（含 `enabled:false` 语义） |
+| P2 | `app.*` / `brand.logoText` / `footer.subtitle|copyright` 无渲染点 | 文档承诺、配置无效 | `applyAppMeta` + `menu.js` + `components.css` |
+| P3 | `theme.picker.*`、`ui.dialog.escClosable`、`boot.clock.smooth`、`tabs.props.keepAlive` 声明未消费 | 改配置无效果 / 语义误导 | 逐项接上读取点（见契约 §20.4） |
+| P4 | `dialog.config()` 深合并未写回 `DEFAULTS` | `ui.dialog.*` 静默不生效（P3 的元凶） | 合并结果回写 |
+| P5 | 无 `type` 容器节点丢弃 `style/attrs`；弹窗 `subtitle` 无渲染点 | `theme.picker.columns` / `.desc` 声明被静默忽略 | `renderNode` 容器走 `decorate()`；`dialog-frame` 新增 `renderSubtitle()` |
+- **P6：`KUI.setStyle` 驼峰键被静默丢弃**（v1.3.8 修复）——`el.style.setProperty('gridTemplateColumns', ...)` 非法属性名被 CSSStyleDeclaration 忽略；现象为主题选择器 `columns:3` 不生效（6 卡竖排）、卡片 `borderColor`（theme.picker 卡片边框）不生效。修复：非自定义属性统一转 kebab 后写入。
+
+### 8.3 残余（已知、不修或部分修）
+
+- `boot.clock.mode: "none"`：CSS 只实现 `spin` 与 `progress`，`none` 视觉同 `progress`（用 `clock.enabled:false` 替代）；
+- `text.json` 的 `boot.title/subtitle/text` 受「显式 patch 优先」影响，需保持 `app.json.boot` 同名字段为空；
+- `ui.dialog` 下的深层样式键（如 `radius`）仍走 CSS token，不是 JSON 配置项（文档已注明）。
+
+### 8.4 回归数字（本机 Node v24.14.0 + v13.14.0）
+
+`tools/smoke.js` 104/0；`test/run.js` 33/0/0；`test/render` 10/0；`test/config` 5/0；`audit-consistency` 17/0；`audit-components` 19/0；`audit-all-pages` 19/19；`check-assets` 21 HTML 0/0；`audit-config` 0 缺口；`check-manual` 0/0。

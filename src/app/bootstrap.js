@@ -35,7 +35,10 @@
     if (appCfg && appCfg.boot && typeof appCfg.boot === 'object') { return appCfg.boot; }
     var legacy = (appCfg && appCfg.app && appCfg.app.loading) || null;
     if (legacy && typeof legacy === 'object') {
-      return { text: legacy.text, delay: legacy.delay };
+      var legacyCfg = { text: legacy.text, hideDelay: legacy.delay };
+      if (legacy.icon === 'spinner') { legacyCfg.clock = { mode: 'spin' }; }
+      else if (legacy.icon === 'none') { legacyCfg.clock = { enabled: false }; }
+      return legacyCfg;
     }
     return null;
   }
@@ -58,6 +61,32 @@
       KUI.warnOnce('boot-layer-config', '启动层配置无效：' + ((e2 && e2.message) || e2));
       return null;
     }
+  }
+
+  var appliedBootConfig = null;
+
+  function snapshotCfg(cfg) {
+    try { return JSON.parse(JSON.stringify(cfg || null)); } catch (e) { return null; }
+  }
+
+  /* v1.3.8 接线：app.json 的 boot 段在此生效；enabled:false 时销毁实例并移除静态骨架 */
+  function applyBootConfig(appCfg, textCfg) {
+    var cfg = bootConfigOf(appCfg);
+    if (cfg && cfg.enabled === false) {
+      var inst0 = bootLayer();
+      if (inst0 && inst0.destroy) { try { inst0.destroy(); } catch (e0) { /* noop */ } }
+      var node0 = bootNode();
+      if (node0 && node0.parentNode) { node0.parentNode.removeChild(node0); }
+      if (isDom()) { doc().documentElement.setAttribute('data-kui-boot', 'off'); }
+      appliedBootConfig = { enabled: false };
+      if (bootApi) { bootApi.appliedBootConfig = appliedBootConfig; }
+      return null;
+    }
+    var out = configureBootLayer(appCfg, textCfg);
+    var appliedCfg = out ? (out.config || out) : cfg;
+    appliedBootConfig = snapshotCfg(appliedCfg);
+    if (bootApi) { bootApi.appliedBootConfig = appliedBootConfig; }
+    return out;
   }
 
   function setBootText(text) {
@@ -196,7 +225,10 @@
     });
 
     reg('app.themeRandom', function () {
-      var ids = KUI.theme.ids();
+      var ids = [];
+      var visRandom = filterVisibleThemes(KUI.theme.list(), appCfg);
+      for (var vr = 0; vr < visRandom.length; vr++) { ids.push(visRandom[vr].id); }
+      if (!ids.length) { ids = KUI.theme.ids(); }
       if (ids.length < 2) return KUI.theme.currentId();
       var cur = KUI.theme.currentId();
       var next = cur;
@@ -217,11 +249,22 @@
     });
 
     reg('theme.picker', function () {
-      return openThemePicker(app);
+      return openThemePicker(app, appCfg);
     });
 
     reg('theme.cycle', function () {
-      var t = KUI.theme.next();
+      var visCycle = filterVisibleThemes(KUI.theme.list(), appCfg);
+      var t = null;
+      if (visCycle.length > 1) {
+        var curCycle = KUI.theme.currentId();
+        var atCycle = -1;
+        for (var vc = 0; vc < visCycle.length; vc++) {
+          if (visCycle[vc].id === curCycle) { atCycle = vc; break; }
+        }
+        t = KUI.theme.apply(visCycle[(atCycle + 1) % visCycle.length].id);
+      } else {
+        t = KUI.theme.next();
+      }
       if (KUI.toast && KUI.toast.success && t) {
         KUI.toast.success(KUI.text('theme.applied', '已切换主题：{name}', { name: t.name }));
       }
@@ -272,9 +315,27 @@
   /* 主题选择弹窗                                                        */
   /* ------------------------------------------------------------------ */
 
-  function buildThemePickerNodes() {
-    var list = KUI.theme.list();
+  /* v1.3.8：theme.visible 的真实读取点（选择器 / 随机 / 循环共用） */
+  function filterVisibleThemes(list, appCfg) {
+    var all = list || [];
+    var cfg = (appCfg && appCfg.theme) || {};
+    var visible = cfg.visible;
+    if (!visible || !visible.length) { return all; }
+    var allow = {};
+    for (var i = 0; i < visible.length; i++) { allow[String(visible[i])] = true; }
+    var out = [];
+    for (var j = 0; j < all.length; j++) {
+      if (allow[all[j].id]) { out.push(all[j]); }
+    }
+    return out.length ? out : all;
+  }
+
+  function buildThemePickerNodes(pickerCfg, appCfg) {
+    var picker = pickerCfg || {};
+    var list = filterVisibleThemes(KUI.theme.list(), appCfg);
     var cur = KUI.theme.currentId();
+    var columns = Math.max(1, Math.min(6, Number(picker.columns) || 3));
+    var showPreview = picker.showPreview !== false;
     var cards = [];
 
     for (var i = 0; i < list.length; i++) {
@@ -291,12 +352,16 @@
         variant: active ? 'primary' : 'ghost',
         text: t.name,
         title: (t.desc || '') + ' [' + t.id + ']',
-        style: {
+        style: showPreview ? {
           background: 'linear-gradient(145deg, ' + bg + ' 0%, ' + bg + ' 58%, ' + hexAlpha(acc, 0.32) + ' 100%)',
           color: fg,
           borderColor: active ? acc : hexAlpha(gold, 0.36),
           boxShadow: active ? '0 0 0 1px ' + hexAlpha(acc, 0.9) + ', 0 10px 26px ' + hexAlpha(acc, 0.3) : 'none',
           minHeight: '68px'
+        } : {
+          color: 'var(--kui-text-1)',
+          borderColor: active ? acc : 'var(--kui-border)',
+          minHeight: '44px'
         },
         on: {
           click: {
@@ -309,55 +374,61 @@
       });
     }
 
+    var ops = [
+      {
+        type: 'button', variant: 'ghost', icon: 'refresh',
+        text: KUI.text('theme.picker.random', '随机主题'),
+        on: { click: { action: 'app.themeRandom' } }
+      }
+    ];
+    if (picker.showScheme !== false) {
+      ops.push({
+        type: 'button', variant: 'ghost', icon: 'sun',
+        text: KUI.text('theme.picker.scheme', '深浅切换'),
+        on: { click: { action: 'theme.toggleScheme' } }
+      });
+    }
+    ops.push({
+      type: 'button', variant: 'ghost', icon: 'palette',
+      text: KUI.text('theme.picker.page', '主题展示页'),
+      on: {
+        click: {
+          action: 'nav.open',
+          params: { id: 'theme-page', title: KUI.text('menu.theme', '主题'), icon: 'palette', url: 'standalone/theme.html' }
+        }
+      }
+    });
+
     return [
       {
         'class': 'kui-theme-picker__grid',
-        style: { display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '10px' },
+        style: { display: 'grid', gridTemplateColumns: 'repeat(' + columns + ', minmax(0, 1fr))', gap: '10px' },
         nodes: cards
       },
       {
         'class': 'kui-theme-picker__ops',
         style: { display: 'flex', gap: '8px', marginTop: '16px', flexWrap: 'wrap' },
-        nodes: [
-          {
-            type: 'button', variant: 'ghost', icon: 'refresh',
-            text: KUI.text('theme.picker.random', '随机主题'),
-            on: { click: { action: 'app.themeRandom' } }
-          },
-          {
-            type: 'button', variant: 'ghost', icon: 'sun',
-            text: KUI.text('theme.picker.scheme', '深浅切换'),
-            on: { click: { action: 'theme.toggleScheme' } }
-          },
-          {
-            type: 'button', variant: 'ghost', icon: 'palette',
-            text: KUI.text('theme.picker.page', '主题展示页'),
-            on: {
-              click: {
-                action: 'nav.open',
-                params: { id: 'theme-page', title: KUI.text('menu.theme', '主题'), icon: 'palette', url: 'standalone/theme.html' }
-              }
-            }
-          }
-        ]
+        nodes: ops
       }
     ];
   }
 
-  function openThemePicker(app) {
+  function openThemePicker(app, appCfg) {
     if (!KUI.dialog || typeof KUI.dialog.custom !== 'function') {
       // 没有弹窗组件时退化为循环切换，保证动作仍可用
       return KUI.actions.run('theme.cycle');
     }
+    var picker = (appCfg && appCfg.theme && appCfg.theme.picker) || {};
+    var width = Number(picker.width);
     return KUI.dialog.custom({
       id: 'theme-picker',
-      title: KUI.text('theme.picker.title', '选择界面风格'),
-      subtitle: KUI.text('theme.picker.subtitle', '配置来自 src/themes.json，切换后自动保存'),
-      width: 680,
-      maskClosable: true,
+      title: picker.title || KUI.text('theme.picker.title', '选择界面风格'),
+      subtitle: picker.desc || KUI.text('theme.picker.subtitle', '配置来自 src/themes.json，切换后自动保存'),
+      width: width > 0 ? width : 680,
+      maskClosable: picker.maskClosable !== false,
       closeOnEsc: true,
       footer: false,
-      nodes: buildThemePickerNodes()
+      nodes: buildThemePickerNodes(picker, appCfg)
     });
   }
 
@@ -686,6 +757,29 @@
    * 应用配置里的元信息：document.title、启动层标题/副标题/加载文案。
    * 全部来自 config/app.json 的 app.* 字段；缺失时保留页面自带文案。
    */
+  /* v1.3.8：把 app.* 元信息注入菜单品牌/页脚/顶部导航（此前 app.version / copyright 等无读取点） */
+  function applyAppMetaToConfig(appCfg) {
+    if (!appCfg || typeof appCfg !== 'object') { return appCfg; }
+    var meta = appCfg.app || {};
+    var menu = appCfg.menu && appCfg.menu.props;
+    if (menu) {
+      var brand = menu.brand || (menu.brand = {});
+      if (!brand.title && meta.title) { brand.title = meta.title; }
+      if (!brand.subtitle && meta.subtitle) { brand.subtitle = meta.subtitle; }
+      if (!brand.logoIcon && meta.logoIcon) { brand.logoIcon = meta.logoIcon; }
+      if (!brand.logoText && meta.logoText) { brand.logoText = meta.logoText; }
+      if (menu.footer && typeof menu.footer === 'object') {
+        var footer = menu.footer;
+        if (!footer.version && meta.version) { footer.version = 'v' + meta.version; }
+        if (!footer.subtitle && meta.footerSubtitle) { footer.subtitle = meta.footerSubtitle; }
+        if (!footer.copyright && meta.copyright) { footer.copyright = meta.copyright; }
+      }
+    }
+    var nav = appCfg.menunav && appCfg.menunav.props;
+    if (nav && !nav.title && meta.title) { nav.title = meta.title; }
+    return appCfg;
+  }
+
   function applyAppMeta(appCfg) {
     if (!isDom()) return;
     var meta = (appCfg && appCfg.app) || {};
@@ -775,8 +869,14 @@
       /* ---- 应用元信息（标题/启动层文案，全部来自配置） ---- */
       applyAppMeta(appCfg);
 
+      /* ---- 启动层配置（v1.3.8 接线：config/app.json 的 boot 段在此生效） ---- */
+      applyBootConfig(appCfg, res.text);
+
       /* ---- UI 级配置（悬浮提示/提醒/弹窗，全部来自配置） ---- */
       applyUiConfig(appCfg);
+
+      /* ---- app.* 元信息注入各组件配置（v1.3.8） ---- */
+      applyAppMetaToConfig(appCfg);
 
       /* ---- 主题 ---- */
       setBootStep(2);
@@ -858,6 +958,9 @@
   bootApi.ready = function () { return bootDone; };
   bootApi.disabled = false;
   bootApi.version = '1.0.0';
+  bootApi.applyBootConfig = applyBootConfig;
+  bootApi.applyAppMetaToConfig = applyAppMetaToConfig;
+  bootApi.appliedBootConfig = null;
 
   if (isDom()) {
     if (doc().readyState === 'loading') {

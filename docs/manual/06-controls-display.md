@@ -1,6 +1,6 @@
 # 06 · 其余控件（动作 / 展示 / 反馈 / 数据 / 布局）
 
-> 适用版本：KurumiUI v1.3.7 ｜ 前置章节：`05-controls-input.md`（表单控件）、`04-config-app.md`（`avatar` 段） ｜ 阅读时长：约 30 分钟
+> 适用版本：KurumiUI v1.3.8 ｜ 前置章节：`05-controls-input.md`（表单控件）、`04-config-app.md`（`avatar` 段） ｜ 阅读时长：约 30 分钟
 
 ## 本章目标
 
@@ -171,7 +171,7 @@
 | `frame.spinDuration` | number | `48` | 否 | 一圈秒数：正顺、负逆、`0` 停（**不是毫秒**） |
 | `picker.*` | object | 见源码 | 否 | `title/width/urlLabel/urlPlaceholder/urlTip/clearLabel/allowClear/okText/cancelText/mode/accept/maxSizeMB/presets` |
 
-`config/app.json:709-743` 的 `avatar` 段是应用级默认（`size:42` 等全量）；JSON 控件只走注册表默认 `url/editable/size:44/frame.{enabled,style,spinDuration}`（`avatar.js:644-649`），再与完整 `DEFAULTS` 深合并，因此全字段可用；改全局默认用 `KUI.avatar.configure(patch)`（`615-618`）。持久化、iframe 见 04 章，齿轮绘制见 11 章。API：`getUrl/hasCustom/setUrl(url, extra)/setEditable/pickFile(override)/setSpinDuration/getSpinDuration/refresh/destroy`（`542-601`），静态 `KUI.avatar.ring(opts)`（`620-636`）。坑：注册表默认 `editable:false`，点不动要先打开；`persist` 依赖 `storageKey`，清缓存即丢。
+`config/app.json:720-754` 的 `avatar` 段是应用级默认（`size:42` 等全量）；JSON 控件只走注册表默认 `url/editable/size:44/frame.{enabled,style,spinDuration}`（`avatar.js:644-649`），再与完整 `DEFAULTS` 深合并，因此全字段可用；改全局默认用 `KUI.avatar.configure(patch)`（`615-618`）。持久化、iframe 见 04 章，齿轮绘制见 11 章。API：`getUrl/hasCustom/setUrl(url, extra)/setEditable/pickFile(override)/setSpinDuration/getSpinDuration/refresh/destroy`（`542-601`），静态 `KUI.avatar.ring(opts)`（`620-636`）。坑：注册表默认 `editable:false`，点不动要先打开；`persist` 依赖 `storageKey`，清缓存即丢。
 
 ### 2.6 divider（`src/components/controls/misc.js:254-318`）
 
@@ -359,4 +359,4 @@ node -e "var s=require('./test/dom-stub.js'),e=s.createEnvironment({root:process
 - `src/core/icons.js:31-123`（85 图标 5 组）、`156-250`（图标 API、缺失兜底 `216`）；`src/core/avatar.js:91-155`、`542-601`、`615-618`、`639-661`。
 - `src/components/controls/misc.js:22-50`、`55-170`、`173-250`、`254-318`、`320-410`、`437-496`、`509-580`、`590-710`、`714-909`、`915-1118`、`1164-1544`、`1557-1675`。
 - `src/components/controls/inputs.js:64-183`（button）、`src/components/controls/choices.js:784-852`（progress）。
-- `src/core/control-base.js:400-430`、`700-707`、`950-996`；`src/core/kui.js:981-994`；`src/styles/controls.css:46`、`95`、`279`、`2916`；`config/app.json:709-743`。
+- `src/core/control-base.js:400-430`、`700-707`、`950-996`；`src/core/kui.js:981-994`；`src/styles/controls.css:46`、`95`、`279`、`2916`；`config/app.json:720-754`。

@@ -1,6 +1,6 @@
 # 13 · 三个端到端实战
 
-> 适用版本：KurumiUI v1.3.7 ｜ 前置章节：03 · 页面组装、04 · app.json、05–08 · 控件/表单/组件、10–12 · 动作、通信与扩展 ｜ 阅读时长：约 50 分钟
+> 适用版本：KurumiUI v1.3.8 ｜ 前置章节：03 · 页面组装、04 · app.json、05–08 · 控件/表单/组件、10–12 · 动作、通信与扩展 ｜ 阅读时长：约 50 分钟
 
 ## 本章目标
 
@@ -584,14 +584,14 @@ npm start          # 启动静态服务（默认 127.0.0.1:8080，端口占用�
 
 ### B6. 版本升级注意
 
-1. 子页 URL / iframe `src` 升级时带上版本参数，例如 `embed/kui-form.html?kui_v=1.3.7`，避免 304 缓存拿到旧 HTML；
+1. 子页 URL / iframe `src` 升级时带上版本参数，例如 `embed/kui-form.html?kui_v=1.3.8`，避免 304 缓存拿到旧 HTML；
 2. `src/core/kui-all.js` 注入的子脚本**不带**版本参数，所以升级要同时清 CDN/浏览器缓存（或给 `src/` 配置 `Cache-Control: no-cache`）；
 3. 桥接协议是自定义的，与 KurumiUI 的 `frame` 协议（`tab:init`/`frame:ready` 等，见 [11-api-messaging.md](11-api-messaging.md)）互不干扰；升级框架版本时只需回归本案例的 4 个事件与 4 个命令；
 4. `KUI.version` 会随子页 `ready` 事件发给父页，父页可做「最低版本」断言，防止旧页面与新协议混跑。
 
 ### B7. 验证步骤
 
-1. 启动本地服务，打开 `host.html`：右侧日志出现「子页就绪，KurumiUI 1.3.7」；
+1. 启动本地服务，打开 `host.html`：右侧日志出现「子页就绪，KurumiUI 1.3.8」；
 2. 父页点「主题 abyss」→ 子页整体变色；点「填充示例数据」→ 子页表单出现「时崎狂三」；
 3. 子页改任一字段 → 父页日志出现 `表单变化：name → {...}`；
 4. 子页点「提交到父页面」→ 父页日志出现 `收到提交`；
@@ -823,7 +823,7 @@ npm run verify
 
 ## 参考源码
 
-- `config/app.json:200-604`（menu items 结构）、`606-658`（menunav 面包屑）、`659-700`（tabs 与 initial）
+- `config/app.json:211-616`（menu items 结构）、`617-669`（menunav 面包屑）、`670-704`（tabs 与 initial）
 - `src/components/app-shell.js:300-330`（菜单→面包屑→开标签）、`406-410`（openTab）、`456-470`（selectMenu）
 - `src/components/tabs.js`（`buildSrc` 拼接 query 与 `kui_v`、`sendInit` 下发 `tab:init`）
 - `src/components/form.js:430-445`（create 与默认 validateOn）、`1379-1396`（submit 流程）、`1421`（subscribe）

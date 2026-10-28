@@ -414,6 +414,20 @@
       return pane;
     }
 
+    /**
+     * 关闭保活：keepAlive=false 时，标签切走后立即卸载 iframe（移除 pane，重置 loaded/inited），
+     * 下次激活时重新 createPane + 重新加载，等价于「不保活」。
+     * 默认 keepAlive=true，行为不变：pane/iframe 创建后永不重建。
+     */
+    function unloadPane(tab) {
+      if (!tab || !tab.paneEl) { return; }
+      if (tab.paneEl.parentNode) { tab.paneEl.parentNode.removeChild(tab.paneEl); }
+      tab.paneEl = null;
+      tab.frameEl = null;
+      tab.loaded = false;
+      tab.inited = false;
+    }
+
     function isHttpPage() {
       return typeof window !== 'undefined' && window.location &&
         /^https?:$/i.test(window.location.protocol || '');
@@ -594,6 +608,11 @@
       var tab = state.map[id];
       if (!tab) { return api; }
       var prev = state.map[state.activeId] || null;
+
+      // 关闭保活：上一个标签在切走后卸载 iframe（默认 keepAlive=true 时跳过）
+      if (prev && prev !== tab && props.keepAlive === false) { unloadPane(prev); }
+      // keepAlive=false 的标签再次激活时，pane 已被卸载 → 重建（仅 keepAlive=false 会走到）
+      if (!tab.paneEl) { createPane(tab); }
 
       state.activeId = tab.id;
       updateActiveClasses();

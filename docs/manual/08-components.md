@@ -1,6 +1,6 @@
-# 08 · 组件详解：menu / menunav / tabs / dialog / toast / app-shell / boot / boot
+# 08 · 组件详解：menu / menunav / tabs / dialog / toast / app-shell / boot
 
-> 适用版本：KurumiUI v1.3.7 ｜ 前置章节：[03-assembly.md](03-assembly.md)、[04-config-app.md](04-config-app.md)、[07-form-engine.md](07-form-engine.md) ｜ 阅读时长：约 45 分钟
+> 适用版本：KurumiUI v1.3.8 ｜ 前置章节：[03-assembly.md](03-assembly.md)、[04-config-app.md](04-config-app.md)、[07-form-engine.md](07-form-engine.md) ｜ 阅读时长：约 45 分钟
 
 ## 本章目标
 
@@ -12,7 +12,7 @@
 
 ## 0. 组件家族速览
 
-KurumiUI 的界面由「一个骨架 + 三块外壳 + 两个全局浮层」组成。理解各自位置，后面每个字段才有落点：
+KurumiUI 的界面由「一个骨架 + 三块外壳 + 两个全局浮层 + 一个加载层」组成（v1.3.8 起 `boot` 也注册为组件）。理解各自位置，后面每个字段才有落点：
 
 | 组件 | 注册类型 | 职责 | `app.json` 配置段 | 默认挂载位置 | 能否独立使用 |
 | --- | --- | --- | --- | --- | --- |
@@ -22,6 +22,7 @@ KurumiUI 的界面由「一个骨架 + 三块外壳 + 两个全局浮层」组�
 | `tabs` | `tabs` | 多标签工作区：每个标签一个 iframe，切换不重建 | `tabs` | `.kui-app__center` | 是（`standalone/tabs.html`） |
 | `dialog` | `dialog` | iframe 弹窗：alert/confirm/prompt/form/custom 与自定义弹窗 | `dialogs`（命名弹窗配置） | `document.body` 下的浮层 | 是（`standalone/dialog.html`） |
 | `toast` | `toast` | 轻提示与通知卡片，角落堆叠 | `ui.toast`（默认参数） | `document.body` 下的浮层 | 是（`standalone/toast.html`） |
+| `boot` | `boot` | 加载层 / 启动屏：时钟指针随进度转动、阶段文案与进度条（v1.3.8 新增） | `boot` + `text.boot`（另见各 `text` 键） | `#kui-boot` 或任意 host（内嵌模式） | 是（`standalone/boot.html`；完整指南见 [16-boot.md](16-boot.md)） |
 
 三点先记住：
 
@@ -36,7 +37,7 @@ KurumiUI 的界面由「一个骨架 + 三块外壳 + 两个全局浮层」组�
 ### 1.1 作用与在整体界面中的位置
 
 - 渲染文件：`src/components/menu.js`（约 896 行），注册表类型名 `menu`，`category: 'shell'`（`src/components/menu.js:867-880`）。
-- 主应用里**不要手写 HTML**：`app.json` 的 `menu` 段（`config/app.json:200` 起）被 `app-shell` 读取，补默认 brand 与宽度后挂到 `.kui-app__left`（`src/components/app-shell.js:237-258`）。
+- 主应用里**不要手写 HTML**：`app.json` 的 `menu` 段（`config/app.json:211` 起）被 `app-shell` 读取，补默认 brand 与宽度后挂到 `.kui-app__left`（`src/components/app-shell.js:237-258`）。
 - 独立使用：`standalone/menu.html` 用 `KUI.renderNode(node, null)` 直接渲染一个菜单实例；也可以 `KUI.menu.create(host, props)`（`src/components/menu.js:884-894`），或写一个 `{"type":"menu","props":{…}}` 节点交给 `KUI.renderNode`。
 - DOM 结构：`aside.kui-menu`（`role="navigation"`）→ `.kui-menu__brand` + `.kui-menu__scroll > .kui-menu__list-host` + `.kui-menu__footer`；每个菜单项是 `li.kui-menu__item > a.kui-menu__link`，子菜单是 `ul.kui-menu__sub`。
 - 尺寸走 CSS 变量：`--kui-menu-w`、`--kui-menu-w-collapsed`，由 `width` / `collapsedWidth` 写入（`src/components/menu.js:713-762`），自定义样式优先改这两个变量而不是覆盖 `width`。
@@ -139,7 +140,7 @@ var menu = el.__kuiMenu;               // 等价：el.__kuiInstance
 | `footer` | object \| null | `null` | 否 | 页脚配置；`null` 时不渲染页脚 |
 | `footer.title` | string | 无（`undefined`） | 否 | 页脚标题 |
 | `footer.subtitle` | string | 源码未读取 | 否 | **源码未渲染**：`menu.js` 只渲染 `title`/`version`/`actions`，`subtitle` 配了不显示 |
-| `footer.version` | string | 无（`undefined`） | 否 | 版本文字（例：`v1.3.7`） |
+| `footer.version` | string | 无（`undefined`） | 否 | 版本文字（例：`v1.3.8`） |
 | `footer.actions` | array | 无（`undefined`） | 否 | 页脚动作：字符串（按钮文本）或节点对象（`button` 等，经 `KUI.renderNode`），对象也可写 `{text,icon,on:{click}}` |
 | `accordion` | boolean | `true` | 否 | 同级子菜单是否互斥展开（手风琴） |
 | `flyout` | boolean | `true` | 否 | 折叠态是否悬停弹出浮出子菜单（flyout） |
@@ -754,7 +755,7 @@ tabs.closeOthers('home');
 
 - 渲染文件：`src/components/dialog.js`（约 1155 行），类型名 `dialog`，`category: 'shell'`（`src/components/dialog.js:1115-1120`）；同时暴露静态 API `KUI.dialog`。
 - **每个弹窗都是一个独立 iframe**（`src/frame/dialog-frame.html`）。父页面只负责遮罩、层叠、尺寸、拖拽/最大化、消息转发；标题、正文、表单、按钮都渲染在 iframe 里，所以弹窗内容不会污染主页面样式。
-- 主应用里没有「dialog 节点」的固定位置：任何组件、动作、业务页都可以随时打开弹窗（`dialog.*` 动作、`KUI.dialog.*`）。`app.json` 的 `dialogs` 段只是**示例配置**（`src/app/bootstrap.js:583` 用它作为「设置」弹窗的内容），不是组件 props 默认值。
+- 主应用里没有「dialog 节点」的固定位置：任何组件、动作、业务页都可以随时打开弹窗（`dialog.*` 动作、`KUI.dialog.*`）。`app.json` 的 `dialogs` 段只是**示例配置**（`src/app/bootstrap.js:629-643` 用它作为「设置」弹窗的内容），不是组件 props 默认值。
 - 独立使用：`standalone/dialog.html`。
 - DOM：`.kui-dialog-layer[data-dialog-id]`（含 `--{type}`、`.is-open`、`.is-loading`、`.is-stacked`）→ `.kui-dialog-mask` + `.kui-dialog-wrap`（`.is-maximized`、`.kui-dialog-handle` 拖拽手柄）→ `.kui-dialog-frame`。打开时 `body` 加 `.kui-dialog-open` 锁滚动；层级基准取 CSS 变量 `--kui-z-dialog`（`src/styles/base.css:342` 为 2000，JS 读取失败时兜底 1200，见 `src/components/dialog.js:256-268`）。
 - 依赖：`dialog-frame.html` 必须在同一 http 源下（`file://` 直接打开会因同源策略失败）；表单内容需要表单引擎与控件（见 [05-controls-input.md](05-controls-input.md)、[07-form-engine.md](07-form-engine.md)）。
@@ -1013,7 +1014,7 @@ function openSealForm() {
 - **Esc 只关栈顶**：全局 Escape 监听要求 `closeOnEsc` 且 `closable`，并只关最上层弹窗（`src/components/dialog.js:1046-1080`）。
 - **主题**：全局 `theme:change` 会向所有弹窗 iframe `postMessage` 主题；弹窗内请求切主题也会回写主页面。
 - **弹窗内动作**：`actions[].action` 或 iframe 里的按钮触发未注册动作时，父页面会提示「动作未注册」，并要求先用 `KUI.actions.register` 注册；这是故意 fail-fast，不是 bug。
-- **与 `app.json` 的边界**：`app.json.dialogs` 只是「设置」弹窗的示例内容（`src/app/bootstrap.js:583`），字段语义见 [04-config-app.md](04-config-app.md)，本节讲的是 `KUI.dialog` 与节点 props。
+- **与 `app.json` 的边界**：`app.json.dialogs` 只是「设置」弹窗的示例内容（`src/app/bootstrap.js:629-643`），字段语义见 [04-config-app.md](04-config-app.md)，本节讲的是 `KUI.dialog` 与节点 props。
 
 ### 4.9 常见错误与排查
 
@@ -1035,7 +1036,7 @@ function openSealForm() {
 - 渲染文件：`src/components/toast.js`（约 531 行），类型名 `toast`，同时暴露静态 API `KUI.toast`；**加载完成即挂载**，不依赖页面节点。
 - 两种形态：`mode: 'toast'`（角落小条，默认）与 `mode: 'notification'`（右上大卡片，带标题/说明/动作）。
 - 四种语义类型：`info` / `success` / `warning` / `error`（兼容别名 `danger` → `error`）。
-- 主应用里没有它的配置段；`app.json` 的 `ui.toast` 会被 `bootstrap` 转交给 `KUI.toast.config`（`src/app/bootstrap.js:670-685`），用来改全局默认位置/数量/时长。
+- 主应用里没有它的配置段；`app.json` 的 `ui.toast` 会被 `bootstrap` 转交给 `KUI.toast.config`（`src/app/bootstrap.js:727-745`），用来改全局默认位置/数量/时长。
 - 独立使用：`standalone/toast.html`；也可以在任意业务页直接 `KUI.toast.info('...')`。
 - DOM：按位置分图层 `.kui-toast-layer[data-toast-layer]`（notification 另有 `--notification` 修饰），每条约 `.kui-toast.kui-toast--{type}.kui-toast--{mode}`，内含 `.kui-toast__accent`、`.kui-toast__icon`、`.kui-toast__body`（`__title`/`__message`）、可选的 `__action`、`__close`、`__progress > __progress-bar`。层级用 CSS 变量 `--kui-z-toast`（`src/styles/base.css:343`，默认 3000）。
 
@@ -1223,7 +1224,7 @@ KUI.toast.notify({
 
 - 渲染文件：`src/components/app-shell.js`（约 663 行），类型名 `app-shell`，`category: 'layout'`（`src/components/app-shell.js:638-661`）；实例挂在 `el.__kuiApp`，静态入口是 `KUI.app`。
 - 它**不直接画界面**，只负责三件事：① 搭骨架（左侧 menu、顶部 menunav、中间 tabs）；② 把 `app.json` 的 `app`/`layout`/`menu`/`menunav`/`tabs` 段注入子组件；③ 维护折叠状态、面包屑兜底、历史按钮、子组件生命周期。
-- 主应用装配：`index.html` 里只有挂载点 `#kui-app`（`index.html:120-125`），`bootstrap` 读 `config/app.json` 后调用 `KUI.app.create(host, appCfg, { initialTabs })`（`src/app/bootstrap.js:745`）。也可以直接写节点：`{"type":"app-shell","props":{...}}`。
+- 主应用装配：`index.html` 里只有挂载点 `#kui-app`（`index.html:24-25`），`bootstrap` 读 `config/app.json` 后调用 `KUI.app.create(host, appCfg, { initialTabs })`（`src/app/bootstrap.js:800`）。也可以直接写节点：`{"type":"app-shell","props":{...}}`。
 - 独立使用：`standalone/no-shell.html` 演示了**不用** app-shell、手工拼 menu + menunav + tabs 的等价写法。
 - DOM 与 CSS 变量：`.kui-app[data-kui-shell]` → `.kui-app__left`（menu）+ `.kui-app__main` → `.kui-app__header`（menunav）+ `.kui-app__center`（tabs）。布局用变量驱动：`--kui-menu-width`、`--kui-menu-width-collapsed`、`--kui-header-height`、`--kui-tabbar-height`、`--kui-app-gap`；折叠时根节点加 `.is-menu-collapsed` / `.kui-app--collapsed`。
 - 折叠状态记忆：`localStorage['kui-menu-collapsed']`（`src/components/app-shell.js:57-73`），刷新后保持。
@@ -1234,7 +1235,7 @@ KUI.toast.notify({
 {
   "type": "app-shell",
   "props": {
-    "app": { "title": "刻刻帝终端", "subtitle": "KurumiUI v1.3.7", "logoIcon": "clock", "home": "pages/home.html" },
+    "app": { "title": "刻刻帝终端", "subtitle": "KurumiUI v1.3.8", "logoIcon": "clock", "home": "pages/home.html" },
     "layout": {
       "gap": 10,
       "menu": { "width": 252, "collapsedWidth": 68, "collapsed": false },
@@ -1346,7 +1347,7 @@ console.log(app.isCollapsed(), app.getActiveTab());
 
 ```json
 {
-  "app": { "title": "刻刻帝终端", "subtitle": "KurumiUI v1.3.7", "logoIcon": "clock", "home": "pages/home.html" },
+  "app": { "title": "刻刻帝终端", "subtitle": "KurumiUI v1.3.8", "logoIcon": "clock", "home": "pages/home.html" },
   "layout": { "gap": 10, "menu": { "width": 252, "collapsedWidth": 68 }, "header": { "height": 56 }, "tabbarHeight": 38 },
   "menu": {
     "type": "menu",
@@ -1457,7 +1458,7 @@ KUI.bus.on('tabs:activate', function (payload) {
 | 创建了两次，事件重复触发 | 多次 `KUI.app.create`，`KUI.app.instance` 只指向最后一个 | 单页只创建一次；先 `destroy()` 再创建 |
 | 面包屑分隔符显示成文字 `chevron-right` | `separator` 只按文本渲染 | 想用图标请用 CSS 给 `.kui-menunav__crumb-sep` 加伪元素，别传图标名 |
 
-## 6.5 boot：加载层（时钟指针进度，v1.3.7 新增）
+## 6.5 boot：加载层（时钟指针进度，v1.3.8 新增）
 
 ### 6.5.1 作用与在整体界面中的位置
 
@@ -1496,41 +1497,59 @@ KUI.bus.on('tabs:activate', function (payload) {
 
 ### 6.5.4 props 字段
 
-与 `app.json:boot` 完全一致（`mode / meta / clock / bar / stages / text`），另有两个运行时字段：
+`boot` 的 props 与 `app.json:boot` 字段集不同：props 走 `DEFAULTS` 合并（`src/components/boot.js:126-150`），
+**没有 `enabled` / `delay` / `auto` / `progress` 这类「开关/初始值」语义**。常用字段如下（完整表见 [16-boot.md](16-boot.md) §5.2）：
 
 | 字段 | 类型 | 默认 | 说明 |
 | --- | --- | --- | --- |
-| `props.auto` | boolean | `true` | 仅 `bootstrap` 使用：`false` 时不自动隐藏 |
-| `props.progress` | number | `0` | 初始进度 |
+| `mode` | string | `"fullscreen"` | `fullscreen` 整页遮罩 / `inline` 内嵌（`renderNode` 默认合并成 `inline`） |
+| `title` / `subtitle` / `text` | string | `""` | 标题 / 副标题 / 初始阶段文案，空则回退 `KUI.text('boot.*')` |
+| `meta` | boolean | `true` | 是否显示底部「百分比 · 读取」 |
+| `stages` | array | 4 段 | `[{ step, text, progress }]`，`setStep` 按 `step` 命中 |
+| `clock` | object | `{enabled:true,mode:"progress",size:74,ticks:12,smooth:true}` | 时钟开关/模式/尺寸/刻度 |
+| `bar` | object | `{enabled:true,mode:"progress"}` | 进度条开关/模式 |
+| `hideDelay` | number | `360` | `done()` 后延迟移除节点的毫秒数 |
+
+> 注意：`app.json` 的 `boot` 段在 v1.3.8 起**由 `bootstrap.js` 自动应用**（`applyBootConfig`，历史缺口见 [16-boot.md](16-boot.md) §5.5）；
+> 通过 props 传给 `create` / `attach` 则是实打实生效的；证据与补丁见 [16-boot.md](16-boot.md) §5.5。
 
 ### 6.5.5 实例 API
 
+共 14 个方法（完整逐方法说明见 [16-boot.md](16-boot.md) §9）：
+
 | 方法 | 说明 |
 | --- | --- |
-| `el` / `config` | 根节点 / 当前配置 |
-| `setProgress(p, { silent })` | 设置进度（0–100），驱动两针、进度条、百分比 |
-| `setStep(n)` | 切到第 n 阶段（同步该阶段的 progress / 文案） |
+| `el` / `config` / `progress` / `step` / `visible` | 根节点 / 当前配置 / 进度 / 阶段 / 是否可见（属性，不是方法） |
+| `setProgress(p, { silent })` | 设置进度（0–100），驱动两针、进度条、百分比；返回 number |
+| `getProgress()` | 读当前进度 |
+| `setStep(n)` | 切到第 n 阶段（按 `config.stages` 命中后同步 progress / 文案；不命中只写 `data-boot-step`） |
 | `setText(t)` / `setMeta({ title, subtitle })` | 改阶段文案 / 品牌两行 |
-| `done()` / `error(msg, detail)` / `reset()` | 淡出完成 / 失败卡片 / 回到初始 |
+| `configure(patch, textCfg)` / `setConfig(patch, textCfg)` | 运行时改配置（不重建 DOM，返回实例） |
+| `done()` / `error(msg, detail)` | 进度 100% + 淡出 + 延迟移除 / 失败卡片（`error` 不派发事件） |
 | `show()` / `hide()` / `destroy()` | 显示 / 隐藏 / 销毁（移除 DOM 与单例） |
-| `getState()` / `handsAt(p)` | 当前状态 / 纯函数位姿 |
+| `getState()` / `handsAt(p)` | 当前状态快照（含 `hands`）/ 纯函数位姿 |
+
+> 实例**没有 `reset()`**；需要「重置」时 `destroy()` 后重新 `create`（官方 `standalone/boot.html` 的「重置」按钮就是这么做的）。
 
 ### 6.5.6 事件表
 
-| 事件 | 参数 | 说明 |
-| --- | --- | --- |
-| `boot:progress` | `{ percent, step, clockText }` | 每次进度变化（`silent` 不触发） |
-| `boot:done` | `{}` | `done()` 之后 |
-| `boot:error` | `{ message, detail }` | 失败态出现时 |
+三个事件都走全局总线 `KUI.bus`（不是实例上的 `on`）；前两个由组件派发，第三个由启动器派发：
+
+| 事件 | 参数 | 派发者 | 说明 |
+| --- | --- | --- | --- |
+| `boot:progress` | `{ percent, hands }` | 实例 `setProgress`（`src/components/boot.js:284-286`） | 每次进度变化都发；`silent` 只跳过文本更新，**仍会发** |
+| `boot:done` | `{ app, cost }` | `bootstrap.js:824` | 仅主流程启动完成时发；`cost` 为毫秒 |
+| `boot:error` | `{ error }` | `bootstrap.js:832` | 仅主流程异常时发；`error` 是 Error 对象 |
 
 ### 6.5.7 常见错误与排查
 
 | 现象 | 原因 | 处理 |
 | --- | --- | --- |
-| 刷新后没有加载动画，直接出界面 | 组件被拆掉且静态骨架也没有；或 `boot.enabled=false` | 检查 `config/kui-modules.json` 是否含 `boot.js`、`index.html` 是否保留 `#kui-boot` |
+| 刷新后没有加载动画，直接出界面 | 组件被拆掉且静态骨架也没有 | 检查 `config/kui-modules.json` 是否含 `boot.js`、`index.html` 是否保留 `#kui-boot` |
 | 时钟不动 | 组件缺失（legacy 分支只有 CSS 转圈） | 控制台 `KUI.bootLayer.isReady()`；`false` 说明 `boot.js` 没加载 |
-| 指针不动或乱跳 | `clock.mode` 是 `spin`（匀速自转，与进度无关） | 改回 `progress` |
-| 进度到 100% 不消失 | `auto:false`（调试模式） | 调 `KUI.bootLayer.instance().done()` |
+| 指针不动或乱跳 | `clock.mode` 是 `spin`（匀速自转，与进度无关） | 改回 `progress`（`none` 与 `progress` 视觉相同） |
+| 进度到 100% 不消失 | 手动 `create()` 的实例不会自动收尾（只有主流程会） | 调 `KUI.bootLayer.instance().done()` 或自己持有的 `inst.done()` |
+| 改 `app.json` 的 `boot` 不生效（v1.3.7 及更早的历史问题） | 旧版 `bootstrap.js` 未调用 `configureBootLayer` | 升级到 v1.3.8+，或临时 `KUI.bootLayer.configure({...})`；详见 [16-boot.md](16-boot.md) §5.5 |
 
 ---
 
@@ -1613,13 +1632,11 @@ KUI.dialog.alert('自检弹窗');                // 出现一个 iframe 弹窗
 
 ## 参考源码（boot 追加）
 
-- `src/components/boot.js:1-40` —— 文件头契约与进度换算说明；`:38-152` —— `DEFAULTS` 与 `state`；`:160-360` —— `buildNode()` 骨架（钟面/刻度/两针/进度条/阶段文案）；`:400-470` —— 单例与 `attach()` 接管；`:470-560` —— `configure / create`；`:560-708` —— 实例 API 与 `handsAt` 纯函数；`:708-782` —— 注册与 `KUI.bootLayer`。
-- `src/styles/boot.css` —— 遮罩、钟面、指针、进度条、失败态、内嵌模式；`config/app.json:38-51`；`config/text.json:76-90`；`standalone/boot.html`。
-
-## 参考源码（boot 追加）
-
-- `src/components/boot.js:1-40` —— 文件头契约与进度换算说明；`:38-152` —— `DEFAULTS` 与 `state`；`:160-360` —— `buildNode()` 骨架（钟面/刻度/两针/进度条/阶段文案）；`:400-470` —— 单例与 `attach()` 接管；`:470-560` —— `configure / create`；`:560-708` —— 实例 API 与 `handsAt` 纯函数；`:708-782` —— 注册与 `KUI.bootLayer`。
-- `src/styles/boot.css` —— 遮罩、钟面、指针、进度条、失败态、内嵌模式；`config/app.json:38-51`；`config/text.json:76-90`；`standalone/boot.html`。
+- `src/components/boot.js`（533 行）—— `:76-122` 进度→角度/读数数学（`handsAt`）；`:126-150` `DEFAULTS` 与 4 阶段；`:162-252` `buildNode()` 骨架（表盘/刻度/两针/进度条/读数/错误卡片）；`:256-419` 实例 API（14 个方法，无 `reset`）；`:440-470` `normalizeConfig` 与单例 `attach()` 接管；`:491-528` `renderNode` 默认 inline、注册 `type:"boot"` 与 `KUI.bootLayer`。
+- `src/app/bootstrap.js` —— `bootConfigOf` / `configureBootLayer` / `attachBootLayer` / `applyBootConfig`（v1.3.8 起在 `boot()` 中调用，接上 `app.json.boot`）。
+- `src/styles/boot.css:30-334` —— 遮罩、表盘与指针、进度条（含 indeterminate）、读数、错误卡片、内嵌预览。
+- `config/app.json:38-48`、`config/text.json:76-89`、`config/kui-modules.json:28/62`、`standalone/boot.html` —— 配置、文案、profile 条目与官方测试页。
+- 完整字段表、拆装与跨项目复用见 [16-boot.md](16-boot.md)。
 
 ## 参考源码
 

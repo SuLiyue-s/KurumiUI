@@ -1,6 +1,6 @@
 # 09 · 主题系统
 
-> 适用版本：KurumiUI v1.3.7 ｜ 前置章节：04 主题与皮肤、08 组件 ｜ 阅读时长：约 25 分钟
+> 适用版本：KurumiUI v1.3.8 ｜ 前置章节：04 主题与皮肤、08 组件 ｜ 阅读时长：约 25 分钟
 
 ## 本章目标
 
@@ -259,7 +259,7 @@
 
 ### 4.2 内置动作
 
-`bootstrap.js:133-183` 额外注册了 5 个主题相关动作（全仓共 28 个内置动作），可直接写进 `on.click`：
+`bootstrap.js:179-258` 额外注册了 5 个主题相关动作（全仓共 28 个内置动作），可直接写进 `on.click`：
 
 | 动作 | 参数 | 行为 |
 | --- | --- | --- |
@@ -273,12 +273,12 @@
 { "type": "button", "text": "换个主题", "on": { "click": { "action": "theme.cycle" } } }
 ```
 
-内置选择器（`bootstrap.js:225-316`）用每套主题的 `bg/accent/accent2/text` 拼渐变缩略块，附「随机主题 / 深浅切换 / 主题展示页」。`app.json` 的 `theme.visible`、`theme.picker` 是声明式配置（`test/config.test.js:220-225` 校验），实际遍历初始化后的全部主题。
+内置选择器（`bootstrap.js:275-375`）用每套主题的 `bg/accent/accent2/text` 拼渐变缩略块，附「随机主题 / 深浅切换 / 主题展示页」。`app.json` 的 `theme.visible`、`theme.picker` 是声明式配置（`test/config.test.js:220-225` 校验），实际遍历初始化后的全部主题。
 
 ### 4.3 URL、存储与初始优先级
 
 - URL：`?kuiTheme=starry`（`readFromUrl()` 校验 id）。
-- 存储键默认 `kui-theme`；`app.json` 的 `theme.storageKey` 由 `theme.init()` 传入（`bootstrap.js:734`）。
+- 存储键默认 `kui-theme`；`app.json` 的 `theme.storageKey` 由 `theme.init()` 传入（`bootstrap.js:789`）。
 - `theme-boot.js` 支持 `<html data-kui-theme-key="my-key">` 自定义键（`theme-boot.js:45-49`）。
 - 初始优先级（`theme.js:401-413`）：
 
@@ -356,7 +356,7 @@ FALLBACK 缺省：`stars{count:60,size:2,speed:'6s'}`、`sakura{count:12,size:10
 
 ### 5.3 性能与可访问
 
-层数建议 ≤ 9（内置 6~9 层），动画层（`scanline`/`stars`/`sakura`/`feather`）控制在 2 层内；大尺寸渐变 + `blur` 叠加吃 GPU。窗口 resize 已由 `bootstrap.js:760-765` 防抖 160ms 调 `refreshArt()`，业务侧别频繁调。装饰层 `pointer-events:none` + `aria-hidden`，不进读屏与 Tab 序、打印时被隐藏（`base.css` 第 13 节）。
+层数建议 ≤ 9（内置 6~9 层），动画层（`scanline`/`stars`/`sakura`/`feather`）控制在 2 层内；大尺寸渐变 + `blur` 叠加吃 GPU。窗口 resize 已由 `bootstrap.js:815-821` 防抖 160ms 调 `refreshArt()`，业务侧别频繁调。装饰层 `pointer-events:none` + `aria-hidden`，不进读屏与 Tab 序、打印时被隐藏（`base.css` 第 13 节）。
 
 ## 6. 自定义主题完整步骤
 
@@ -484,5 +484,5 @@ grep -c "my-frost" config/bundle.js
 - `src/styles/base.css:189-354`（116 token）、`:720-727`（`--kui-line-clamp`）、`:1387-1398`（过渡）、`:915-1280`（装饰层）
 - `src/themes.json`（6 套主题、64 token/套、art）；`src/core/theme.js`（`apply`/`resolveInitial`/`init`/`broadcast`）
 - `src/core/theme-art.js`（11 种装饰层）、`src/core/theme-boot.js`（防闪烁）、`src/frame/kui-frame.js:207-399`（iframe 同步）
-- `src/app/bootstrap.js:133-183`（主题动作）、`:225-316`（内置选择器）、`:726-740`（初始化）；`config/app.json:167-187`
+- `src/app/bootstrap.js:179-258`（主题动作）、`:275-370`（内置选择器）、`:782-795`（初始化）；`config/app.json:178-198`
 - `tools/build-config.js:79`；`docs/04-theme.md`（token 契约、自定义步骤、iframe 协议）

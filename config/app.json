@@ -192,7 +192,6 @@
       "columns": 3,
       "showPreview": true,
       "showScheme": true,
-      "position": "panel",
       "maskClosable": true
     }
   },
@@ -592,8 +591,9 @@
       ],
       "footer": {
         "title": "灵装回路",
-        "subtitle": "v1.0.0 · 稳定",
-        "version": "KurumiUI",
+        "subtitle": "",
+        "version": "",
+        "copyright": "",
         "actions": [
           {
             "type": "button",

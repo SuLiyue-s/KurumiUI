@@ -1,6 +1,6 @@
 # 11 · JS API 全表与跨页通信
 
-> 适用版本：KurumiUI v1.3.7 ｜ 前置章节：10-actions-handlers.md、08-components.md ｜ 阅读时长：约 40 分钟
+> 适用版本：KurumiUI v1.3.8 ｜ 前置章节：10-actions-handlers.md、08-components.md ｜ 阅读时长：约 40 分钟
 
 ## 本章目标
 
@@ -16,7 +16,7 @@ KUI 是挂在 `window` 上的单命名空间：核心提供工具与渲染，组
 
 ## 1. KUI 命名空间总览
 
-实测 `Object.keys(KUI).length === 77`（v1.3.7；Node 24 下用 `test/dom-stub.js` + `test/load-kui.js` 按 app profile 加载——`config/kui-modules.json` 的 `profiles.app.files` 共 **28** 个文件——后枚举，其中不含 `KUI.frame`）。
+实测 `Object.keys(KUI).length === 77`（v1.3.8；Node 24 下用 `test/dom-stub.js` + `test/load-kui.js` 按 app profile 加载——`config/kui-modules.json` 的 `profiles.app.files` 共 **28** 个文件——后枚举，其中不含 `KUI.frame`）。
 
 | 分组 | 入口 | 职责 | 数量 |
 | --- | --- | --- | --- |
@@ -30,7 +30,7 @@ KUI 是挂在 `window` 上的单命名空间：核心提供工具与渲染，组
 | 控件/诊断/增强 | `controls`、`diag`、`enhance` | 装配入口、调试、原生升级 | 16/7/5 |
 | iframe SDK | `KUI.frame`（仅加载 `kui-frame.js` 的页面） | 业务页 → 父页面桥 | 29 |
 
-计数口径（v1.3.7 实测）：`theme` 共 36 键，其中 `_bus/_bus_get/_emit/_busReset` 是 4 个内部字段，公开方法 32 个；`themeArt` 有 `render/preview/clear/kinds/roman` 5 个入口；`KUI.frame` 单独加载 `src/frame/kui-frame.js` 后才出现，app profile 顶层没有 `frame` 键。
+计数口径（v1.3.8 实测）：`theme` 共 36 键，其中 `_bus/_bus_get/_emit/_busReset` 是 4 个内部字段，公开方法 32 个；`themeArt` 有 `render/preview/clear/kinds/roman` 5 个入口；`KUI.frame` 单独加载 `src/frame/kui-frame.js` 后才出现，app profile 顶层没有 `frame` 键。
 
 ## 2. 核心 API（KUI 顶层）
 
@@ -38,7 +38,7 @@ KUI 是挂在 `window` 上的单命名空间：核心提供工具与渲染，组
 
 | 成员 | 签名 | 返回 | 说明 |
 | --- | --- | --- | --- |
-| `name` / `version` / `env` | 属性 | `'KurumiUI'` / `'1.3.7'` / `{isBrowser,isNode,nodeVersion}` | 版本四处一致 |
+| `name` / `version` / `env` | 属性 | `'KurumiUI'` / `'1.3.8'` / `{isBrowser,isNode,nodeVersion}` | 版本四处一致 |
 | `log` / `warn` / `error` | `(...args)` | `undefined` | 带 `[KurumiUI]` 前缀 |
 | `warnOnce` | `(key, ...args)` | `undefined` | 同 key 只输出一次 |
 
@@ -307,7 +307,7 @@ KUI.dialog.form({
 
 - **`?kui_debug=1`**：URL 参数或 `localStorage['kui-debug']='1'` 启用诊断面板（`diag.js:235-241`）；滚动显示 `boot/error/longtask/focus/type/msg` 日志，钩子含全局错误、长任务、焦点、输入耗时与 postMessage 摘要。
 - **`?debug=1`**：仅 `bootstrap.js:770` 判断（`opts.debug || /[?&]debug/`），打印启动步骤，与 `kui_debug` 互不替代。
-- **`KUI.info()`**：app 沙箱实测 `{name:'KurumiUI', version:'1.3.7', controls:41, themes:0, env:{isBrowser:true,isNode:false,nodeVersion:null}}`。`themes` 为 `KUI.theme.list()` 长度：未调用 `load/init` 时为 0，standalone 主页面加载 6 套主题后为 6；`controls` 为注册表内控件类型数。
+- **`KUI.info()`**：app 沙箱实测 `{name:'KurumiUI', version:'1.3.8', controls:41, themes:0, env:{isBrowser:true,isNode:false,nodeVersion:null}}`。`themes` 为 `KUI.theme.list()` 长度：未调用 `load/init` 时为 0，standalone 主页面加载 6 套主题后为 6；`controls` 为注册表内控件类型数。
 
 ```js
 KUI.app.instance;  KUI.tabs.get();                       // 全局入口
@@ -325,7 +325,7 @@ KUI.registry.list(); KUI.diag.lines().slice(-10);        // 类型与最近诊�
 | 弹窗结果拿不到 | 父级没回执或 `requestId` 放错位置 | 回执把 `requestId` 放信封 |
 | 子页收到 `undefined`/拿不到值 | config 传给 iframe 前被 `sanitizeForPost` 剥离函数、`undefined`、Symbol、BigInt、DOM、循环引用 | 子页要用的只传可序列化数据；`submitApi`/`onOk`/`onCancel` 由父页面持有，可直接写在 config 里 |
 | 主题不同步 | 子页主题脚本缺失 | 子页收到 `theme:apply` 会直接写 CSS 变量兜底 |
-| 改完不生效 | 命中旧缓存文档 | URL 加 `?kui_v=1.3.7` 强刷 |
+| 改完不生效 | 命中旧缓存文档 | URL 加 `?kui_v=1.3.8` 强刷 |
 | 找不到 utils 文件 | 误以为有 `src/core/utils.js` | utils 在 `kui.js` 内并挂 `KUI.utils` |
 | 控制台 `未注册的动作/业务函数`、`动作 xxx 需要 yyy`、`配置读取失败（…）`、`主题不存在: xxx`、`未注册的元素类型` | 动作名错、组件未加载、短名无 ctx、无 bundle、未注册主题 | `KUI.actions.list()`/`handlers.list()` 核对并写全 `scope.name`；`npm run build:config`、`KUI.theme.ids()`；检查 profile 并加 `?kui_v=<版本>` |
 
@@ -339,7 +339,7 @@ node -e "var s=require('./test/dom-stub.js'),e=s.createEnvironment({root:process
 ```js
 KUI.utils.debounce; KUI.bus.on; KUI.theme.on;      // app profile 入口均存在
 KUI.frame.ready;                                   // 仅在加载 kui-frame.js 的页面存在，app 内为 undefined
-KUI.info().version;                                // '1.3.7'
+KUI.info().version;                                // '1.3.8'
 KUI.registry.list().length;                        // 40
 ```
 

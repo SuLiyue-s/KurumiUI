@@ -18,7 +18,7 @@
   KUI.name = 'KurumiUI';
   // 版本号同时用于 iframe 的缓存穿透（tabs 会拼到子页面 URL 的 kui_v 参数上），
   // 每次发布 UI 修复时递增，避免旧 iframe 文档被浏览器缓存后继续跑旧版代码。
-  KUI.version = '1.3.7';
+  KUI.version = '1.3.8';
   KUI.env = {
     isBrowser: typeof window !== 'undefined' && typeof document !== 'undefined',
     isNode: typeof process !== 'undefined' && !!(process.versions && process.versions.node),
@@ -611,19 +611,22 @@
 
   KUI.setStyle = function (el, style) {
     if (!el || !style) return el;
-    if (typeof style === 'string') {
-      el.style.cssText = (el.style.cssText ? el.style.cssText + ';' : '') + style;
+    if (typeof style === "string") {
+      el.style.cssText = (el.style.cssText ? el.style.cssText + ";" : "") + style;
       return el;
     }
     for (var k in style) {
       if (!hasOwn.call(style, k)) continue;
       var v = style[k];
       if (v === null || v === undefined) continue;
-      if (k.indexOf('--') === 0) {
-        if (el.style.setProperty) el.style.setProperty(k, String(v));
-        else el.style[k] = v;
-      } else if (el.style.setProperty) {
-        el.style.setProperty(k, String(v));
+      // CSS 自定义属性原样设置；其余驼峰键（gridTemplateColumns 等）转 kebab（v1.3.8）
+      var cssName = k.indexOf("--") === 0
+        ? k
+        : (k.indexOf("-") !== -1 ? k : k.replace(/[A-Z]/g, function (m) { return "-" + m.toLowerCase(); }));
+      if (el.style.setProperty) {
+        el.style.setProperty(cssName, String(v));
+      } else if (k.indexOf("--") === 0) {
+        el.style[k] = v;
       } else {
         el.style[k] = v;
       }
@@ -1030,7 +1033,8 @@
       // 无 type 时：有 text 视为纯文本节点，否则视为容器
       if (node.text !== undefined && node.text !== null) return KUI.textNode(node.text);
       if (childNodes(node).length) {
-        var box = KUI.h('div', { 'class': node['class'] || '' });
+        var box = KUI.h('div');
+        decorate(box, node, ctx);  /* 容器也支持 class/style/attrs/dataset（v1.3.8） */
         renderNodesInto(childNodes(node), box, ctx.child({}));
         return box;
       }

@@ -315,6 +315,16 @@ node tools/check-assets.js                # HTML 引用完整性
 | 1 | 遗留建议中「需要修复的」 | `test/config.test.js` 控件类型写死、冒烟无分节过滤 | 控件类型改为注册表派生 + 审计 E4 静态扫描；冒烟支持 `--only=list` / `--only=N` | 一致性审计 17/0（E4 PASS）；`--only=26` 5/0 |
 | 2 | 搜索多结果时直接打开首个 | `openSearch()` 命中即 `openTab(first)`，无候选 UI | `searchMenu()` 6 档评分 + `showSearchPicker()` 候选弹窗（最多 10 项，显示父路径），由用户点选 | 冒烟 [26] 4 项；真实 Chromium：2 个候选 → 点选后新增标签并关闭弹窗 |
 
+### v1.3.8 · 配置接线修复 + 配置读取点审计
+
+| # | 反馈 | 根因 | 修复 | 验证 |
+| --- | --- | --- | --- | --- |
+| 1 | `app.json` 的 `boot` 段运行时不生效 | `boot()` 只 `attachBootLayer(null)`，`configureBootLayer` 无调用点 | 新增 `applyBootConfig(appCfg, textCfg)` 并接线；`enabled:false` 销毁；`appliedBootConfig` 可核对 | 冒烟 [28.1] / [28.2]；真实浏览器核对表盘 size、阶段文案 |
+| 2 | 是否还有「配置字段无读取点、配置不生效」 | 文档承诺了但源码未消费 | 修复 `app.*` 注入、`brand.logoText`、`footer.subtitle/copyright`、`theme.picker.*`、`ui.dialog.escClosable`、`boot.clock.smooth`、`tabs.props.keepAlive`、`dialog.config()` 写回 | `tools/audit-config.js` 0 缺口；冒烟 [28.3]/[28.4]/[28.5]；`test/render` / `test/config` 新用例 |
+| 3 | 同类缺陷的持续防护 | 无自动检查 | 新增 `tools/audit-config.js`（叶子键读取点扫描，白名单 37 项），`npm run audit:config` | 首跑 431 待核对 / 0 缺口；缺口即退出码 1 |
+
+回归：`tools/smoke.js` **104 / 0**；`test/run.js` **32 / 0 / 0**；`test/render` 9/0；`test/config` 5/0；`audit-consistency` 17/0；`audit-components` 19/0；`audit-all-pages` 19/19；`check-assets` 21/0/0；`check-manual` 0/0。
+
 ### v1.3.7 · 加载层组件化 + 时钟指针进度动画
 
 | # | 反馈 | 根因 | 修复 | 验证 |

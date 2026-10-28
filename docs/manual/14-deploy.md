@@ -1,6 +1,6 @@
 # 14 · 部署与跨项目复用
 
-> 适用版本：KurumiUI v1.3.7 ｜ 前置章节：03-assembly.md ｜ 阅读时长：约 18 分钟
+> 适用版本：KurumiUI v1.3.8 ｜ 前置章节：03-assembly.md ｜ 阅读时长：约 18 分钟
 
 KurumiUI 是纯前端 + JSON 配置，部署就是把「源码 + 两个构建产物」放到任意静态服务器上。本章先讲内置 `server.js` 的边界，再覆盖静态托管、子路径、file://、iframe 嵌入，最后是整框架/单组件复用、升级、回滚与上线清单。
 
@@ -176,7 +176,7 @@ Pages 项目站点根路径是 `https://<user>.github.io/<repo>/`，比域名深
 
 | 检查项 | 怎么查 | 说明 |
 | --- | --- | --- |
-| `app.json` 里的 url | `grep '"url"' config/app.json` | 必须写相对项目根的 `pages/home.html`，不能带 `/kurumi/` 或 `../`（`config/app.json:236`、`:370`） |
+| `app.json` 里的 url | `grep '"url"' config/app.json` | 必须写相对项目根的 `pages/home.html`，不能带 `/kurumi/` 或 `../`（`config/app.json:247`、`:381`） |
 | tabs 的 `urlPrefix` | 搜 `urlPrefix` | 只有把 tabs 组件放到子目录页面（如 `standalone/no-shell.html:189` 的 `'../'`）才需要；主应用不要设置 |
 | iframe / 弹窗文档路径 | 看 `src/frame/` 与各页 `iframe` | 全部是相对路径，部署后路径深度不变即可 |
 | 绝对路径残留 | `grep -rn '"/src/\|"/config/' index.html src pages standalone` | 应为空；有则改成相对路径 |
@@ -252,7 +252,7 @@ window.addEventListener('message', function (e) {
 
 ### 6.1 方式 A：整个框架复制
 
-适合把 KurumiUI 当自家后台的技术底座。复制清单（按 v1.3.7 实测）：
+适合把 KurumiUI 当自家后台的技术底座。复制清单（按 v1.3.8 实测）：
 
 | 路径 | 作用 | 必须 |
 | --- | --- | --- |
@@ -304,7 +304,7 @@ window.addEventListener('message', function (e) {
 
 ### 7.3 回滚
 
-- 推荐发布包按版本目录保存：`/var/www/kurumi-v1.3.5`、`/var/www/kurumi-v1.3.7`，用软链 `/var/www/kurumi -> kurumi-v1.3.7`，回滚只改软链并 reload nginx。
+- 推荐发布包按版本目录保存：`/var/www/kurumi-v1.3.5`、`/var/www/kurumi-v1.3.8`，用软链 `/var/www/kurumi -> kurumi-v1.3.8`，回滚只改软链并 reload nginx。
 - 只换代码不换配置时，至少回滚两个产物；`config/app.json` 结构变化大的版本，回滚要连配置一起换。
 - 回滚后清 CDN 与浏览器强缓存路径（HTML 已 no-cache，一般无需强刷）。
 

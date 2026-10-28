@@ -224,6 +224,10 @@
         avatarApi = KUI.avatar.create(logo, mergeAvatarCfg(avatarCfg), ctx);
       } else {
         logo.appendChild(iconBox(props.brand.logoIcon || 'clock', 'kui-menu__logo-icon'));
+        /* v1.3.8：brand.logoText 的真实读取点（图标下的文字徽记，折叠态隐藏） */
+        if (props.brand.logoText) {
+          logo.appendChild(elText('span', 'kui-menu__logo-text', props.brand.logoText));
+        }
       }
       brand.appendChild(logo);
 
@@ -735,8 +739,14 @@
         if (props.footer.title) {
           footerEl.appendChild(elText('div', 'kui-menu__footer-title', props.footer.title));
         }
+        if (props.footer.subtitle) {
+          footerEl.appendChild(elText('div', 'kui-menu__footer-subtitle', props.footer.subtitle));
+        }
         if (props.footer.version) {
           footerEl.appendChild(elText('div', 'kui-menu__footer-version', props.footer.version));
+        }
+        if (props.footer.copyright) {
+          footerEl.appendChild(elText('div', 'kui-menu__footer-copyright', props.footer.copyright));
         }
         if (props.footer.actions && props.footer.actions.length) {
           var actions = el('div', 'kui-menu__footer-actions');

@@ -1448,6 +1448,116 @@ currentSection = 27;   console.log('\n[27] 加载层组件：可拆装 + 进度�
     return 'boot.html + 12 页导航';
   });
 
+currentSection = 28;  console.log('\n[28] 配置接线：app.json 的 boot 段 / app.* 元信息（v1.3.8）');
+
+  check('[28.1] bootstrap 把 app.json 的 boot 段真正应用到启动层', function () {
+    KUI.bootLayer.destroy();
+    var shell = env.document.createElement('div');
+    shell.setAttribute('id', 'kui-boot');
+    shell.className = 'kui-boot';
+    env.document.body.appendChild(shell);
+    KUI.bootLayer.attach(null);
+    var cfg = { boot: { clock: { enabled: true, mode: 'spin', size: 96, ticks: 8 }, bar: { enabled: true, mode: 'progress' }, meta: false, stages: [{ step: 1, text: '阶段一', progress: 10 }, { step: 2, text: '阶段二', progress: 55 }] } };
+    KUI.boot.applyBootConfig(cfg, { boot: { loading: '接线测试' } });
+    var inst = KUI.bootLayer.instance();
+    assert(!!inst, 'applyBootConfig 未返回实例');
+    var applied = KUI.boot.appliedBootConfig;
+    assert(applied && applied.clock && applied.clock.size === 96, 'appliedBootConfig.clock.size 应为 96，实际 ' + JSON.stringify(applied && applied.clock));
+    assert(applied.clock.mode === 'spin', 'clock.mode 未应用');
+    assert(applied.meta === false, 'meta=false 未应用');
+    assert(inst && inst.config && inst.config.stages.length === 2, 'stages 未被替换');
+    inst.setStep(2);
+    assert(inst.getProgress() === 55, 'setStep 未命中新阶段进度，实际 ' + inst.getProgress());
+    assert(env.document.documentElement.getAttribute('data-kui-boot') !== 'off', 'enabled 未关闭时不应标记 off');
+    return 'clock.size=96/spin/meta=false/stages=2' ;
+  });
+
+  check('[28.2] boot.enabled=false 时销毁实例并移除静态骨架', function () {
+    var out = KUI.boot.applyBootConfig({ boot: { enabled: false } }, null);
+    assert(out === null, 'enabled=false 应返回 null');
+    assert(KUI.boot.appliedBootConfig && KUI.boot.appliedBootConfig.enabled === false, 'appliedBootConfig 未记录 enabled=false');
+    assert(!env.document.getElementById('kui-boot'), '静态骨架未被移除');
+    assert(env.document.documentElement.getAttribute('data-kui-boot') === 'off', '未标记 data-kui-boot=off');
+    KUI.bootLayer.destroy();
+    return '销毁 + 移除 + data-kui-boot=off';
+  });
+
+  check('[28.3] app.* 元信息注入菜单品牌/页脚/顶部导航（v1.3.8 新增读取点）', function () {
+    var appCfg = {
+      app: { title: '测试终端', subtitle: '副标题', version: '9.9.9', logoIcon: 'clock', logoText: 'ZZ', copyright: '© 测试' },
+      menu: { props: { brand: {}, footer: { title: '页脚标题' } } },
+      menunav: { props: {} }
+    };
+    KUI.boot.applyAppMetaToConfig(appCfg);
+    var b = appCfg.menu.props.brand;
+    var f = appCfg.menu.props.footer;
+    assert(b.title === '测试终端', 'brand.title 未注入');
+    assert(b.subtitle === '副标题', 'brand.subtitle 未注入');
+    assert(b.logoIcon === 'clock', 'brand.logoIcon 未注入');
+    assert(b.logoText === 'ZZ', 'brand.logoText 未注入');
+    assert(f.version === 'v9.9.9', 'footer.version 未注入，实际 ' + f.version);
+    assert(f.copyright === '© 测试', 'footer.copyright 未注入');
+    assert(appCfg.menunav.props.title === '测试终端', 'menunav.title 未注入');
+    /* 已显式配置的字段不能被覆盖 */
+    var appCfg2 = { app: { title: 'T', logoText: 'KUI' }, menu: { props: { brand: { title: '已有标题' }, footer: { version: 'v自定义' } } } };
+    KUI.boot.applyAppMetaToConfig(appCfg2);
+    assert(appCfg2.menu.props.brand.title === '已有标题', '显式 brand.title 被覆盖');
+    assert(appCfg2.menu.props.footer.version === 'v自定义', '显式 footer.version 被覆盖');
+    return '7 个字段注入 + 显式值优先';
+  });
+
+  check('[28.4] 菜单组件渲染 brand.logoText 徽记与页脚副标题/版权', function () {
+    var host = env.document.createElement('div');
+    env.document.body.appendChild(host);
+    var m = KUI.menu.create(host, {
+      brand: { title: '品牌', subtitle: '子标题', logoIcon: 'clock', logoText: 'KUI' },
+      items: [{ id: 'a', label: '甲' }],
+      footer: { title: '页脚', subtitle: '页脚副标题', version: 'v1.2.3', copyright: '© 作者' }
+    });
+    var badge = host.querySelector('.kui-menu__logo-text');
+    assert(badge && badge.textContent === 'KUI', 'brand.logoText 未渲染');
+    var sub = host.querySelector('.kui-menu__footer-subtitle');
+    assert(sub && sub.textContent === '页脚副标题', 'footer.subtitle 未渲染');
+    var cp = host.querySelector('.kui-menu__footer-copyright');
+    assert(cp && cp.textContent === '© 作者', 'footer.copyright 未渲染');
+    var ver = host.querySelector('.kui-menu__footer-version');
+    assert(ver && ver.textContent === 'v1.2.3', 'footer.version 未渲染');
+    m.destroy();
+    return 'logoText + footer.subtitle + copyright';
+  });
+
+  check('[28.5] 3 个曾「无读取点」的配置字段现已生效（escClosable / clock.smooth / keepAlive）', function () {
+    /* ① dialog.escClosable → closeOnEsc */
+    var before = KUI.dialog.config().closeOnEsc;
+    KUI.dialog.config({ escClosable: false });
+    assert(KUI.dialog.config().closeOnEsc === false, 'escClosable=false 未映射到 closeOnEsc');
+    KUI.dialog.config({ closeOnEsc: before });
+
+    /* ② boot.clock.smooth → data-boot-smooth */
+    KUI.bootLayer.destroy();
+    var host = env.document.createElement('div');
+    env.document.body.appendChild(host);
+    var inst = KUI.bootLayer.create(host, { mode: 'inline', clock: { smooth: false } });
+    assert(inst && inst.el, 'bootLayer.create 未返回实例');
+    assert(inst.el.getAttribute('data-boot-smooth') === 'off', 'smooth=false 未写入 data-boot-smooth');
+    inst.configure({ clock: { smooth: true } });
+    assert(inst.el.getAttribute('data-boot-smooth') === 'on', 'configure 后 data-boot-smooth 未更新');
+    inst.destroy();
+
+    /* ③ tabs.keepAlive=false → 切走卸载（DOM stub 只做结构校验） */
+    var tabsHost = env.document.createElement('div');
+    env.document.body.appendChild(tabsHost);
+    var tabs = KUI.tabs.create(tabsHost, { maxTabs: 4, keepAlive: false });
+    tabs.open({ id: 'sm-ka-a', title: 'A', url: 'pages/home.html' });
+    tabs.open({ id: 'sm-ka-b', title: 'B', url: 'pages/profile.html' });
+    assert(tabsHost.querySelectorAll('.kui-tabs__pane').length === 1,
+      'keepAlive=false 时切走后 pane 应只剩 1 个');
+    tabs.activate('sm-ka-a');
+    assert(tabsHost.querySelectorAll('.kui-tabs__pane').length === 1, '切回后应重建 pane');
+    tabs.destroy();
+    return 'escClosable + smooth + keepAlive';
+  });
+
 currentSection = 6;   console.log('\n[6] 控制台与错误汇总');
       check('加载与启动期无 console.error', function () {
         assert(consoleErrors.length === 0, consoleErrors.slice(0, 3).join(' | '));

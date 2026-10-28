@@ -219,6 +219,38 @@ module.exports = function register(suite, ctx) {
     }
   });
 
+  suite.test('tabs：keepAlive=false 时切走卸载 iframe、切回重建（不保活）', function () {
+    var rt = boot();
+    try {
+      var doc = rt.doc;
+      var KUI = rt.KUI;
+
+      var host = doc.createElement('div');
+      host.className = 'tabs-host';
+      doc.body.appendChild(host);
+
+      var tabs = KUI.tabs.create(host, { maxTabs: 8, keepAlive: false });
+      tabs.open({ id: 'ka-a', title: 'A', url: 'pages/home.html' });
+      tabs.open({ id: 'ka-b', title: 'B', url: 'pages/profile.html' });
+
+      /* 切到 B 后，A 的 pane 应已被卸载 */
+      var panes = host.querySelectorAll('.kui-tabs__pane');
+      ctx.assert.strictEqual(panes.length, 1, 'keepAlive=false 时非激活 pane 应被卸载，实际剩 ' + panes.length);
+      /* 注意：tabs 实例没有 get()，卸载状态通过 pane 数量与重建后的 src 验证 */
+
+      /* 切回 A：应重建 pane + 重新设置 src */
+      tabs.activate('ka-a');
+      var panesA = host.querySelectorAll('.kui-tabs__pane');
+      ctx.assert.strictEqual(panesA.length, 1, '切回 A 后应只保留 A 的 pane');
+      var frameA = panesA[0].querySelector('iframe');
+      ctx.assert.ok(frameA && frameA.src.indexOf('pages/home.html') !== -1, 'A 重建后应重新加载 home');
+
+      tabs.destroy();
+    } finally {
+      teardown(rt);
+    }
+  });
+
   /* ==========================================================
    * 3. dialog：含 iframe 的独立弹层，resolve 后移除
    * ========================================================== */
@@ -586,6 +618,30 @@ module.exports = function register(suite, ctx) {
         }
       }
       ctx.assert.deepStrictEqual(failures, [], '联动算子断言失败:\n  ' + failures.join('\n  '));
+    } finally {
+      teardown(rt);
+    }
+  });
+  /* ==========================================================
+   * 10. 渲染器：容器节点 style/attrs 与驼峰键（v1.3.8）
+   * ========================================================== */
+
+  suite.test('渲染：容器节点 class/style/attrs 生效，驼峰键转 kebab（v1.3.8）', function () {
+    var rt = boot();
+    try {
+      var K = rt.KUI;
+      var el = K.renderNode({
+        class: 'probe-grid',
+        style: { gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '10px' },
+        attrs: { 'data-probe': '1' },
+        nodes: [{ type: 'text', props: { text: 'A' } }]
+      });
+      ctx.assert.ok(el && el.nodeType === 1, '容器节点应返回 DOM 元素');
+      ctx.assert.ok(classListContains(el, 'probe-grid'), '容器节点 class 应生效');
+      ctx.assert.strictEqual(el.getAttribute('data-probe'), '1', '容器节点 attrs 应生效');
+      var gtc = el.style && el.style.getPropertyValue ? el.style.getPropertyValue('grid-template-columns') : '';
+      ctx.assert.ok(String(gtc).indexOf('repeat(3') === 0, '驼峰键应转 kebab 生效，实际: ' + gtc);
+      ctx.assert.ok(el.children && el.children.length >= 1, '容器子节点应渲染');
     } finally {
       teardown(rt);
     }

@@ -170,6 +170,7 @@
     root.setAttribute('data-boot-layer', 'true');
     root.setAttribute('data-boot-clock', cfg.clock.enabled ? 'on' : 'off');
     root.setAttribute('data-boot-clock-mode', cfg.clock.enabled ? cfg.clock.mode : 'off');
+    root.setAttribute('data-boot-smooth', cfg.clock.smooth === false ? 'off' : 'on');
     root.setAttribute('data-boot-bar', cfg.bar.enabled ? cfg.bar.mode : 'off');
     root.style.setProperty('--kui-boot-progress', '0%');
 
@@ -326,6 +327,7 @@
         root.className = 'kui-boot' + (cfg.mode === 'inline' ? ' kui-boot--inline' : '');
         root.setAttribute('data-boot-clock', cfg.clock.enabled ? 'on' : 'off');
         root.setAttribute('data-boot-clock-mode', cfg.clock.enabled ? cfg.clock.mode : 'off');
+        root.setAttribute('data-boot-smooth', cfg.clock.smooth === false ? 'off' : 'on');
         root.setAttribute('data-boot-bar', cfg.bar.enabled ? cfg.bar.mode : 'off');
         refs.clock.style.setProperty('--kui-boot-size', (Number(cfg.clock.size) || 74) + 'px');
         refs.dial.style.setProperty('--kui-boot-ticks', String(Number(cfg.clock.ticks) || 12));

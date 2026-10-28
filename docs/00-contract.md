@@ -637,7 +637,7 @@ dialog iframe→主框架：
 - 不要运行会删除/移动工作区外文件的命令；不要 `npm install`（项目零依赖）。
 - 中文注释、中文文档、中文汇报。
 
-## 20. 启动层组件（boot，v1.3.7）
+## 20. 启动层组件（boot，v1.3.7 起；v1.3.8 完成配置接线）
 
 > 需求（用户）："访问服务时或刷新时的 加载中 页面，也需要可以单独 自由拆卸、组装，且 时钟图案 增加一项 时钟指针动画，
 > 加载进度 0% 至 100% 分别对应时钟的 0 时至 12 时，要注意时钟的时针和分针的指向位置。还需要一个单独的测试页面，观察效果。"
@@ -649,7 +649,7 @@ dialog iframe→主框架：
 | 文件 | `src/components/boot.js`（逻辑 + 注册）、`src/styles/boot.css`（样式） |
 | 注册 | `KUI.registry.register("boot", { category: "shell", defaults, render(props, ctx) })` |
 | 静态 API | `KUI.bootLayer`：`create(host, props)` / `attach(props, textCfg)` / `configure(patch, textCfg)` / `instance()` / `handsAt(p)` / `isReady()` |
-| 实例 API | `setProgress(p)` / `setStep(n)` / `setText(t)` / `setMeta(app)` / `done()` / `error(msg, detail)` / `reset()` / `show()` / `hide()` / `destroy()` / `getState()` |
+| 实例 API | `setProgress(p)` / `getProgress()` / `setStep(n)` / `setText(t)` / `setMeta(app)` / `configure(patch, textCfg)` / `setConfig(patch, textCfg)` / `show()` / `hide()` / `done()` / `error(msg, detail)` / `destroy()` / `getState()`（共 13 个方法；无 `reset()`，重来用 `destroy()` 后重新 `create()`） |
 | 单例 | `attach()` 接管页面既有 `#kui-boot`（只重建内部结构，不整层重建）；`create()` 可在任意容器内嵌（`mode: "inline"`） |
 | 拆装 | `boot.js` 未加载时 `bootstrap.js` 退回 `index.html` 静态骨架（legacy 分支），不报错、不白屏 |
 | 配置 | `config/app.json` 的 `boot` 段（enabled / mode / stages / clock / bar / meta / text） |
@@ -667,7 +667,14 @@ dialog iframe→主框架：
 - `25% → 3:00`、`50% → 6:00`、`75% → 9:00`，可在 `boot.html` 的「按进度设置」里逐格核对；
 - 指针平滑过渡由 `clock.smooth` 控制（CSS `transition`），关闭后逐格跳变。
 
-### 20.2 bootstrap 接线
+### 20.2 bootstrap 接线（v1.3.8 完成）
+
+- `boot()` 在 `text / themes / app` 加载完成、`i18n.set` 之后调用 **`applyBootConfig(appCfg, res.text)`**：
+  1) `configureBootLayer(appCfg, textCfg)` → `KUI.bootLayer.configure(bootConfigOf(appCfg) || {}, textCfg.boot)`，让 `app.json` 的 `boot` 段真正生效；
+  2) `boot.enabled === false` 时不创建启动层，已有实例 `destroy()`；
+  3) 应用后的快照写入 `KUI.boot.appliedBootConfig`（便于冒烟/控制台核对）。
+- 历史（v1.3.7 及更早）：只调 `attachBootLayer(null)`，`appCfg.boot` 与 legacy `app.loading` 均未被消费（见 §20.3.3 与 CHANGELOG v1.3.8）。
+- 其它既有约定不变：`ensureBootLayer()` 接管静态骨架、`setBootText / setBootStep / hideBoot / showBootError` 优先委派实例、`applyAppMeta()` 同步 `inst.setMeta(app)`、阶段默认 `8% / 46% / 78% / 100%`。
 
 - `boot()` 开始时 `ensureBootLayer()`：有组件则 `attach()`（接管静态骨架）并 `configure(app.boot, text.boot)`；无组件则保持 legacy；
 - 原有 `setBootText / setBootStep / hideBoot / showBootError` 保留为对外函数，内部优先委派给组件实例（拆掉组件后行为回到 v1.3.6）；
@@ -678,3 +685,22 @@ dialog iframe→主框架：
 
 - `standalone/boot.html` 只引 `kui-all.js`（standalone profile）+ `theme-boot.js` + 必要样式，不引 app-shell / bootstrap；
 - 同理 `boot.js` 不依赖 app-shell、不依赖 bootstrap，缺 `KUI.config` / `KUI.text` 时走内部默认值。
+
+### 20.4 v1.3.8 配置接通性修复（同一类缺陷的收口）
+
+本轮要求：「是否有配置字段无读取点、配置也不生效的」。审计结论与修复：
+
+| 配置字段 | v1.3.7 状态 | v1.3.8 修复 |
+| --- | --- | --- |
+| `app.json` → `boot.*` | `configureBootLayer` 无调用点 | `applyBootConfig()` 接线，`appliedBootConfig` 可核对 |
+| `app.app.version / logoIcon / logoText / copyright`，`menu.props.brand.logoText`，`menu.props.footer.subtitle / copyright` | 无读取点（页脚只剩 title/version/actions） | 新增 `applyAppMeta` 注入 + `menu.js` 渲染 `logoText` / `footer.subtitle` / `footer.copyright`（配 `components.css`） |
+| `theme.picker.title / desc / columns / maskClosable / showPreview / showScheme` | 取 `KUI.text` 兜底、布局写死 | `openThemePicker` + `buildThemePickerNodes` 读取上述字段 |
+| `ui.dialog.escClosable` | dialog 只认 `closeOnEsc` | `dialog.config()` 增加别名映射（`closeOnEsc` 显式优先） |
+| `boot.clock.smooth` | 只存在默认值 | 写入 `data-boot-smooth`，CSS 关闭/开启 `.kui-boot__hand` 过渡 |
+| `tabs.props.keepAlive` | 声明未使用 | `false` 时切回重建 iframe（`true` 保持保活语义） |
+| `KUI.setStyle` 驼峰键 | **v1.3.8**：`gridTemplateColumns` 等驼峰键自动转 kebab 后写入；此前被 `CSSStyleDeclaration.setProperty` 静默忽略，导致容器内联样式（主题卡片列数、边框色）失效 |
+| `dialog.config()` 返回值 | 深合并后未写回 `DEFAULTS` | 合并结果回写，`ui.dialog.*` 真正全局生效 |
+| 节点 `class/style/attrs`（容器） | 无 `type` 的容器节点丢弃 style/attrs，`theme.picker.columns` 不生效 | `KUI.renderNode` 容器分支统一走 `decorate()` |
+| 弹窗 `subtitle` | `dialog-frame` 从不渲染该字段（`theme.picker.desc` 丢失） | `renderSubtitle()` + `.kui-dialog__subtitle` 样式 |
+
+验证：`tools/audit-config.js`（静态核对 `config/app.json` 全部叶子键的读取点）；`tools/smoke.js` `[28]`；`test/config.test.js` 用例 5；`test/render.test.js` keepAlive 用例。

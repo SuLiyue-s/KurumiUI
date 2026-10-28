@@ -1,6 +1,6 @@
 # 15 · 排错手册、FAQ 与上线验收清单
 
-> 适用版本：KurumiUI v1.3.7 ｜ 前置章节：[03-assembly.md](03-assembly.md)、[11-api-messaging.md](11-api-messaging.md) ｜ 阅读时长：约 20 分钟
+> 适用版本：KurumiUI v1.3.8 ｜ 前置章节：[03-assembly.md](03-assembly.md)、[11-api-messaging.md](11-api-messaging.md) ｜ 阅读时长：约 20 分钟
 
 ## 本章目标
 
@@ -45,7 +45,7 @@
 
 ```js
 KUI.info()
-// => { name: "KurumiUI", version: "1.3.7", controls: 41, themes: 6, env: {...} }
+// => { name: "KurumiUI", version: "1.3.8", controls: 41, themes: 6, env: {...} }
 ```
 
 | 返回字段 | 含义 | 异常时的含义 |
@@ -56,7 +56,7 @@ KUI.info()
 | `themes` | `KUI.theme.list().length` | 为 0 → `themes.json` 没加载或 `theme.load()` 未执行 |
 | `env` | `isBrowser / isNode / nodeVersion` | 在浏览器里 `isBrowser` 应为 true |
 
-严格来说 `controls` 统计的是**所有注册类型**（含组件），v1.3.7 是 41 个，不是 19 个表单控件。实现见 [src/core/kui.js:1322-1330](../../src/core/kui.js#L1322-L1330)。
+严格来说 `controls` 统计的是**所有注册类型**（含组件），v1.3.8 是 41 个，不是 19 个表单控件。实现见 [src/core/kui.js:1322-1330](../../src/core/kui.js#L1322-L1330)。
 
 ### 1.2 `?kui_debug=1` 诊断面板（推荐第一时间打开）
 
@@ -87,7 +87,7 @@ http://127.0.0.1:8080/?kui_debug=1
 
 面板也可以不通过 URL 启用——在控制台执行 `localStorage.setItem('kui-debug', '1')` 后刷新；清除用 `localStorage.removeItem('kui-debug')`（判断逻辑见 [src/core/diag.js:235-241](../../src/core/diag.js#L235-L241)）。
 
-> 面板自身有独立版本号（历史值为 `1.1.0`，与框架 1.3.7 无关），不要混淆。
+> 面板自身有独立版本号（历史值为 `1.1.0`，与框架 1.3.8 无关），不要混淆。
 
 ### 1.3 控制台错误关键词对照表（源码原话 → 处理）
 
@@ -119,7 +119,7 @@ KurumiUI 的告警都带明确前缀，直接按关键词搜：
 
 | 命令 | 检查什么 | 预期 | 失败通常意味着 |
 | --- | --- | --- | --- |
-| `npm test` | 兼容 / 配置 / 服务器 / 渲染 4 套件 30 项 | `30 通过 / 0 失败` | 运行时被改动、配置不合法 |
+| `npm test` | 兼容 / 配置 / 服务器 / 渲染等套件 33 项 | `33 通过 / 0 失败` | 运行时被改动、配置不合法 |
 | `npm run verify` | 冒烟 + 两个运行时装配验证 | 全 PASS | 装配链路坏了 |
 | `npm run audit` | 一致性 + 组件拆装 | 全 PASS | 文档/契约与源码不一致 |
 | `node tools/check-compat.js` | Node 13.14 禁用语法 | `[PASS] 未发现禁用语法` | 用了 `?.`、`??`、`replaceAll` 等 |
@@ -149,7 +149,7 @@ KurumiUI 的告警都带明确前缀，直接按关键词搜：
 node -e "var fs=require('fs');['config/bundle.js','src/core/kui-all.js'].forEach(function(f){try{var s=fs.statSync(f);console.log(f,s.size+'B',s.mtime.toISOString())}catch(e){console.log(f,'MISSING')}})"
 ```
 
-判断标准（v1.3.7 参考值）：
+判断标准（v1.3.8 参考值）：
 
 | 文件 | 参考大小 | 内容特征 |
 | --- | --- | --- |
@@ -176,7 +176,7 @@ node -e "var fs=require('fs');['config/bundle.js','src/core/kui-all.js'].forEach
 | 杀毒软件拦截 `node server.js` | 监听本地端口被拦 | 放行 node，或换静态服务器 |
 | 删除 `node_modules` 后项目照常运行 | 正常——零依赖 | 无需恢复 |
 
-> 判断「是否需要安装依赖」只看一件事：`package.json` 里有没有 `dependencies`。v1.3.7 **一个都没有**，[package.json](../../package.json) 里只有 `engines.node >= 13.14.0` 这条环境声明。
+> 判断「是否需要安装依赖」只看一件事：`package.json` 里有没有 `dependencies`。v1.3.8 **一个都没有**，[package.json](../../package.json) 里只有 `engines.node >= 13.14.0` 这条环境声明。
 
 ---
 
@@ -251,6 +251,7 @@ node -e "var m=require('./src/core/kui-all.js');console.log('app',m.profiles.app
 | 现象 | 原因 | 处理 |
 | --- | --- | --- |
 | 改了 `app.json` 的标题，页面没变 | 没重建 bundle / 缓存 | `npm run build:config` + 强刷 |
+| 改了 `app.json` 的 `boot` 段没反应 | v1.3.7 及更早版本的历史接线缺口（v1.3.8 已修复） | 升级到 v1.3.8+；仍无反应时按缓存/构建流程排查（见上一行） |
 | 页面标题变成 `undefined` | 字段名拼错或层级放错 | 用 `node -e` 校验 JSON，并对照 [04-config-app.md](04-config-app.md) |
 | 菜单项点了没反应 | `items[].target.tab` 缺 `id` 或 `url` | 补齐 `target.tab`，格式见 [08-components.md](08-components.md) |
 | 主题变量改了没效果 | 写进了错误的层（`tokens` 里键名缺 `--kui-` 前缀等） | 对照 [09-theme.md](09-theme.md) 的 token 表 |
@@ -306,7 +307,7 @@ npm start
 
 ---
 
-## 6. 组件类（menu / menunav / tabs / dialog / toast / app-shell）
+## 6. 组件类（menu / menunav / tabs / dialog / toast / app-shell / boot）
 
 | 现象 | 原因 | 处理 |
 | --- | --- | --- |
@@ -321,6 +322,21 @@ npm start
 | 面包屑不更新 | 打开 tab 方式绕过了 app-shell | 用 `KUI.app.openTab()` / `tab.open`，别直接改 iframe |
 | 控制台提示「动作需要先创建 app-shell」 | 用了依赖外壳的动作 | 先创建 app-shell，或改用不依赖的动作 |
 | 菜单折叠后图标错位 | 未设置 `collapsedWidth` | 配 `layout.menu.collapsedWidth`，见 [04-config-app.md](04-config-app.md) |
+| 启动层不出现或一直不消失 | `boot.js` 未加载、配置缺失或启动失败 | 看控制台 `boot:error` 与 `KUI.boot.ready()`；见 [16-boot.md](16-boot.md) §6、§13 |
+
+### 6.1 加载层 boot 专项（v1.3.8）
+
+| 现象 | 原因 | 处理 |
+| --- | --- | --- |
+| 改 `app.json` 的 `boot` 段（stages/clock/bar）毫无变化 | 旧版本接线缺口（v1.3.8 已修复：`boot()` 调用 `applyBootConfig`） | 升级到 v1.3.8+；验证 `KUI.boot.appliedBootConfig` 是否等于 `app.json.boot` |
+| 启动层只剩齿轮 logo、没有时钟 | `boot.js` 没进 profile 清单，`attach()` 未接管静态骨架 | 核对 `config/kui-modules.json` 两个 profile 均有 `src/components/boot.js`，重建 `kui-all.js` |
+| `KUI.bootLayer.attach()` 返回 `null` | `document.body` 还不存在，或不在浏览器环境 | 在 `DOMContentLoaded` 后调用；Node 侧只有 dom-stub 能模拟 |
+| `error()` 之后 `show()` 出来是空白 | `error()` 把 `__inner` 设为 `display:none`，`show()` 只改根节点状态 | 没有 `reset()`：`destroy()` 后重新 `create()`，见 [16-boot.md](16-boot.md) §9 |
+| `setStep(9)` 文案不变 | 只精确匹配 `stages[].step`；不匹配时仅写 `data-boot-step` | 用 `setText()` 直接改文案，或把 9 加进 `stages` |
+| 监听 `boot:progress` 拿不到 `step`/`clockText` | 真实载荷只有 `{percent, hands}`（`src/components/boot.js:285`） | 需要阶段号就自己读实例 `KUI.bootLayer.instance().getState()` |
+| 改 `text.json` 的 `boot.title` 不生效 | `attach()` 已用 `KUI.text()` 兜底填了 title，`configure` 的 textCfg 只在字段为空时生效 | 写 `app.json` 的 `boot.title`（显式 patch），或 `configure({title:'…'})` |
+| 启动层在子页出现两次 | 父页与 iframe 子页都 `attach` 了单例 | 子页用 `standalone` profile（无 bootstrap）或 `KUI.bootLayer.destroy()` |
+| 只想某页显示启动层 | `app` profile 会自动接管 | 参考 `standalone/boot.html` 用 `KUI.bootLayer.create(host, props)` 手动创建 |
 
 ---
 
@@ -544,10 +560,10 @@ curl -I https://your.site/src/themes.json
     A：`npm test` 约 2 秒（30 项）；`npm run verify` 与 `npm run audit` 各约数秒到十几秒。
 
 28. **Q：测试失败会不会是环境问题？**
-    A：沙箱里 server 套件可能降级同进程；以「30 通过/0 失败」为准，失败先看具体断言。
+    A：沙箱里 server 套件可能降级同进程；以「33 通过/0 失败」为准，失败先看具体断言。
 
 29. **Q：如何确认当前页面加载的是哪个版本？**
-    A：控制台 `KUI.info().version`，应为 `1.3.7`。
+    A：控制台 `KUI.info().version`，应为 `1.3.8`。
 
 30. **Q：出问题该提供什么信息？**
     A：`KUI.info()` 输出 + `?kui_debug=1` 面板全文 + 控制台截图 + 复现步骤。
@@ -558,7 +574,7 @@ curl -I https://your.site/src/themes.json
 
 逐项打勾，全绿再发布：
 
-- [ ] 1. `npm test` → 30 通过 / 0 失败
+- [ ] 1. `npm test` → 33 通过 / 0 失败
 - [ ] 2. `npm run verify` 全 PASS
 - [ ] 3. `npm run audit` 全 PASS
 - [ ] 4. `node tools/check-compat.js` → 未发现禁用语法
@@ -566,7 +582,7 @@ curl -I https://your.site/src/themes.json
 - [ ] 6. `config/bundle.js` 存在且非空、时间戳是本次构建
 - [ ] 7. `src/core/kui-all.js` 存在且 profile 数量正确（app 28 / standalone 27）
 - [ ] 8. 首页 200、无控制台红色错误
-- [ ] 9. 控制台 `KUI.info()` → version `1.3.7`、controls 41、themes 6
+- [ ] 9. 控制台 `KUI.info()` → version `1.3.8`、controls 41、themes 6
 - [ ] 10. 6 套主题逐一切换无闪烁、无样式丢失
 - [ ] 11. 菜单每一项都能打开对应 tab，子页无 404
 - [ ] 12. tab 关闭/刷新/保活行为符合预期
@@ -595,10 +611,10 @@ node tools/check-compat.js
 # 3) 浏览器里打开诊断面板，确认面板出现
 #    访问 http://127.0.0.1:8080/?kui_debug=1
 # 4) 控制台确认版本与加载量
-#    KUI.info()  // version 1.3.7, controls 41, themes 6
+#    KUI.info()  // version 1.3.8, controls 41, themes 6
 ```
 
-预期：自检脚本退出码 0；`npm test` 30 通过；面板右下角出现且 `env` 行版本为 1.3.7。
+预期：自检脚本退出码 0；`npm test` 33 通过；面板右下角出现且 `env` 行版本为 1.3.8。
 
 ## 参考源码
 

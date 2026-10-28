@@ -23,6 +23,9 @@
  * 契约：docs/00-contract.md §4、§23（启动层组件）
  */
 
+/* 指针平滑过渡：clock.smooth=false 时关闭 transition（逐格跳变） */
+.kui-boot[data-boot-smooth="off"] .kui-boot__hand { transition: none !important; }
+
 /* ============================================================
  * 一、整层与静态降级骨架
  * ============================================================ */

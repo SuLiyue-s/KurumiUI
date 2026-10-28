@@ -1,11 +1,11 @@
 # 04 · 配置总览 + app.json 全字段
 
-> 适用版本：KurumiUI v1.3.7 ｜ 前置章节：[03-assembly.md](03-assembly.md) ｜ 阅读时长：约 40 分钟
+> 适用版本：KurumiUI v1.3.8 ｜ 前置章节：[03-assembly.md](03-assembly.md) ｜ 阅读时长：约 40 分钟
 
 ## 本章目标
 
 - 说清 `config/` 下 6 类配置的职责与「改完必须重建 `bundle.js`」的原因；
-- 查得到 `config/app.json`（744 行、11 键）任意字段的类型、默认值、作用与生效时机；
+- 查得到 `config/app.json`（755 行、12 键）任意字段的类型、默认值、作用与生效时机；
 - 会改 7 类常见配置并预判变化，识别「写了却不生效」的字段。
 
 ## 0. 一句话概念
@@ -24,8 +24,8 @@ config/app.json → build:config → config/bundle.js → KUI.config 缓存 → 
 
 | 文件 | 职责 | 消费/生成方 |
 | --- | --- | --- |
-| `config/app.json` | 外壳全部配置（744 行、11 键） | `bootstrap.js:710-745`、`app-shell.js:141-146` |
-| `config/text.json` | 全量文案字典（39 组，见 §7） | `bootstrap.js:712` → `KUI.i18n.set` |
+| `config/app.json` | 外壳全部配置（755 行、12 键） | `bootstrap.js:727-745`、`app-shell.js:141-146` |
+| `config/text.json` | 全量文案字典（40 组，见 §7；含 v1.3.8 新增的 `boot` 组） | `bootstrap.js:767-769` → `KUI.i18n.set` |
 | `src/themes.json` | 6 套主题 token（**不在 config/ 下**） | `theme.js:201` 载入、`:297` 应用 |
 | `config/demos/*.json` | 11 份示例数据，页面数据源，外壳不加载 | `KUI.config.load('demos/xxx')`（`pages/form.html:195-197`） |
 | `config/bundle.js` | 构建产物 `__KUI_BUNDLE__={app,text,themes,demos,meta}` | `config.js:82-96` 兜底读；勿手改 |
@@ -35,7 +35,7 @@ config/app.json → build:config → config/bundle.js → KUI.config 缓存 → 
 
 ### 1.2 KUI.config 读取管线
 
-`load(name)`（`config.js:148-212`）依次：① 内存缓存（非 `force`）→ ② 同文件并发合并 → ③ 注入读取器 `setReader`（Node 测试）→ ④ 非浏览器直读 `__KUI_BUNDLE__` → ⑤ http(s) `fetch`（`cache:'no-cache'`，失败回退 bundle 并 `warnOnce('cfg-fallback:'+name)`，`config.js:175-194`）→ ⑥ file:// 先读 bundle 再试 fetch，失败报“请运行 `npm run build:config` 或使用 `npm start`”（`config.js:195-207`）。解析失败返回 `null` 并 `KUI.error`（`:98-106`）；只有 `app.json` 缺失才致命（`bootstrap.js:716-718`）。
+`load(name)`（`config.js:148-212`）依次：① 内存缓存（非 `force`）→ ② 同文件并发合并 → ③ 注入读取器 `setReader`（Node 测试）→ ④ 非浏览器直读 `__KUI_BUNDLE__` → ⑤ http(s) `fetch`（`cache:'no-cache'`，失败回退 bundle 并 `warnOnce('cfg-fallback:'+name)`，`config.js:175-194`）→ ⑥ file:// 先读 bundle 再试 fetch，失败报“请运行 `npm run build:config` 或使用 `npm start`”（`config.js:195-207`）。解析失败返回 `null` 并 `KUI.error`（`:98-106`）；只有 `app.json` 缺失才致命（`bootstrap.js:771-773`）。
 
 ### 1.3 改完必须重建：三步生效链
 
@@ -64,18 +64,17 @@ KUI.config.get('app.home', 'pages/home.html'); // ⚠️ 读 app.json 根（不�
 
 ### 1.6 app.json 顶层结构地图
 
-- `app`（3-18）名称/标题/版本/首页/启动层 → `bootstrap.js:643-665`、`app-shell.js:237-268`
-- `ui`（19-37）tooltip/toast/dialog 全局默认 → `bootstrap.js:674-692`
-- `boot`（38-51）启动层（加载中页面）与时钟指针动画 → `bootstrap.js` 启动流程 + `src/components/boot.js`（见 §8.5）
-- `boot`（38-51）启动层（加载中页面）与时钟指针动画 → `bootstrap.js` 启动流程 + `src/components/boot.js`（见 §8.5）
-- `dialogs`（38-166）弹窗预设（只有 settings）→ `bootstrap.js:581-633`
-- `theme`（167-187）默认主题/存储键/选择器 → `bootstrap.js:726-740`（picker 未消费，§6）
-- `layout`（188-199）菜单/头部/标签栏/间距尺寸 → `app-shell.js:146-193`
-- `menu`（200-605）左侧菜单（品牌/树/页脚）→ `app-shell.js:237-258` → `menu.js`
-- `menunav`（606-658）顶部导航（面包屑/动作）→ `app-shell.js:260-271` → `menunav.js`
-- `tabs`（659-693）标签页（初始/上限/保活）→ `app-shell.js:273-275,539-550` → `tabs.js`
-- `text`（694-708）对 text.json 的增量覆盖 → `bootstrap.js:712-714`
-- `avatar`（709-743）头像（URL/齿轮框/选择器）→ `app-shell.js:253-256` → `menu.js` → `avatar.js`
+- `app`（3-18）名称/标题/版本/首页/启动层 → `bootstrap.js:689-718`、`app-shell.js:237-268`
+- `ui`（19-37）tooltip/toast/dialog 全局默认 → `bootstrap.js:727-745`
+- `boot`（38-48）启动层（加载中页面）与时钟指针动画 → 设计由 `bootstrap.js` 启动流程消费，但 **v1.3.8 存在接线缺口（配置不生效）**，详见 §8.5 与 [16-boot.md](16-boot.md) §5.5
+- `dialogs`（49-177）弹窗预设（只有 settings）→ `bootstrap.js:627-665`
+- `theme`（178-198）默认主题/存储键/选择器 → `bootstrap.js:782-795`（picker 未消费，§6）
+- `layout`（199-210）菜单/头部/标签栏/间距尺寸 → `app-shell.js:146-193`
+- `menu`（211-616）左侧菜单（品牌/树/页脚）→ `app-shell.js:237-258` → `menu.js`
+- `menunav`（617-669）顶部导航（面包屑/动作）→ `app-shell.js:260-271` → `menunav.js`
+- `tabs`（670-704）标签页（初始/上限/保活）→ `app-shell.js:273-275,539-550` → `tabs.js`
+- `text`（705-719）对 text.json 的增量覆盖 → `bootstrap.js:767-769`
+- `avatar`（720-754）头像（URL/齿轮框/选择器）→ `app-shell.js:253-256` → `menu.js` → `avatar.js`
 
 ---
 
@@ -106,16 +105,16 @@ KurumiUI 的“节点”没有强类型 schema，字段由渲染器按需读取�
 
 | 字段 | 类型 | 默认值 | 必填 | 作用与取值 |
 | --- | --- | --- | --- | --- |
-| `name` | string | `"KurumiUI"` | 否 | 应用名。启动层标题（`bootstrap.js:656-658`）、品牌区兜底（`app-shell.js:240-244`）、`app.info`（`app-shell.handlers.js:126-128`） |
+| `name` | string | `"KurumiUI"` | 否 | 应用名。启动层标题（`bootstrap.js:697-701`）、品牌区兜底（`app-shell.js:240-244`）、`app.info`（`app-shell.handlers.js:126-128`） |
 | `title` | string | `"刻刻帝终端"` | 否 | 应用标题。品牌/顶部导航标题默认（`:268-269`）；渲染后**改写 `document.title`**（`:535-537`），优先于 `documentTitle`；启动层标题实际取 `name` |
-| `subtitle` | string | `"灵装回路 · 时间结界控制台"` | 否 | 启动层副标题（`bootstrap.js:659-660`）、品牌/导航副标题默认（`:242,269`）；缺省回退 `text.app.subtitle` |
-| `version` | string | `"1.0.5"` | 否 | **未消费**。版本展示请写 `menu.props.footer.version`（`app.json:585`） |
-| `documentTitle` | string | `"刻刻帝终端 · KurumiUI"` | 否 | 浏览器标题兜底：仅 `title` 缺失时生效（`bootstrap.js:646-649`），实际被 `title` 覆盖 |
+| `subtitle` | string | `"灵装回路 · 时间结界控制台"` | 否 | 启动层副标题（`bootstrap.js:697-701`）、品牌/导航副标题默认（`:242,269`）；缺省回退 `text.app.subtitle` |
+| `version` | string | `"1.0.5"` | 否 | **未消费**。版本展示请写 `menu.props.footer.version`（`app.json:596`） |
+| `documentTitle` | string | `"刻刻帝终端 · KurumiUI"` | 否 | 浏览器标题兜底：仅 `title` 缺失时生效（`bootstrap.js:692-695`），实际被 `title` 覆盖 |
 | `logoIcon` | string | `"clock"` | 否 | 仅 `menu` 节点**没有** `props.brand` 时兜底品牌区图标（`app-shell.js:239-244`）；也作头像 `fallbackIcon` 兜底（`menu.js:180`） |
 | `logoText` | string | `"KUI"` | 否 | **未消费**（`text.json` 另有同名键）；品牌区只渲染 `logoIcon+title`，不显示文字 logo |
 | `home` | string | `"pages/home.html"` | 否 | 首页地址。**注意**：`app.home` 动作读取点写成 `get('app.home')`（`app-shell.handlers.js:96-98`），因 §1.4 前缀规则永远取兜底值，改本字段不影响该动作；业务代码请读 `get('app.app.home')` |
 | `copyright` | string | `"© KurumiUI · 刻刻帝终端"` | 否 | **未消费**。页脚版权写 `menu.props.footer`（`menu.js:733-749` 只渲染 `title/version/actions`，`footer.subtitle` 也不消费） |
-| `loading` | object | `{"icon":"spinner","text":"灵装回路接通中…","delay":120}` | 否 | **全部未消费**：启动层文案由 `index.html` 静态 DOM + `KUI.text('boot.loading', 原文本)` 决定（`bootstrap.js:662-664`），属配置契约保留位 |
+| `loading` | object | `{"icon":"spinner","text":"灵装回路接通中…","delay":120}` | 否 | **全部未消费**：启动层文案由 `index.html` 静态 DOM + `KUI.text('boot.loading', 原文本)` 决定（`bootstrap.js:700-701`），属配置契约保留位 |
 
 > “未消费”字段写入不报错、也不改界面（无运行时校验）；判断生效最快的方式是 `grep -n "字段名" src/`。
 
@@ -123,7 +122,7 @@ KurumiUI 的“节点”没有强类型 schema，字段由渲染器按需读取�
 
 ## 4. ui.*：组件级默认值
 
-`bootstrap.js:674-692` 在创建外壳**之前**把 `ui.tooltip/toast/dialog` 分别传给 `KUI.tooltip.configure`、`KUI.toast.config`、`KUI.dialog.config`，改的是“全局默认值”（启动时生效），单个组件仍可覆盖；配置抛错只 `warnOnce`。
+`bootstrap.js:727-745` 在创建外壳**之前**把 `ui.tooltip/toast/dialog` 分别传给 `KUI.tooltip.configure`、`KUI.toast.config`、`KUI.dialog.config`，改的是“全局默认值”（启动时生效），单个组件仍可覆盖；配置抛错只 `warnOnce`。
 
 | 字段 | 类型 | 默认值 | 必填 | 作用与取值 |
 | --- | --- | --- | --- | --- |
@@ -149,39 +148,39 @@ KurumiUI 的“节点”没有强类型 schema，字段由渲染器按需读取�
 | `layout.header.height` | number(px) | `56` | 否 | 顶栏高度 → `--kui-header-height`（`base.css:815`、`components.css:189`） |
 | `layout.tabbarHeight` | number(px) | `38` | 否 | 标签栏高度 → `--kui-tabbar-height`（`components.css:1386,1463`） |
 
-易错点：值可写数字（自动补 `px`）或带单位字符串（`app-shell.js:43-47`）；`menu.props.width/collapsedWidth`（`app.json:211-212`）只写内部变量 `--kui-menu-w`（`menu.js:716-717`），样式表**未消费**——改宽度请改 `layout.menu.*`。
+易错点：值可写数字（自动补 `px`）或带单位字符串（`app-shell.js:43-47`）；`menu.props.width/collapsedWidth`（`app.json:222-223`）只写内部变量 `--kui-menu-w`（`menu.js:716-717`），样式表**未消费**——改宽度请改 `layout.menu.*`。
 
 ## 6. theme.*：主题入口
 
 | 字段 | 类型 | 默认值 | 必填 | 作用与取值 |
 | --- | --- | --- | --- | --- |
-| `theme.default` | string | `"kurumi"` | 否 | 兜底主题 id（`bootstrap.js:733`）。生效优先级（`theme.js:402-415`）：`__KUI_EARLY_THEME__` > URL `?kuiTheme=` > localStorage[`storageKey`] > 本字段 > `themes.json` 的 default > 第一套 |
-| `theme.storageKey` | string | `"kui-theme"` | 否 | 持久化键（`theme.js:20`、`bootstrap.js:734`）；换键 = 换一份记忆 |
-| `theme.persist` | boolean | `true`（源码判断 `persist !== false`） | 否 | 是否写 localStorage（`bootstrap.js:735`）；关掉后每次刷新从 `default` 开始 |
-| `theme.visible` | array | 6 个主题 id | 否 | **未消费**：选择器列出 `KUI.theme.list()` 全部（`bootstrap.js:240-300`） |
+| `theme.default` | string | `"kurumi"` | 否 | 兜底主题 id（`bootstrap.js:787-792`）。生效优先级（`theme.js:402-415`）：`__KUI_EARLY_THEME__` > URL `?kuiTheme=` > localStorage[`storageKey`] > 本字段 > `themes.json` 的 default > 第一套 |
+| `theme.storageKey` | string | `"kui-theme"` | 否 | 持久化键（`theme.js:20`、`bootstrap.js:789`）；换键 = 换一份记忆 |
+| `theme.persist` | boolean | `true`（源码判断 `persist !== false`） | 否 | 是否写 localStorage（`bootstrap.js:790`）；关掉后每次刷新从 `default` 开始 |
+| `theme.visible` | array | 6 个主题 id | 否 | **未消费**：选择器列出 `KUI.theme.list()` 全部（`bootstrap.js:275-346`） |
 | `theme.picker` | object | `{title,desc,columns:3,showPreview:true,showScheme:true,position:"panel",maskClosable:true}` | 否 | **源码未消费**：选择弹窗在 `bootstrap.js:301-316` 硬编码 `id:"theme-picker"`、`width:680`、`maskClosable/closeOnEsc:true`、`footer:false`；节点由 `buildThemePickerNodes()`（`bootstrap.js:229`）生成，其中 `picker.columns` 无读取点、网格固定 3 列（`bootstrap.js:269`） |
 
 > 想改主题选择器外观，当前版本只能改 `src/app/bootstrap.js` 的 `openThemePicker`/`buildThemePickerNodes`（框架代码，见 [12-extension.md](12-extension.md)）；`theme.visible/picker` 是预留位。
 
 ## 7. text.*：对 text.json 的增量覆盖
 
-`bootstrap.js:712-714` 先 `KUI.i18n.set(res.text)`（整份 `text.json`）再 `KUI.i18n.set(appCfg.text)`；`i18n.set` 只有第二参 `deep===false` 才浅合并，缺省走 `deepMerge`（`kui.js:416-425`），所以 `app.json.text` 只写要改的叶子键即可。
+`bootstrap.js:767-769` 先 `KUI.i18n.set(res.text)`（整份 `text.json`）再 `KUI.i18n.set(appCfg.text)`；`i18n.set` 只有第二参 `deep===false` 才浅合并，缺省走 `deepMerge`（`kui.js:416-425`），所以 `app.json.text` 只写要改的叶子键即可。
 
 | 字段 | 类型 | 默认值 | 必填 | 作用与取值 |
 | --- | --- | --- | --- | --- |
 | `text` | object | `{}` | 否 | 覆盖字典根；键路径与 `text.json` 一致 |
-| `text.app` | object | `{}` | 否 | 应用层文案（`app.json:695-698`）：`subtitle` 作启动层副标题兜底、`copyright` 供业务页读取；其余键仍用 `text.json` |
-| `text.menu` | object | `{}` | 否 | 菜单文案（`app.json:699-701`）：`footerDefault`、`collapse/expand` 等 |
-| `text.shell` | object | `{}` | 否 | 外壳文案（`app.json:702-704`）：`searchPlaceholder`、`settings`、`theme` |
-| `text.page` | object | `{}` | 否 | 页面文案（`app.json:705-707`）：本配置只覆盖 `page.home` |
+| `text.app` | object | `{}` | 否 | 应用层文案（`app.json:706-709`）：`subtitle` 作启动层副标题兜底、`copyright` 供业务页读取；其余键仍用 `text.json` |
+| `text.menu` | object | `{}` | 否 | 菜单文案（`app.json:710-712`）：`footerDefault`、`collapse/expand` 等 |
+| `text.shell` | object | `{}` | 否 | 外壳文案（`app.json:713-715`）：`searchPlaceholder`、`settings`、`theme` |
+| `text.page` | object | `{}` | 否 | 页面文案（`app.json:716-718`）：本配置只覆盖 `page.home` |
 
-`text.json` 顶层 39 组（`app/common/shell/menu/menunav/tabs/dialog/toast/form/...`，完整键见文件），**没有 `boot` 组**——`KUI.text('boot.loading', 兜底)` 永远落到兜底值。
+`text.json` 顶层 40 组（`app/common/shell/menu/menunav/tabs/dialog/toast/form/boot/...`，完整键见文件），其中 v1.3.8 新增 `boot` 组（12 键，见 §8.5 与 [16-boot.md](16-boot.md) §5.4）；`KUI.text('boot.loading', 兜底)` 在主流程中会命中 `boot.loading`。
 
 ---
 
 ## 8. avatar.*：头像与刻刻帝齿轮框
 
-顶层 `avatar`（`app.json:709-743`）由外壳透传：`app-shell.js:253-256` 把它塞进 `menu.props.brand.avatar`（menu 品牌区若已写 `brand.avatar`，以后者为准），再由 `menu.js:183-187` 调 `KUI.avatar.create(logo, cfg, ctx)`。**这是创建时一次性读取的配置**，运行时换头像用 `app.setAvatar(url)`（`app-shell.js:277-291`，API 见 [11-api-messaging.md](11-api-messaging.md)）。
+顶层 `avatar`（`app.json:720-754`）由外壳透传：`app-shell.js:253-256` 把它塞进 `menu.props.brand.avatar`（menu 品牌区若已写 `brand.avatar`，以后者为准），再由 `menu.js:183-187` 调 `KUI.avatar.create(logo, cfg, ctx)`。**这是创建时一次性读取的配置**，运行时换头像用 `app.setAvatar(url)`（`app-shell.js:277-291`，API 见 [11-api-messaging.md](11-api-messaging.md)）。
 
 | 字段 | 类型 | 默认值 | 必填 | 作用与取值 |
 | --- | --- | --- | --- | --- |
@@ -206,52 +205,55 @@ KurumiUI 的“节点”没有强类型 schema，字段由渲染器按需读取�
 
 ---
 
-## 8.5 boot.*：加载层与时钟指针（v1.3.7 新增）
+## 8.5 boot.*：加载层与时钟指针（v1.3.8 新增）
 
 **作用**：控制「访问服务或刷新时」出现的加载中页面。它是注册组件 `boot`（`KUI.bootLayer`），
 可被主应用自动接管，也可在任意容器里独立渲染。
 
+> ✅ **v1.3.8 起完整生效**：`src/app/bootstrap.js` 的 `boot()` 会调用 `applyBootConfig(appCfg, res.text)`，把 `config/app.json` 的 `boot` 段交给组件（`configureBootLayer`），并处理 `boot.enabled === false`。历史背景与修复记录见 [16-boot.md](16-boot.md) §5.5。
+
 **默认表现**：全屏深色遮罩 + 时钟图形（12 刻度、红时针、金分针）+ 进度条 + 阶段文案；
 指针随进度从 12 点走到 12 点（0% ↔ 0 时，100% ↔ 12 时），25% 指向 3:00、50% 指向 6:00、75% 指向 9:00。
 
-**字段表**（全部可选，改完 `npm run build:config` 生效）：
+**字段表**（全部可选；改完 `npm run build:config` 即生效）：
 
 | 字段 | 默认 | 说明 |
 | --- | --- | --- |
-| `boot.enabled` | `true` | `false` 时不显示启动层 |
+| `boot.enabled` | `true` | `false` 时不创建启动层（`bootstrap` 读取并销毁已创建实例，v1.3.8 起生效） |
 | `boot.mode` | `"fullscreen"` | `fullscreen` 页面级遮罩 / `inline` 内嵌演示 |
 | `boot.meta` | `true` | 底部「百分比 + 时钟读数」 |
-| `boot.stages` | 4 段 | `[{ step, progress, text }]`，`progress` 为 0–100 |
-| `boot.clock.mode` | `"progress"` | `progress` 跟进度 / `spin` 匀速自转 / `none` 静止 |
+| `boot.stages` | 4 段 | `[{ step, progress, text }]`，`progress` 为 0–100；主流程只调 `setStep(1..4)`，第五段起不会自动命中 |
+| `boot.clock.mode` | `"progress"` | `progress` 跟进度 / `spin` 匀速自转 / `none` 无专门实现（视觉同 `progress`） |
 | `boot.clock.size` | `74` | 钟面直径 px |
-| `boot.clock.ticks` | `12` | 刻度数（0 = 不画） |
-| `boot.clock.smooth` | `true` | 指针是否过渡动画 |
+| `boot.clock.ticks` | `12` | 刻度数（写入 `--kui-boot-ticks`；CSS 的 12 格由 `repeating-conic-gradient` 固定，改此值只影响变量） |
+| `boot.clock.smooth` | `true` | 指针过渡动画开关（写入 `data-boot-smooth`，`false` 时不走过渡；v1.3.8 起生效） |
 | `boot.bar.mode` | `"progress"` | `progress` / `indeterminate`（不确定态） |
 
-**改文案**：`config/text.json` 的 `boot` 段（`title / subtitle / loading / theme / shell / ready / errorTitle / retry …`），
-或在 `config/app.json` 的 `text` 里做增量覆盖。
+**改文案**：`config/text.json` 的 `boot` 组（12 键：`title / subtitle / loading / theme / shell / ready / text / errorTitle / errorTip / retry / noHost / noConfig`），
+或在 `config/app.json` 的 `text` 里做增量覆盖。实际生效的是 `loading/theme/shell/errorTitle/errorTip/retry/noHost/noConfig`；
+`title/subtitle/text` 因主流程 `attach()` 已用 `KUI.text` 兜底填充，只在 `configure(patch, textCfg)` 显式传 `textCfg` 且字段为空时生效（详见 [16-boot.md](16-boot.md) §5.4）。
 
 **运行时调试**（控制台）：
 
 ```js
 KUI.bootLayer.instance().setProgress(42);   // 指针指到 42% → 5:02 附近
-KUI.bootLayer.handsAt(42);                   // { percent:42, hourAngle:126, minuteAngle:144, clockText:"05:02", … }
+KUI.bootLayer.handsAt(42);                   // { percent:42, hourAngle:151.2, minuteAngle:14.4, clockText:"05:02", … }
 KUI.bootLayer.configure({ clock: { mode: "spin" } });
 KUI.bootLayer.instance().error("配置损坏");   // 失败态卡片
 ```
 
 **拆装**：不需要加载层时，从 `config/kui-modules.json` 的清单里去掉 `src/components/boot.js` 并重跑 `npm run build:all`，
-`bootstrap.js` 会退回 `index.html` 静态骨架；也可以只保留组件而在 `app.json` 里 `"boot": { "enabled": false }`。
+`bootstrap.js` 会退回 `index.html` 静态骨架（`boot.enabled:false` **不能**关闭它——该字段无读取点，见上方提示）。
 
 **观察效果**：打开 `standalone/boot.html`（独立页，内嵌预览 + 0→100 自动演示 + 按进度设置 + spin/错误态按钮）。
 
 ## 9. dialogs.settings：打开设置弹窗
 
-`settings.open` 动作读取 `appCfg.dialogs.settings`（`bootstrap.js:581-614`），**只有 `title/width/okText/cancelText/nodes/data` 会传给 `KUI.dialog.form`**；提交后只处理 `theme/collapsed/motion` 三个 id（`:602-611`）。
+`settings.open` 动作读取 `appCfg.dialogs.settings`（`bootstrap.js:627-665`），**只有 `title/width/okText/cancelText/nodes/data` 会传给 `KUI.dialog.form`**；提交后只处理 `theme/collapsed/motion` 三个 id（`:648-658`）。
 
 | 字段 | 类型 | 默认值 | 必填 | 作用与取值 |
 | --- | --- | --- | --- | --- |
-| `dialogs.settings` | object | — | 否 | 设置弹窗预设；不写则用内置 3 节点（主题/折叠/动效，`bootstrap.js:551-579`） |
+| `dialogs.settings` | object | — | 否 | 设置弹窗预设；不写则用内置 3 节点（主题/折叠/动效，`bootstrap.js:597-626`） |
 | `title` | string | `"终端设置"` | 否 | 标题；缺省 `KUI.text('settings.title','界面设置')` |
 | `desc` | string | — | 否 | **未透传**（请求对象无 `desc`），不显示 |
 | `width` | number(px) | `540`（兜底 560） | 否 | 弹窗宽度 |
@@ -280,7 +282,7 @@ KUI.bootLayer.instance().error("配置损坏");   // 失败态卡片
 }
 ```
 
-打开方式：`KUI.actions.run('settings.open')`，或顶部导航“设置”按钮（`app.json:642-648` 的 `action: "settings.open"`）。
+打开方式：`KUI.actions.run('settings.open')`，或顶部导航“设置”按钮（`app.json:653-659` 的 `action: "settings.open"`）。
 
 ---
 
@@ -288,7 +290,7 @@ KUI.bootLayer.instance().error("配置损坏");   // 失败态卡片
 
 外壳只认这三个顶层键的 `{type,props}`（§2），`props` 与组件 `DEFAULTS` 深合并（`menu.js:138-153`、`menunav.js:144-159`、`tabs.js:171-181`）；字段全集见 [08-components.md](08-components.md)。
 
-### 10.1 menu（左侧菜单，`app.json:200-605`）
+### 10.1 menu（左侧菜单，`app.json:211-616`）
 
 根为 `{"type":"menu","props":{...}}`；`props.items` 是树，节点三种 `type`：`item`（`id/label/icon/badge/badgeType/tooltip/disabled/children/target`，有 `children` 可展开，`menu.js:333-355`）、`group`（`label+children`，`:298-304`）、`divider`（`:283-288`）。常用键 `brand/defaultActive/items/footer{title,version,actions}/accordion/flyout/tooltip/collapsible`。外壳覆盖：`brand` 缺省用 `app.*` 组装（`app-shell.js:239-244`）、`collapsed` 恒等于外壳折叠态（`:248`）、`avatar` 顶层注入（`:253-256`）；`menu.props.collapsed` **不决定初始折叠**（改 `layout.menu.collapsed`）。
 
@@ -305,9 +307,9 @@ KUI.bootLayer.instance().error("配置损坏");   // 失败态卡片
     ] } ] } } }
 ```
 
-### 10.2 menunav（顶部导航，`app.json:606-658`）
+### 10.2 menunav（顶部导航，`app.json:617-669`）
 
-`{"type":"menunav","props":{...}}`；`breadcrumb{enabled,home,items,separator}`；`actions[]` 每项 `id/icon/label/title/badge/badgeType/action/disabled`（`menunav.js:444-488`），点击执行 `action || id`。`title/subtitle` 不写时用 `app.title/subtitle` 兜底（`app-shell.js:268-269`）。**面包屑折叠用顶层 `maxBreadcrumb`**（`menunav.js:135,370-377`，`0` 不裁剪）；`app.json:624` 的 `breadcrumb.max:4` 无读取点，**不生效**。
+`{"type":"menunav","props":{...}}`；`breadcrumb{enabled,home,items,separator}`；`actions[]` 每项 `id/icon/label/title/badge/badgeType/action/disabled`（`menunav.js:444-488`），点击执行 `action || id`。`title/subtitle` 不写时用 `app.title/subtitle` 兜底（`app-shell.js:268-269`）。**面包屑折叠用顶层 `maxBreadcrumb`**（`menunav.js:135,370-377`，`0` 不裁剪）；`app.json:635` 的 `breadcrumb.max:4` 无读取点，**不生效**。
 
 ```json
 { "menunav": { "type": "menunav", "props": {
@@ -317,7 +319,7 @@ KUI.bootLayer.instance().error("配置损坏");   // 失败态卡片
                { "id": "settings", "icon": "settings", "label": "设置", "action": "settings.open" } ] } } }
 ```
 
-### 10.3 tabs（标签页，`app.json:659-693`）
+### 10.3 tabs（标签页，`app.json:670-704`）
 
 `{"type":"tabs","props":{...}}`。初始标签：先开 `props.home`（字符串或对象，`tabs.js:1342-1352`），再依次开 `props.initial`（`tabs.js:1353-1358`）；外壳创建后按 `opts.initialTabs → tabs.props.initial → tabs.props.tabs` 再补开一次（`app-shell.js:539-550`），同 id 复用/激活。每项 tab 为 `{id,title,url,icon,pinned,closable}`。`maxTabs` 超限拒绝并提示“最多只能打开 {max} 个标签”（`tabs.js:538-539`）；`drag` 源码默认 `true`（`tabs.js:149`），本配置设 `false`；`sandbox` 默认 `""` = 不给 iframe 设 `sandbox`（`tabs.js:153-155,406`）。
 
@@ -341,7 +343,7 @@ KUI.bootLayer.instance().error("配置损坏");   // 失败态卡片
 + "title": "时崎狂三控制台"
 ```
 
-看到：标签页标题/启动层标题/顶栏标题一起变（`app-shell.js:535-537,268-269`）；品牌区标题来自 `brand.title`（`app.json:204`），要一致就同步改它和 `menunav.props.title`。
+看到：标签页标题/启动层标题/顶栏标题一起变（`app-shell.js:535-537,268-269`）；品牌区标题来自 `brand.title`（`app.json:215`），要一致就同步改它和 `menunav.props.title`。
 
 ### 11.2 换品牌 logo
 
@@ -461,7 +463,7 @@ KurumiUI 配置打包完成
   themes.json: ✔
   demos      : 11 个
 [build-all] 已生成 src/core/kui-all.js (… 字节)
-[build-all] profiles: app=28, standalone=27
+[build-all] profiles: app=29, standalone=28
 ```
 
 **④ 浏览器控制台抽查**
@@ -478,7 +480,7 @@ KUI.theme.currentId();                  // "kurumi"（或你上次选的）
 ## 参考源码
 
 - `config/app.json`（744 行，行号唯一依据）；`config/text.json`、`src/themes.json`、`config/kui-modules.json`。
-- `src/core/config.js:25-31,73-77,82-96,148-212,252-271` —— 路径表/读取管线/`get` 语义；`src/app/bootstrap.js:643-745`（元信息/UI 默认值/主流程）、`:551-633`（设置弹窗）、`:301-316`（主题选择器）。
+- `src/core/config.js:25-31,73-77,82-96,148-212,252-271` —— 路径表/读取管线/`get` 语义；`src/app/bootstrap.js:689-745`（元信息/UI 默认值）、`:747-840`（主流程）、`:597-665`（设置弹窗）、`:347-375`（主题选择器）。
 - `src/components/app-shell.js:25-32,76-85,141-193,237-291,535-550,565-589` —— 布局、装配、标题与初始标签；`menu.js:118-153,211-260,276-383,504-574,716-717,733-782`、`menunav.js:121-159,341-423,444-488`、`tabs.js:143-181,406,538-539,1342-1361` —— 三节点消费。
 - `src/core/theme.js:20,201-223,297,402-425`、`tooltip.js:36-46,64-86`、`toast.js:123-142`、`dialog.js:137,427,986-1014,1055,1087-1150`、`avatar.js:91-133,238-353,359-429,545-554,615`、`kui.js:413-464` —— 各字段默认值与读取；`tools/build-config.js:23-131`、`tools/build-all.js`。
 

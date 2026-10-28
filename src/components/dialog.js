@@ -1144,8 +1144,31 @@
     },
     count: function () { return order.length; },
     top: function () { return snapshot(topRecord()); },
+    /**
+     * 合并全局弹窗配置。
+     * 兼容旧字段 ui.dialog.escClosable（docs/02-config-reference.md §1.6）：
+     * 归一为内部字段 closeOnEsc，保证「配了就有读取点」。
+     */
     config: function (patch) {
-      if (patch && typeof patch === 'object') { deepMerge(DEFAULTS, patch); }
+      if (patch && typeof patch === 'object') {
+        var p = patch;
+        // ① 直接传 { escClosable: false }
+        if (p.escClosable !== undefined && p.closeOnEsc === undefined) {
+          var copy = {};
+          for (var k in p) { if (Object.prototype.hasOwnProperty.call(p, k)) { copy[k] = p[k]; } }
+          copy.closeOnEsc = !!p.escClosable;
+          p = copy;
+        }
+        // ② 传 { ui: { escClosable: false } }（直接调 KUI.dialog.config 的场景）
+        if (p.ui && typeof p.ui === 'object' && p.ui.escClosable !== undefined && p.closeOnEsc === undefined) {
+          var copy2 = {};
+          for (var k2 in p) { if (Object.prototype.hasOwnProperty.call(p, k2)) { copy2[k2] = p[k2]; } }
+          copy2.closeOnEsc = !!p.ui.escClosable;
+          p = copy2;
+        }
+        // deepMerge 返回新对象（不修改入参），必须写回 DEFAULTS 才能让全局配置生效
+        DEFAULTS = deepMerge(DEFAULTS, p);
+      }
       return DEFAULTS;
     }
   };

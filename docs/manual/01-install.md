@@ -1,6 +1,6 @@
 # 01 · 安装与首次运行
 
-> 适用版本：KurumiUI v1.3.7 ｜ 前置章节：无（本手册起点）｜ 阅读时长：约 14 分钟
+> 适用版本：KurumiUI v1.3.8 ｜ 前置章节：无（本手册起点）｜ 阅读时长：约 14 分钟
 
 ## 本章目标
 
@@ -133,9 +133,9 @@ npx serve -l 8080 .
 | --- | --- | --- |
 | `?kui_debug=1` | 打开诊断面板（`src/core/diag.js:237`） | `http://127.0.0.1:8080/?kui_debug=1` |
 | `?kuiTheme=<id>` | 强制主题（`src/core/theme.js:166`） | `http://127.0.0.1:8080/?kuiTheme=starry` |
-| `?kui_v=<版本>` | 由框架自动追加到 iframe 子页 URL 做缓存穿透，手加一般无意义 | `.../pages/home.html?kui_v=1.3.7` |
+| `?kui_v=<版本>` | 由框架自动追加到 iframe 子页 URL 做缓存穿透，手加一般无意义 | `.../pages/home.html?kui_v=1.3.8` |
 
-> `?demo=<name>` 只出现在菜单项的静态 URL（`config/app.json:564` 的 `standalone/menu.html?demo=menu`），框架层与 `standalone/*.html` 都不解析它，不要写进验收脚本。
+> `?demo=<name>` 只出现在菜单项的静态 URL（`config/app.json:575` 的 `standalone/menu.html?demo=menu`），框架层与 `standalone/*.html` 都不解析它，不要写进验收脚本。
 
 ## 1.6 验证安装
 
@@ -155,13 +155,13 @@ KurumiUI 配置打包完成
   大小: 111.6 KB
   demos      : 11 个
 [build-all] 已生成 src\core\kui-all.js (3982 字节)
-[build-all] profiles: app=28, standalone=27
+[build-all] profiles: app=29, standalone=28
 ```
 
 浏览器控制台检查（http 模式打开 `http://127.0.0.1:8080/`，F12 → Console）：
 
 ```js
-KUI.version                  // '1.3.7'
+KUI.version                  // '1.3.8'
 KUI.env.isBrowser            // true
 KUI.registry.list().length   // 41（其中 19 个是表单控件）
 KUI.actions.list().length    // 28
@@ -177,7 +177,8 @@ typeof window.__KUI_BUNDLE__ // 'object'
 | `/` | 主应用（`index.html`，`data-kui-profile="app"`） |
 | `/?kui_debug=1`、`/?kuiTheme=starry` | 主应用 + 诊断面板 / 强制主题 |
 | `/pages/home.html` | 业务页：首页（同目录另有 dialogs、editor、form、notify、profile、theme，共 7 个） |
-| `/standalone/controls.html` | 独立渲染页：控件总览（同目录另有 10 个页面，共 11 个） |
+| `/standalone/controls.html` | 独立渲染页：控件总览（同目录另有 11 个页面，共 12 个） |
+| `/standalone/boot.html` | v1.3.8 加载层交互测试页（handsAt 映射、进度动画、拆装示例），见 [16-boot.md](16-boot.md) |
 
 ## 1.7 目录地图
 
@@ -186,15 +187,15 @@ typeof window.__KUI_BUNDLE__ // 'object'
 | `/` | 入口与服务 | `index.html` 唯一入口；`server.js` 内置服务器（启动自动构建）；`package.json`；`CHANGELOG.md` |
 | `config/` | 配置 | `app.json`；`text.json`；`kui-modules.json` 模块清单；`demos/` 11 个演示配置；`bundle.js` 产物 |
 | `src/core/` | 内核 | `kui.js`（`KUI.version`）、`config.js` 配置读取、`registry.js` 注册表、`theme.js` + `theme-art.js` 主题、`icons.js`、`handlers.js` 业务函数、`diag.js` 诊断、`dom-enhance.js`、`theme-boot.js` 首帧防闪白、`kui-all.js` 产物 |
-| `src/components/` | 组件层 | 六大组件 `menu` / `menunav` / `tabs` / `dialog` / `toast` / `app-shell`；表单引擎 `form.js`；控件 `controls/`；组件业务函数 `handlers/` |
+| `src/components/` | 组件层 | 七大组件 `menu` / `menunav` / `tabs` / `dialog` / `toast` / `app-shell` / `boot`（v1.3.8 新增加载层，见 [16-boot.md](16-boot.md)）；表单引擎 `form.js`；控件 `controls/`；组件业务函数 `handlers/` |
 | `src/app/bootstrap.js` | 启动器 | 读配置、创建 app-shell、装配菜单与默认标签页 |
 | `src/frame/` | 框架页 | `kui-frame.js` 内嵌页框架；`dialog-frame.html` + `dialog-frame.js` 弹窗页 |
-| `src/styles/` | 样式 | `base.css` / `controls.css` / `components.css` / `tooltip.css` / `avatar.css`，主题 token 在 `themes/` |
+| `src/styles/` | 样式 | `base.css` / `controls.css` / `components.css` / `tooltip.css` / `boot.css`（v1.3.8 起启动层独立样式）/ `avatar.css`，主题 token 在 `themes/` |
 | `src/themes.json` | 主题数据 | 6 套主题（kurumi 默认、kurumi-angel、starry、sakura、abyss、dawn） |
 | `pages/`、`standalone/` | 页面 | 7 个配置驱动业务页；12 个独立渲染页 + `embedded.js` |
 | `test/`、`tools/` | 测试与工程工具 | `run.js` + 四个套件 + `dom-stub.js`；构建 2 个脚本；校验 / 审计 / 冒烟 9 个（含手册校验器 `check-manual.js`，`node tools/check-manual.js [--json] [--strict]`）；截图 1 个 |
 
-`index.html:154` 只引一行 `src/core/kui-all.js`，加载哪些模块由 `config/kui-modules.json` 的 `files` 数组决定，详见 [02-build.md](02-build.md) 与第 03 章。
+`index.html:51` 只引一行 `src/core/kui-all.js`，加载哪些模块由 `config/kui-modules.json` 的 `files` 数组决定，详见 [02-build.md](02-build.md) 与第 03 章。
 
 ## 1.8 卸载与重置
 
@@ -244,18 +245,18 @@ npm test
 ```text
 v24.14.0
 KurumiUI 配置打包完成
-[build-all] profiles: app=28, standalone=27
+[build-all] profiles: app=29, standalone=28
 汇总: 20 个 HTML，错误 0 个，警告 0 个
-汇总: 30 通过 / 0 失败 / 0 跳过   总计 30   耗时 ...ms   => PASS
+汇总: 33 通过 / 0 失败 / 0 跳过   总计 33   耗时 ...ms   => PASS
 ```
 
-最后 `npm start`，打开 `http://127.0.0.1:8080/`，在控制台执行 1.6 节检查，得到 `1.3.7 / true / 41 / 28 / 61 / true` 即安装完成。
+最后 `npm start`，打开 `http://127.0.0.1:8080/`，在控制台执行 1.6 节检查，得到 `1.3.8 / true / 41 / 28 / 61 / true` 即安装完成。
 
 ## 参考源码
 
 - `package.json:7-25`（scripts）、`package.json:26-28`（`engines.node`）
 - `server.js:18-20`（默认端口 / 主机）、`server.js:44-65`（参数解析）、`server.js:203-231`（端口重试与启动横幅）、`server.js:233-253`（启动时静默构建）
-- `index.html:154`（唯一入口脚本）
+- `index.html:51`（唯一入口脚本）
 - `src/core/config.js:6-9`（读取优先级）、`src/core/config.js:148-212`（fetch → bundle 回退）
 - `tools/build-config.js:94-108`（banner 与输出路径）、`tools/build-config.js:121-133`（控制台输出）
 - `tools/build-all.js:57-104`（入口清单模板）、`tools/build-all.js:106-112`（写文件与返回值）

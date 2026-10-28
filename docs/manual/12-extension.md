@@ -1,6 +1,6 @@
 # 12 · 扩展开发全指南
 
-> 适用版本：KurumiUI v1.3.7 ｜ 前置章节：05 · 表单控件、07 · 表单引擎、08 · 复合组件、10 · 动作与业务函数、11 · iframe 通信 ｜ 阅读时长：约 40 分钟
+> 适用版本：KurumiUI v1.3.8 ｜ 前置章节：05 · 表单控件、07 · 表单引擎、08 · 复合组件、10 · 动作与业务函数、11 · iframe 通信 ｜ 阅读时长：约 40 分钟
 
 ## 本章目标
 
@@ -369,7 +369,7 @@ form.validate();                        // { valid, errors, data }；控件没�
   }
 
   var api = {
-    version: '1.0.0',        // 组件自身版本号（与框架 1.3.7 无关，不参与版本一致性校验）
+    version: '1.0.0',        // 组件自身版本号（与框架 1.3.8 无关，不参与版本一致性校验）
     defaults: DEFAULTS,
     open: open,
     close: function (id) { var inst = find(id); return inst ? inst.close('api') : false; },
@@ -599,7 +599,7 @@ var off = KUI.registry.onChange(function (type, kind) {   // kind: register / un
 });
 ```
 
-风险与建议：**契约**——form 依赖 `getValue/setValue/validate/setDisabled`，至少实现这四个，否则表单取值校验直接失效；**升级**——覆盖层单独成文件并注明「基于 v1.3.7」，升级时对照 changelog；**顺序**——放进 `kui-modules.json` 的明确位置，不要靠 HTML 临时 `<script>`；**清理**——覆盖实现显式 `destroy()`，并用 `onChange` 记录版本。
+风险与建议：**契约**——form 依赖 `getValue/setValue/validate/setDisabled`，至少实现这四个，否则表单取值校验直接失效；**升级**——覆盖层单独成文件并注明「基于 v1.3.8」，升级时对照 changelog；**顺序**——放进 `kui-modules.json` 的明确位置，不要靠 HTML 临时 `<script>`；**清理**——覆盖实现显式 `destroy()`，并用 `onChange` 记录版本。
 
 ## 12.10 扩展 dialog-frame（自定义弹窗页）
 
@@ -733,14 +733,14 @@ var off = KUI.registry.onChange(function (type, kind) {   // kind: register / un
 | 4 | 页面/样式/资源路径与 profile 深度一致 | 直接打开 `pages/xxx.html` 无 404 |
 | 5 | ES5 兼容 | `node tools/check-compat.js` |
 | 6 | 改动后一致性 | `npm run audit`、`npm run verify` |
-| 7 | 数量口径 | 截至 v1.3.7：41 个注册类型、19 个表单控件、28 个动作、61 个业务函数 |
+| 7 | 数量口径 | 截至 v1.3.8：41 个注册类型、19 个表单控件、28 个动作、61 个业务函数 |
 | 8 | 销毁路径 | 关页/关表单后无残留监听与节点 |
 | 9 | 主题跟随 | 颜色全部 `var(--kui-*, fallback)` |
 | 10 | 无控制台 error | `?kui_debug=1` 面板无异常栈 |
 
 **命名规范**：type 小写连字符（`scorebar`、`biz-timeline`）；动作 `域.动词`，不占 `dialog.*/toast.*/theme.*/tab.*`；业务函数 scope 用业务域、name 驼峰；CSS 只加 class 不加 ID，根 class 必须 `.kui-<type>`；事件 `组件:事件名`。
 
-**版本化**：扩展包自带 `version` 并在文件头注明「基于 KurumiUI v1.3.7」；覆盖内置时保留 `prev` 与 `onChange` 监听；升级前跑 `npm run audit`、`npm run verify`；排障见 [15-troubleshooting.md](15-troubleshooting.md)。
+**版本化**：扩展包自带 `version` 并在文件头注明「基于 KurumiUI v1.3.8」；覆盖内置时保留 `prev` 与 `onChange` 监听；升级前跑 `npm run audit`、`npm run verify`；排障见 [15-troubleshooting.md](15-troubleshooting.md)。
 
 **调试**：
 
@@ -798,5 +798,5 @@ Select-String -Path src/core/kui-all.js -Pattern 'business.js|drawer.js'
 - `src/components/toast.js:456-494`（静态 API）、`496-531`（组件注册与 `__kuiToastApi`）
 - `config/kui-modules.json:3`（改完 `npm run build:config`）、`8-36`（app）、`41-68`（standalone）
 - `tools/build-all.js:30-35`（缺文件失败）、`57-101`（生成与 profile 回退）
-- `src/app/bootstrap.js:133-223`（应用级动作）、`694-780`（启动链路）、`786-795`（自动启动开关）
+- `src/app/bootstrap.js:179-258`（应用级动作）、`747-840`（启动链路）、`841-851`（自动启动开关）
 - `src/core/theme.js:227-236`（register）、`297-359`（apply）

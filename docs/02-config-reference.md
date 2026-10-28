@@ -235,7 +235,7 @@ bootstrap 的 `settings.open` 会读 `app.dialogs.settings`；`about.open` 会�
 
 单个元素也可覆盖：`<button title="刷新" data-kui-tip-placement="bottom" data-kui-tip-delay="240" data-kui-tip="刷新当前页面">`；保持原生行为的元素加 `data-kui-tip-disabled="true"`。
 
-### 1.8 boot（启动层 / 加载中页面，v1.3.7 起）
+### 1.8 boot（启动层 / 加载中页面，v1.3.7 起；v1.3.8 起字段全部生效）
 
 控制**访问服务或刷新时**出现的加载中页面；它同时是一个可独立挂载的注册组件（`type: "boot"`）。
 全部字段可选，缺省值来自 `src/components/boot.js` 的 `DEFAULTS`。
@@ -271,7 +271,7 @@ bootstrap 的 `settings.open` 会读 `app.dialogs.settings`；`about.open` 会�
 }
 ```
 
-> 运行时可随时改：`KUI.bootLayer.configure({ clock: { mode: "spin" }, stages: [...] })`；
+> v1.3.8 起 `bootstrap.js` 自动把本节配置交给组件（`applyBootConfig`），`boot.enabled: false` 会关闭启动层；运行时可随时改：`KUI.bootLayer.configure({ clock: { mode: "spin" }, stages: [...] })`；
 > 演示页 `standalone/boot.html` 的「按进度设置」滑块可直接核对 0%↔0 时、100%↔12 时的指针位置。
 ## 2. 节点通用字段
 
@@ -560,7 +560,7 @@ action 按钮字段：`id`（唯一）/ `icon` / `label` / `title` / `badge` / `
 | --- | --- | --- | --- |
 | `closable` | boolean | true | 标签是否可关闭 |
 | `pinnedClosable` | boolean | false | 固定标签是否可关闭 |
-| `keepAlive` | boolean | true | 保活：切走的 iframe 不销毁（未保存数据不丢的关键） |
+| `keepAlive` | boolean | true | 保活：切走的 iframe 不销毁（未保存数据不丢的关键）；`false` 时切回会重建 iframe（v1.3.8 起真正生效） |
 | `maxTabs` | number | 24 | 最大标签数 |
 | `contextMenu` | boolean | true | 右键菜单 |
 | `drag` | boolean | true | 标签拖拽排序 |
@@ -592,7 +592,7 @@ tab 对象字段：`id` / `title` / `url` / `icon` / `pinned` / `closable` / `pa
 | `height` | number\|string | `auto` | 高度 |
 | `maxWidth` | string | `92vw` | 最大宽度 |
 | `maskClosable` | boolean | true | 点遮罩关闭；confirm 默认 false |
-| `closeOnEsc` | boolean | true | Esc 关闭 |
+| `closeOnEsc` | boolean | true | Esc 关闭（别名 `ui.dialog.escClosable`，v1.3.8 起生效；两者都传时 `closeOnEsc` 优先） |
 | `closable` | boolean | true | 是否显示关闭按钮 |
 | `draggable` | boolean | false | 可拖拽 |
 | `layer` | number | 1 | 层级（内部维护） |

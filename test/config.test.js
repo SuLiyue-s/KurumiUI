@@ -450,4 +450,57 @@ module.exports = function register(suite, ctx) {
       if (env && typeof env.destroy === 'function') env.destroy();
     }
   });
+
+  /* ------------------------------------------------------------------ *
+   * 用例 5：v1.3.8 修复的「配置无读取点」字段（回归闸门）
+   *   ui.dialog.escClosable → 内部 closeOnEsc
+   *   boot.clock.smooth     → data-boot-smooth + CSS
+   * ------------------------------------------------------------------ */
+  suite.test('ui.dialog.escClosable 与 boot.clock.smooth 均有真实读取点（v1.3.8）', function () {
+    assert.ok(typeof ctx.createEnvironment === 'function',
+      'test/dom-stub.js 未提供 createEnvironment，无法加载 KUI 运行时');
+
+    var env = null;
+    try {
+      env = ctx.createEnvironment({ root: root });
+      var report = loader.loadKui(env, {});
+      if (report.missing.length > 0) {
+        ctx.skip('等待交付: ' + report.missing.join(', ') + '（运行时未就绪，读取点校验暂跳过）');
+        return;
+      }
+      var KUI = env.window.KUI;
+
+      /* ① ui.dialog.escClosable（bootstrap 传入的是 ui.dialog 对象本身） */
+      var before = KUI.dialog.config().closeOnEsc;
+      KUI.dialog.config({ escClosable: false });
+      assert.strictEqual(KUI.dialog.config().closeOnEsc, false,
+        'ui.dialog.escClosable=false 未映射到 closeOnEsc');
+      KUI.dialog.config({ escClosable: true });
+      assert.strictEqual(KUI.dialog.config().closeOnEsc, true,
+        'ui.dialog.escClosable=true 未映射到 closeOnEsc');
+      /* 嵌套 ui 形态（直接调 KUI.dialog.config({ui:{...}})） */
+      KUI.dialog.config({ ui: { escClosable: false } });
+      assert.strictEqual(KUI.dialog.config().closeOnEsc, false,
+        'ui.dialog.escClosable（嵌套 ui 形态）未映射');
+      /* closeOnEsc 显式优先 */
+      KUI.dialog.config({ closeOnEsc: true, escClosable: false });
+      assert.strictEqual(KUI.dialog.config().closeOnEsc, true,
+        'closeOnEsc 显式值应优先于 escClosable');
+      KUI.dialog.config({ closeOnEsc: before });
+
+      /* ② boot.clock.smooth → data-boot-smooth */
+      var host = env.document.createElement('div');
+      env.document.body.appendChild(host);
+      var inst = KUI.bootLayer.create(host, { mode: 'inline', clock: { smooth: false } });
+      assert.ok(inst && inst.el, 'bootLayer.create 未返回实例');
+      assert.strictEqual(inst.el.getAttribute('data-boot-smooth'), 'off',
+        'clock.smooth=false 未写入 data-boot-smooth=off');
+      inst.configure({ clock: { smooth: true } });
+      assert.strictEqual(inst.el.getAttribute('data-boot-smooth'), 'on',
+        'configure 后 data-boot-smooth 未更新为 on');
+      inst.destroy();
+    } finally {
+      if (env && typeof env.destroy === 'function') env.destroy();
+    }
+  });
 };
