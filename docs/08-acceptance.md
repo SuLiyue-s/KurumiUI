@@ -334,3 +334,17 @@ node tools/check-assets.js                # HTML 引用完整性
 | 3 | 需要一个单独测试页观察效果 | 无独立页 | 新增 `standalone/boot.html`：内嵌 `mode:inline` 预览、0→100 自动演示、阶段推进、平滑/跳变切换、spin 模式、错误态、JSON 驱动重渲染 | 冒烟 [27.5]；`check-assets` 21 HTML 0 错；导航 12 个独立页全部可达 |
 
 回归：`tools/smoke.js` **99/0**（Node 13.14 / 24 双版本）；`test/run.js` **30/0/0**；`audit-consistency` 17/0；`audit-components` 19/0；`check-assets` 21 HTML / 0 错 0 警。
+## v1.3.9 配置接线补强（2026-10-29）
+
+| 用户反馈 | 根因 | 修复 | 验证 |
+| --- | --- | --- | --- |
+| `menu.props.width/collapsedWidth` 未消费 | 写的是 `--kui-menu-w`，CSS 读 `--kui-menu-width(-collapsed)` | menu 写正确变量；app-shell 优先 props | smoke [29.1] |
+| `menunav.props.breadcrumb.max` 无读取点 | 只合并进 `breadcrumb` 对象 | `normalizeProps` 归一 `maxBreadcrumb`（双路径） | smoke [29.2] |
+| 设置弹窗 `desc/draggable/layout` 未透传 | `openSettings` 白名单过窄 | 三个字段透传；`desc` → 弹窗副标题 | 真实浏览器截图 |
+| 设置弹窗保存无效 | 节点 id 与 `openSettings` 应用值不匹配 | 新增 `KUI.boot.applySettings` + `applyStoredPrefs` + 密度 token | smoke [29.3]、`test/config` 用例；真实浏览器核对 5 字段渲染 |
+| `boot.ready` 无读取点 | 主流程未使用 | 最后一步显示就绪文案 | 源码审阅 |
+| select/multiselect `autofocus` 恒 false | `p(ctx,…)` 应传 node | 两处改 `p(node,…)` | smoke [29.4] |
+
+回归：`test/run.js` **33/0/0**（Node 24 + Node 13.14）；`smoke` **108/0**；`check-assets` 21/0/0；`audit-consistency` 17/0；`audit-components` 19/0；`audit-all-pages` 19/19；`audit-config` 0 缺口；`check-manual` 0/0。
+
+

@@ -167,7 +167,7 @@
       destroyed: false
     };
 
-    var brandEl, textEl, collapseBtn, scrollEl, listHost, footerEl;
+    var brandEl, textEl, brandTitleEl = null, collapseBtn, scrollEl, listHost, footerEl;
     var avatarApi = null;
 
     /* v1.2.0：品牌头像配置合并（未显式给的字段用品牌图标兜底） */
@@ -233,6 +233,7 @@
 
       textEl = el('div', 'kui-menu__brand-text');
       var title = elText('div', 'kui-menu__brand-title', props.brand.title || txt('app.title', 'KurumiUI'));
+      brandTitleEl = title;
       textEl.appendChild(title);
       if (props.brand.subtitle) {
         textEl.appendChild(elText('div', 'kui-menu__brand-subtitle', props.brand.subtitle));
@@ -717,6 +718,11 @@
     function build() {
       root.setAttribute('data-kui-menu', '');
       root.setAttribute('role', 'navigation');
+      /* v1.3.9：CSS 真正的消费点是 --kui-menu-width / --kui-menu-width-collapsed
+         （base.css 的应用网格与 components.css 的 .kui-menu 宽度都读它）。
+         旧变量 --kui-menu-w / --kui-menu-w-collapsed 保留，避免破坏已发布的覆盖写法。 */
+      root.style.setProperty('--kui-menu-width', props.width + 'px');
+      root.style.setProperty('--kui-menu-width-collapsed', props.collapsedWidth + 'px');
       root.style.setProperty('--kui-menu-w', props.width + 'px');
       root.style.setProperty('--kui-menu-w-collapsed', props.collapsedWidth + 'px');
       if (state.collapsed && root.classList) { root.classList.add('is-collapsed'); }
@@ -832,6 +838,13 @@
         return api;
       },
       setBadge: setBadge,
+      /* v1.3.9：运行时改品牌标题（设置弹窗「终端名称」的读取点） */
+      setBrandTitle: function (t) {
+        var text = t === undefined || t === null ? '' : String(t);
+        if (brandTitleEl) { brandTitleEl.textContent = text; }
+        if (props.brand) { props.brand.title = text; }
+        return api;
+      },
       setItems: setItems,
       getItems: getItems,
       setCollapsible: setCollapsible,

@@ -217,7 +217,7 @@ npm test               # 测试
 
 ### 8.4 回归数字（本机 Node v24.14.0 + v13.14.0）
 
-`tools/smoke.js` 104/0；`test/run.js` 33/0/0；`test/render` 10/0；`test/config` 5/0；`audit-consistency` 17/0；`audit-components` 19/0；`audit-all-pages` 19/19；`check-assets` 21 HTML 0/0；`audit-config` 0 缺口；`check-manual` 0/0。
+`tools/smoke.js` 108/0；`test/run.js` 33/0/0；`test/render` 10/0；`test/config` 5/0；`audit-consistency` 17/0；`audit-components` 19/0；`audit-all-pages` 19/19；`check-assets` 21 HTML 0/0；`audit-config` 0 缺口；`check-manual` 0/0。
 
 ## 9. 源码 ↔ 产物一致性核对（v1.3.8 补记）
 
@@ -233,3 +233,20 @@ npm test               # 测试
 | `config/bundle.js` | 内嵌模块版本/哈希与源码一致 | 通过（`meta.generatedAt` 为时间戳，不参与哈希断言） |
 
 > 说明：`config/bundle.js` 是 git 忽略的本地运行产物，`meta.generatedAt` 每次重建都会变；判断是否过期看 `modules[].version`（模块内容哈希）而不是整文件哈希。
+
+## 11. v1.3.9 接线缺陷审计（2026-10-29）
+
+| # | 缺陷 | 类别 | 修复 |
+| --- | --- | --- | --- |
+| P1 | `menu.props.width/collapsedWidth` 写入无人消费的变量 | 变量名不一致 | menu 双写 + app-shell 优先级 |
+| P2 | `menunav.props.breadcrumb.max` 只合并不读取 | 字段无读取点 | 归一 `maxBreadcrumb`（两条路径） |
+| P3 | `dialogs.settings.desc/draggable/layout` 未透传 | 透传白名单遗漏 | openSettings 透传三字段 |
+| P4 | 设置弹窗保存不生效 | 配置 id 与应用映射不一致 | `KUI.boot.applySettings` 映射 5 个 id + 旧字段兼容 |
+| P5 | `boot.ready` 无读取点 | 字段无读取点 | 主流程末尾读取 |
+| P6 | select/multiselect `autofocus` 恒 false | 参数对象错误 | `p(ctx,…)` → `p(node,…)` |
+
+同类排查：`tools/audit-config.js` 复跑仍 0 缺口（468 叶子 / 431 受检）；新增 smoke [29] 作为回归闸门。
+
+回归：`test/run.js` 33/0/0（双 Node）；`smoke` 108/0；`audit-config` 0；`check-manual` 0/0；`check-assets` 21/0/0；`audit-components` 19/0；`audit-all-pages` 19/19。
+
+

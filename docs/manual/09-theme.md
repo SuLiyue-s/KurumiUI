@@ -1,6 +1,6 @@
 # 09 · 主题系统
 
-> 适用版本：KurumiUI v1.3.8 ｜ 前置章节：04 主题与皮肤、08 组件 ｜ 阅读时长：约 25 分钟
+> 适用版本：KurumiUI v1.3.9 ｜ 前置章节：04 主题与皮肤、08 组件 ｜ 阅读时长：约 25 分钟
 
 ## 本章目标
 
@@ -259,7 +259,7 @@
 
 ### 4.2 内置动作
 
-`bootstrap.js:179-258` 额外注册了 5 个主题相关动作（全仓共 28 个内置动作），可直接写进 `on.click`：
+`bootstrap.js:208-331` 额外注册了 5 个主题相关动作（全仓共 28 个内置动作），可直接写进 `on.click`：
 
 | 动作 | 参数 | 行为 |
 | --- | --- | --- |
@@ -267,20 +267,20 @@
 | `app.themeRandom` | — | 随机切到非当前主题 |
 | `theme.cycle` | — | 等价 `theme.next()` |
 | `theme.toggleScheme` | — | 深浅切换 |
-| `theme.picker` | — | 打开内置选择弹窗（id=`theme-picker`，宽 680，3 列） |
+| `theme.picker` | — | 打开内置选择弹窗（id=`theme-picker`；宽度/标题/说明/列数/预览/深浅按钮/遮罩关闭均读 `app.json.theme.picker`，默认宽 680、3 列） |
 
 ```json
 { "type": "button", "text": "换个主题", "on": { "click": { "action": "theme.cycle" } } }
 ```
 
-内置选择器（`bootstrap.js:275-375`）用每套主题的 `bg/accent/accent2/text` 拼渐变缩略块，附「随机主题 / 深浅切换 / 主题展示页」。`app.json` 的 `theme.visible`、`theme.picker` 是声明式配置（`test/config.test.js:220-225` 校验），实际遍历初始化后的全部主题。
+内置选择器（`bootstrap.js:333-431`）用每套主题的 `bg/accent/accent2/text` 拼渐变缩略块，附「随机主题 / 深浅切换 / 主题展示页」。v1.3.8 起 `app.json` 的 `theme.picker` 全部生效：`openThemePicker`（`:416-431`）消费 `title/desc/width/maskClosable`，`buildThemePickerNodes`（`:333-414`）消费 `columns/showPreview/showScheme`（`columns` 夹在 1–6，默认 3）。`theme.visible` 同样从 v1.3.8 起生效：`filterVisibleThemes`（`:319-331`）按白名单过滤选择器卡片（不在白名单的主题既不展示也不参与选择器内的随机/切换）；`visible` 为空时回退全部主题。
 
 ### 4.3 URL、存储与初始优先级
 
 - URL：`?kuiTheme=starry`（`readFromUrl()` 校验 id）。
-- 存储键默认 `kui-theme`；`app.json` 的 `theme.storageKey` 由 `theme.init()` 传入（`bootstrap.js:789`）。
+- 存储键默认 `kui-theme`；`app.json` 的 `theme.storageKey` 由 `theme.init()` 传入（`bootstrap.js:887-894`）。
 - `theme-boot.js` 支持 `<html data-kui-theme-key="my-key">` 自定义键（`theme-boot.js:45-49`）。
-- 初始优先级（`theme.js:401-413`）：
+- 初始优先级（`theme.js:401-414`）：
 
 ```
 __KUI_EARLY_THEME__ > ?kuiTheme= > localStorage > app.json default > themes.json default > 第一套
@@ -356,7 +356,7 @@ FALLBACK 缺省：`stars{count:60,size:2,speed:'6s'}`、`sakura{count:12,size:10
 
 ### 5.3 性能与可访问
 
-层数建议 ≤ 9（内置 6~9 层），动画层（`scanline`/`stars`/`sakura`/`feather`）控制在 2 层内；大尺寸渐变 + `blur` 叠加吃 GPU。窗口 resize 已由 `bootstrap.js:815-821` 防抖 160ms 调 `refreshArt()`，业务侧别频繁调。装饰层 `pointer-events:none` + `aria-hidden`，不进读屏与 Tab 序、打印时被隐藏（`base.css` 第 13 节）。
+层数建议 ≤ 9（内置 6~9 层），动画层（`scanline`/`stars`/`sakura`/`feather`）控制在 2 层内；大尺寸渐变 + `blur` 叠加吃 GPU。窗口 resize 已由 `bootstrap.js:915-921` 防抖 160ms 调 `refreshArt()`，业务侧别频繁调。装饰层 `pointer-events:none` + `aria-hidden`，不进读屏与 Tab 序、打印时被隐藏（`base.css` 第 13 节）。
 
 ## 6. 自定义主题完整步骤
 
@@ -484,5 +484,5 @@ grep -c "my-frost" config/bundle.js
 - `src/styles/base.css:189-354`（116 token）、`:720-727`（`--kui-line-clamp`）、`:1387-1398`（过渡）、`:915-1280`（装饰层）
 - `src/themes.json`（6 套主题、64 token/套、art）；`src/core/theme.js`（`apply`/`resolveInitial`/`init`/`broadcast`）
 - `src/core/theme-art.js`（11 种装饰层）、`src/core/theme-boot.js`（防闪烁）、`src/frame/kui-frame.js:207-399`（iframe 同步）
-- `src/app/bootstrap.js:179-258`（主题动作）、`:275-370`（内置选择器）、`:782-795`（初始化）；`config/app.json:178-198`
+- `src/app/bootstrap.js:208-331`（主题动作）、`:333-431`（内置选择器）、`:882-895`（初始化）；`config/app.json:178-198`
 - `tools/build-config.js:79`；`docs/04-theme.md`（token 契约、自定义步骤、iframe 协议）

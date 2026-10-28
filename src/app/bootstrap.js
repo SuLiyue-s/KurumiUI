@@ -695,17 +695,112 @@
     ];
   }
 
+  /* ------------------------------------------------------------------ */
+  /* v1.3.9：界面设置的持久化（终端名称 / 启动页 / 记住上次标签 / 界面密度） */
+  /* ------------------------------------------------------------------ */
+
+  var PREF_KEYS = {
+    shellName: 'kui-shell-name',
+    startTab: 'kui-start-tab',
+    remember: 'kui-remember-tab',
+    lastTab: 'kui-last-tab',
+    density: 'kui-density'
+  };
+
+  function prefGet(key) {
+    try {
+      if (global.localStorage) { return global.localStorage.getItem(key); }
+    } catch (e) { /* 隐私模式等场景忽略 */ }
+    return null;
+  }
+
+  function prefSet(key, value) {
+    try {
+      if (!global.localStorage) { return; }
+      if (value === null || value === undefined) { global.localStorage.removeItem(key); }
+      else { global.localStorage.setItem(key, String(value)); }
+    } catch (e) { /* ignore */ }
+  }
+
+  function applyDensity(density) {
+    if (!isDom()) { return; }
+    var val = density === 'compact' || density === 'loose' ? density : 'normal';
+    doc().documentElement.setAttribute('data-kui-density', val);
+    prefSet(PREF_KEYS.density, val);
+  }
+
+  function applyShellName(app, name) {
+    if (name === undefined || name === null || name === '') { return; }
+    if (app && typeof app.setTitle === 'function') { app.setTitle(String(name)); }
+    prefSet(PREF_KEYS.shellName, String(name));
+  }
+
+  function findTabCfg(appCfg, id) {
+    var items = (appCfg && appCfg.menu && appCfg.menu.props && appCfg.menu.props.items) || [];
+    var found = null;
+    (function walk(list) {
+      for (var i = 0; i < list.length; i++) {
+        var it = list[i];
+        if (!it || typeof it !== 'object') { continue; }
+        if (it.target && it.target.tab && it.target.tab.id === id) { found = it.target.tab; return; }
+        if (it.children) { walk(it.children); if (found) { return; } }
+      }
+    })(items);
+    return found;
+  }
+
+  function applyStoredPrefs(app, appCfg) {
+    /* 终端名称（设置弹窗保存的） */
+    var savedName = prefGet(PREF_KEYS.shellName);
+    if (savedName) { applyShellName(app, savedName); }
+    /* 界面密度 */
+    applyDensity(prefGet(PREF_KEYS.density) || 'normal');
+    /* 记住上次标签：每次标签激活时写 kui-last-tab */
+    if (KUI.bus && typeof KUI.bus.on === 'function') {
+      KUI.bus.on('tab:activate', function (payload) {
+        var tab = payload && payload.tab;
+        if (!tab || !tab.id) { return; }
+        if (prefGet(PREF_KEYS.remember) === '1') { prefSet(PREF_KEYS.lastTab, tab.id); }
+      });
+    }
+    /* 启动页：显式配置优先；否则在「记住上次标签」开启时回到上次的标签 */
+    var startId = prefGet(PREF_KEYS.startTab);
+    if (!startId && prefGet(PREF_KEYS.remember) === '1') { startId = prefGet(PREF_KEYS.lastTab); }
+    if (!startId) { return; }
+    var tabCfg = findTabCfg(appCfg, startId);
+    if (tabCfg && app && typeof app.openTab === 'function') {
+      try { app.openTab(tabCfg); } catch (e) { /* ignore */ }
+    }
+  }
+
   function openSettings(app, appCfg) {
     if (!KUI.dialog) return null;
     var conf = (appCfg && appCfg.dialogs && appCfg.dialogs.settings) || {};
     var nodes = conf.nodes && conf.nodes.length ? conf.nodes : defaultSettingsNodes(app);
-    var data = conf.data || {};
-    if (data.theme === undefined) data.theme = KUI.theme.currentId();
-    if (data.collapsed === undefined) data.collapsed = !!(app && app.collapsed);
+    var meta = (appCfg && appCfg.app) || {};
+
+    /* v1.3.9：初值是「当前真实状态」，键名与 conf.nodes 的 id 对齐（此前 data 用的是
+       theme/collapsed，和 nodes 的 shellName/defaultTheme/startTab/remember/density 完全不匹配，
+       所以弹窗里显示的是空值、保存也不生效）。 */
+    var data = {};
+    var i;
+    if (conf.data && typeof conf.data === 'object') {
+      for (i in conf.data) { if (Object.prototype.hasOwnProperty.call(conf.data, i)) { data[i] = conf.data[i]; } }
+    }
+    data.shellName = prefGet(PREF_KEYS.shellName) || meta.title || '';
+    data.defaultTheme = KUI.theme && KUI.theme.currentId ? KUI.theme.currentId() : '';
+    data.startTab = prefGet(PREF_KEYS.startTab) || '';
+    data.remember = prefGet(PREF_KEYS.remember) !== '0';
+    data.density = prefGet(PREF_KEYS.density) || 'normal';
 
     var req = {
       id: 'settings',
       title: conf.title || KUI.text('settings.title', '界面设置'),
+      /* v1.3.9：desc / draggable / layout 此前未透传，配置了也不生效 */
+      subtitle: conf.desc !== undefined ? conf.desc : conf.subtitle,
+      draggable: conf.draggable === true,
+      layout: conf.layout,
+      maskClosable: conf.maskClosable,
       nodes: nodes,
       data: data,
       width: conf.width || 560,
@@ -717,17 +812,36 @@
     if (!api) return KUI.dialog.custom(req);
 
     return api(req).then(function (values) {
-      if (!values) return null;
-      if (values.theme && KUI.theme.has(values.theme)) KUI.theme.apply(values.theme);
-      if (values.collapsed !== undefined && app && app.setCollapsed) app.setCollapsed(!!values.collapsed);
-      if (values.motion !== undefined && isDom()) {
-        KUI.toggleClass(doc().documentElement, 'kui-reduce-motion', !values.motion);
-      }
-      if (KUI.toast && KUI.toast.success) {
-        KUI.toast.success(KUI.text('settings.saved', '设置已应用'));
-      }
-      return values;
+      return applySettingsValues(app, values);
     });
+  }
+
+  /**
+   * 应用设置弹窗的返回值（v1.3.9 抽出：此前 logic 内联在 then 里，无法被测试/其他代码复用）。
+   * 键名与 config/app.json dialogs.settings.nodes 的 id 一一对应：
+   *   shellName / defaultTheme / startTab / remember / density；
+   * 同时兼容旧配置的 theme / collapsed / motion。
+   */
+  function applySettingsValues(app, values) {
+    if (!values) { return null; }
+    if (values.shellName !== undefined) { applyShellName(app, values.shellName); }
+    if (values.defaultTheme && KUI.theme && typeof KUI.theme.apply === 'function') {
+      if (!KUI.theme.has || KUI.theme.has(values.defaultTheme)) { KUI.theme.apply(values.defaultTheme); }
+    }
+    if (values.startTab !== undefined) { prefSet(PREF_KEYS.startTab, values.startTab || null); }
+    if (values.remember !== undefined) {
+      prefSet(PREF_KEYS.remember, values.remember ? '1' : '0');
+      if (!values.remember) { prefSet(PREF_KEYS.lastTab, null); }
+    }
+    if (values.density !== undefined) { applyDensity(values.density); }
+    /* 兼容旧配置：theme / collapsed / motion 仍生效 */
+    if (values.theme && KUI.theme && KUI.theme.has && KUI.theme.has(values.theme)) { KUI.theme.apply(values.theme); }
+    if (values.collapsed !== undefined && app && app.setCollapsed) { app.setCollapsed(!!values.collapsed); }
+    if (values.motion !== undefined && isDom()) {
+      KUI.toggleClass(doc().documentElement, 'kui-reduce-motion', !values.motion);
+    }
+    if (KUI.toast && KUI.toast.success) { KUI.toast.success(KUI.text('settings.saved', '设置已应用')); }
+    return values;
   }
 
   /* ------------------------------------------------------------------ */
@@ -899,11 +1013,16 @@
       setBootText(KUI.text('boot.shell', '正在构建界面…'));
       var app = KUI.app.create(host, appCfg, { initialTabs: opts.initialTabs });
 
+      /* v1.3.9：应用设置弹窗保存过的偏好（终端名称 / 界面密度 / 启动页 / 记住上次标签） */
+      applyStoredPrefs(app, appCfg);
+
       /* ---- 应用动作 ---- */
       registerActions(app, appCfg);
 
       /* ---- 收尾 ---- */
       setBootStep(4);
+      /* v1.3.9：text.boot.ready 此前无读取点，启动最后一步改为显示「准备就绪」类文案。 */
+      setBootText(KUI.text('boot.ready', '准备就绪'));
       if (isDom()) {
         KUI.addClass(doc().body, 'kui-ready');
         doc().documentElement.setAttribute('data-kui-boot', 'done');
@@ -960,6 +1079,7 @@
   bootApi.version = '1.0.0';
   bootApi.applyBootConfig = applyBootConfig;
   bootApi.applyAppMetaToConfig = applyAppMetaToConfig;
+  bootApi.applySettings = applySettingsValues;
   bootApi.appliedBootConfig = null;
 
   if (isDom()) {

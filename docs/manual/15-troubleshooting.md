@@ -1,6 +1,6 @@
 # 15 · 排错手册、FAQ 与上线验收清单
 
-> 适用版本：KurumiUI v1.3.8 ｜ 前置章节：[03-assembly.md](03-assembly.md)、[11-api-messaging.md](11-api-messaging.md) ｜ 阅读时长：约 20 分钟
+> 适用版本：KurumiUI v1.3.9 ｜ 前置章节：[03-assembly.md](03-assembly.md)、[11-api-messaging.md](11-api-messaging.md) ｜ 阅读时长：约 20 分钟
 
 ## 本章目标
 
@@ -223,7 +223,7 @@ node -e "global.window={};require('./config/bundle.js');var b=window.__KUI_BUNDL
 node -e "var m=require('./src/core/kui-all.js');console.log('app',m.profiles.app.files.length,'standalone',m.profiles.standalone.files.length)"
 ```
 
-预期：bundle 键含 `app,text,themes,demos,meta`；`app 28 / standalone 27`。
+预期：bundle 键含 `app,text,themes,demos,meta`；`app 29 / standalone 28`。
 
 ---
 
@@ -580,7 +580,7 @@ curl -I https://your.site/src/themes.json
 - [ ] 4. `node tools/check-compat.js` → 未发现禁用语法
 - [ ] 5. `node tools/check-assets.js` → 无缺失资源
 - [ ] 6. `config/bundle.js` 存在且非空、时间戳是本次构建
-- [ ] 7. `src/core/kui-all.js` 存在且 profile 数量正确（app 28 / standalone 27）
+- [ ] 7. `src/core/kui-all.js` 存在且 profile 数量正确（app 29 / standalone 28）
 - [ ] 8. 首页 200、无控制台红色错误
 - [ ] 9. 控制台 `KUI.info()` → version `1.3.8`、controls 41、themes 6
 - [ ] 10. 6 套主题逐一切换无闪烁、无样式丢失

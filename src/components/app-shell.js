@@ -148,8 +148,11 @@
     var menuLayout = layoutCfg.menu || layoutCfg.left || {};
     var headerLayout = layoutCfg.header || {};
 
-    var menuWidth = num(firstDefined(menuLayout.width, layoutCfg.menuWidth), DEFAULTS.menuWidth);
-    var menuCollapsedWidth = num(firstDefined(menuLayout.collapsedWidth, layoutCfg.menuCollapsedWidth), DEFAULTS.menuCollapsedWidth);
+    /* v1.3.9：menu.props.width / collapsedWidth 也参与菜单宽度决策（此前只有 layout.menu.* 生效，
+       导致 menu.props.width 写了也不生效）。优先级：menu.props > layout.menu > layout 顶层。 */
+    var menuPropsCfg = (cfg.menu && cfg.menu.props) || {};
+    var menuWidth = num(firstDefined(menuPropsCfg.width, menuLayout.width, layoutCfg.menuWidth), DEFAULTS.menuWidth);
+    var menuCollapsedWidth = num(firstDefined(menuPropsCfg.collapsedWidth, menuLayout.collapsedWidth, layoutCfg.menuCollapsedWidth), DEFAULTS.menuCollapsedWidth);
     var headerHeight = num(firstDefined(headerLayout.height, layoutCfg.headerHeight), DEFAULTS.headerHeight);
     var tabbarHeight = num(firstDefined(layoutCfg.tabbarHeight), DEFAULTS.tabbarHeight);
     var gap = num(layoutCfg.gap, DEFAULTS.gap);
@@ -471,7 +474,10 @@
       if (navApi && typeof navApi.setTitle === 'function') {
         try { navApi.setTitle(t); } catch (e) { /* noop */ }
       }
-      if (KUI.env.isBrowser && opts.setTitle !== false && t) document.title = String(t);
+      if (app.menu && typeof app.menu.setBrandTitle === 'function') {
+      try { app.menu.setBrandTitle(t); } catch (e2) { /* noop */ }
+    }
+    if (KUI.env.isBrowser && opts.setTitle !== false && t) document.title = String(t);
     }
 
     function destroy() {

@@ -1,6 +1,6 @@
 # 12 · 扩展开发全指南
 
-> 适用版本：KurumiUI v1.3.8 ｜ 前置章节：05 · 表单控件、07 · 表单引擎、08 · 复合组件、10 · 动作与业务函数、11 · iframe 通信 ｜ 阅读时长：约 40 分钟
+> 适用版本：KurumiUI v1.3.9 ｜ 前置章节：05 · 表单控件、07 · 表单引擎、08 · 复合组件、10 · 动作与业务函数、11 · iframe 通信 ｜ 阅读时长：约 40 分钟
 
 ## 本章目标
 
@@ -775,7 +775,7 @@ KUI.diag.lines();              // ?kui_debug=1 后才可用
 ```powershell
 node tools/check-compat.js          # ES5 兼容性，无输出即通过
 npm run audit                       # 一致性 17 项 + 组件拆装 19 项
-npm run verify                      # 冒烟 104 项 + 2 个装配验证 + 产物一致性
+npm run verify                      # 冒烟 108 项 + 2 个装配验证 + 产物一致性
 
 # 运行时确认新类型/动作/业务函数都在表里
 node -e "var s=require('./test/dom-stub.js'),e=s.createEnvironment({root:process.cwd(),fileMode:true}),lk=require('./test/load-kui.js');lk.loadKui(e,{});var K=e.window.KUI;console.log('types',K.registry.count(),'actions',K.actions.list().length,'handlers',K.handlers.count());"
@@ -798,5 +798,5 @@ Select-String -Path src/core/kui-all.js -Pattern 'business.js|drawer.js'
 - `src/components/toast.js:456-494`（静态 API）、`496-531`（组件注册与 `__kuiToastApi`）
 - `config/kui-modules.json:3`（改完 `npm run build:config`）、`8-36`（app）、`41-68`（standalone）
 - `tools/build-all.js:30-35`（缺文件失败）、`57-101`（生成与 profile 回退）
-- `src/app/bootstrap.js:179-258`（应用级动作）、`747-840`（启动链路）、`841-851`（自动启动开关）
+- `src/app/bootstrap.js:208-331`（应用级动作）、`841-935`（启动链路）、`941-963`（自动启动开关与 `KUI.boot`）
 - `src/core/theme.js:227-236`（register）、`297-359`（apply）

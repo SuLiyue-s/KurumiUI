@@ -1,3 +1,47 @@
+## v1.3.9 — 配置接线补强（菜单宽度 / 面包屑 / 设置弹窗 / autofocus）
+
+> 需求（用户）：「menu.props.width/collapsedWidth 样式未消费（改宽度用 layout.menu.*）、menunav.props.breadcrumb.max 无读取点、dialogs.settings 的 desc/draggable/layout 未透传、boot.ready 无读取点、select/multiselect 的 autofocus 恒 false（源码缺陷，需手动 el.focus()）。默认配置下设置弹窗「保存」确实不改变界面（settings.nodes 的 id 与 openSettings 应用值不匹配）修复一下这些问题，同时检查是否存在类似问题。」
+
+### 一、菜单宽度真正生效
+
+| 项 | 实现 |
+| --- | --- |
+| 消费点 | `src/components/menu.js` 写入 `--kui-menu-width` / `--kui-menu-width-collapsed`（样式表真实读取的变量），旧 `--kui-menu-w(-collapsed)` 保留兼容 |
+| 优先级 | `src/app/app-shell.js` 先读 `menu.props.width/collapsedWidth`，未配置时回退 `layout.menu.*` |
+| 兼容 | 旧写法 `layout.menu.width` 继续生效；`menu.js` 新增 `setBrandTitle()` 供设置弹窗改终端名 |
+
+### 二、面包屑折叠
+
+`menunav.props.breadcrumb.max` 归一为顶层 `maxBreadcrumb`（`normalizeProps`），registry 渲染与 `KUI.menunav.create` 两条路径都生效；旧 `maxBreadcrumb` 写法不变。
+
+### 三、设置弹窗（`dialogs.settings`）真正可用
+
+| 项 | 修复 |
+| --- | --- |
+| 字段透传 | `openSettings` 增加 `desc`（→ 弹窗 subtitle）、`draggable`、`layout`，不再只传 title/width/okText/cancelText/nodes/data |
+| 保存生效 | 抽出 `KUI.boot.applySettings(app, values)`：`shellName` → `app.setTitle` + 菜单品牌；`defaultTheme` → 换肤；`startTab` / `remember` → localStorage 记忆；`density` → `html[data-kui-density]`；旧 `theme/collapsed/motion` 兼容 |
+| 启动恢复 | `boot()` 末尾 `applyStoredPrefs()`：恢复终端名、密度、记住的上次标签 |
+| 密度样式 | `src/styles/base.css` 新增 `html[data-kui-density="compact"]` / `="loose"` 的 token 覆盖（字号/间距/顶栏高度/标签栏高度） |
+
+### 四、其余接线
+
+| 项 | 修复 |
+| --- | --- |
+| `boot.ready` | 主流程最后一步 `setBootText(KUI.text('boot.ready','准备就绪'))`，字段有真实读取点 |
+| select / multiselect `autofocus` | 两处 `p(ctx, 'autofocus')` 改为 `p(node, 'autofocus')`，渲染后真正聚焦 |
+
+### 五、验证
+
+- `tools/smoke.js` 新增 `[29]` 四组断言 → **108 / 0**；
+- `test/run.js` **33 / 0 / 0**（Node 24 与 Node 13.14 双版本）；
+- `tools/audit-config.js` 0 缺口；`check-manual` 0 错 0 警；`check-assets` 21/0/0；
+- 真实浏览器：设置弹窗 5 个字段、副标题、可拖拽渲染正常；保存生效由 smoke [29.3] 与 `test/config` 用例断言（保存在 iframe 内，跨框点击未纳入浏览器自动化）。
+
+### 六、文档
+
+- 新增 **零基础入门手册** `docs/manual-beginner/`（README + 10 章，11 文件），配套零依赖校验脚本 `tools/check-beginner-manual.js`；
+- 高级手册与小白手册互相链接；README 增「使用手册（两份，按需选读）」入口表。
+
 ## v1.3.8 — 配置接线修复 + 配置读取点一致性审计
 
 > 需求（用户）：「接线缺口：app.json 的 boot 段运行时完全不生效。是否有配置字段无读取点，配置也不生效的。

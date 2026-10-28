@@ -1,6 +1,6 @@
 # 05 · 表单控件：19 个 control 类型
 
-> 适用版本：KurumiUI v1.3.8 ｜ 前置章节：[04-config-app.md](04-config-app.md) ｜ 阅读时长：约 25 分钟
+> 适用版本：KurumiUI v1.3.9 ｜ 前置章节：[04-config-app.md](04-config-app.md) ｜ 阅读时长：约 25 分钟
 
 `KUI.registry.list()` 里 `category==='control'` 共 **19** 个。本章逐控件给：作用、最小 JSON、字段表、通用默认、事件/API、坑、表单内写法；默认值取自源码 `*_DEFAULTS`。
 
@@ -76,7 +76,7 @@ node -e "var s=require('./test/dom-stub.js'),e=s.createEnvironment({root:process
 | `readonly` | boolean | `false` | 否 | 只读 |
 | `options` | array | `[]` | 否 | 选项（select/multiselect/两个 group） |
 | `clearable` | boolean | 见各节 | 否 | 清空能力（部分控件） |
-| `autofocus` | boolean | `false` | 否 | 渲染后聚焦；select/multiselect 不生效（见 3.1） |
+| `autofocus` | boolean | `false` | 否 | 渲染后聚焦；select/multiselect 自 **v1.3.9** 起生效（见 3.1） |
 
 ### 1.5 统一事件
 
@@ -198,7 +198,7 @@ API 增补：`blur()`、`select()`、`getInput()`、`setPlaceholder(t)`。坑：
 
 默认：`value null`、`placeholder ''`、`size 'md'`、`clearable true`、`readonly/disabled false`。
 事件：选中`→'select'`、清空`→'clear'`（值 `null`）。键盘 `↑/↓`、`Enter`、`Esc`、`Home/End`。API 增补：`setOptions(list)`、`open()`、`close()`、`getSelectedOption()`。
-坑：value 宽松比较（`'1'`≡`1`）；无匹配 label 显示原值；`autofocus` 不生效（源码缺陷）：`selects.js:438` 把 `ctx` 传给只认 node 的 `p()`（`control-base.js:422-428`），恒 false，需挂载后 `el.focus()`。
+坑：value 宽松比较（`'1'`≡`1`）；无匹配 label 显示原值；`autofocus` 自 **v1.3.9** 起修复（`selects.js` 改传 `node`，渲染后自动聚焦）；旧版本需自行 `el.focus()`。
 表单内：`deps.then.options` 可换选项，见 07。
 
 ### 3.2 multiselect
@@ -218,7 +218,7 @@ API 增补：`blur()`、`select()`、`getInput()`、`setPlaceholder(t)`。坑：
 
 默认：`value []`、`placeholder ''`、`size 'md'`、`clearable true`（见坑）、`readonly/disabled false`。
 交互：`Backspace` 删最后标签；全选写入全部非 disabled 值，已全选再点则清空（`'checkAll'`/`'clear'`）。API 增补：`setOptions`、`open`、`close`、`getSelectedOptions()`。
-坑：触发器无独立清空按钮，清空入口在面板底部；`getValue()` 返回数组副本；`autofocus` 同样不生效（`selects.js:732`）。
+坑：触发器无独立清空按钮，清空入口在面板底部；`getValue()` 返回数组副本；`autofocus` 同样自 **v1.3.9** 起生效。
 表单内：值必须为数组，`required` 拦 `[]`。
 
 ## 4. 勾选与开关

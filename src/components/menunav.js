@@ -141,6 +141,17 @@
   var FLAT_KEYS = ['mode', 'title', 'subtitle', 'showCollapse', 'showHistory', 'showRefresh',
     'showFullscreen', 'breadcrumb', 'actions', 'slot', 'right', 'home', 'maxBreadcrumb', 'onAction'];
 
+  /* v1.3.9：breadcrumb.max 是 props.breadcrumb 里的字段，真正的读取点是 maxBreadcrumb；
+     此前只合并进 breadcrumb 对象却没人读，配置等于没写。
+     统一放在归一函数里，保证「registry 渲染」与「KUI.menunav.create 直连」两条路径都生效。 */
+  function normalizeProps(props) {
+    if (props && props.breadcrumb && props.breadcrumb.max !== undefined &&
+        (props.maxBreadcrumb === undefined || props.maxBreadcrumb === 0)) {
+      props.maxBreadcrumb = props.breadcrumb.max;
+    }
+    return props;
+  }
+
   function resolveProps(node) {
     var nodeProps = (node && node.props) || {};
     var merged = deepMerge(DEFAULTS, nodeProps);
@@ -155,13 +166,13 @@
         merged[key] = node[key];
       }
     }
-    return merged;
+    return normalizeProps(merged);
   }
 
   /* ================= 实例 ================= */
 
   function createMenunav(host, rawProps, ctx, node) {
-    var props = rawProps && rawProps.__resolved ? rawProps : deepMerge(DEFAULTS, rawProps || {});
+    var props = rawProps && rawProps.__resolved ? rawProps : normalizeProps(deepMerge(DEFAULTS, rawProps || {}));
     var handlers = {};
     var globalOffs = [];
     var state = {
@@ -835,7 +846,7 @@
 
   KUI.menunav = {
     create: function (host, props, ctx) {
-      var merged = deepMerge(DEFAULTS, props || {});
+      var merged = normalizeProps(deepMerge(DEFAULTS, props || {}));
       merged.__resolved = true;
       var inst = createMenunav(host, merged, ctx, null);
       return inst;

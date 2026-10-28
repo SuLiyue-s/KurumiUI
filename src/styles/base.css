@@ -1420,3 +1420,17 @@ input[type="search"]::-webkit-search-cancel-button {
     display: none !important;
   }
 }
+
+/* v1.3.9：界面密度（设置弹窗「界面密度」的读取点） */
+html[data-kui-density="compact"] {
+  --kui-fs-base: 12px;
+  --kui-app-gap: 8px;
+  --kui-header-height: 52px;
+  --kui-tabbar-height: 34px;
+}
+html[data-kui-density="loose"] {
+  --kui-fs-base: 14px;
+  --kui-app-gap: 14px;
+  --kui-header-height: 60px;
+  --kui-tabbar-height: 42px;
+}

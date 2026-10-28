@@ -1,6 +1,6 @@
 # 06 · 其余控件（动作 / 展示 / 反馈 / 数据 / 布局）
 
-> 适用版本：KurumiUI v1.3.8 ｜ 前置章节：`05-controls-input.md`（表单控件）、`04-config-app.md`（`avatar` 段） ｜ 阅读时长：约 30 分钟
+> 适用版本：KurumiUI v1.3.9 ｜ 前置章节：`05-controls-input.md`（表单控件）、`04-config-app.md`（`avatar` 段） ｜ 阅读时长：约 30 分钟
 
 ## 本章目标
 

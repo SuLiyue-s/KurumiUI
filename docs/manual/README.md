@@ -22,6 +22,8 @@ KurumiUI 是一个**配置驱动、可拆解**的 UI 框架：界面由 JSON 配
 
 **你可以只读需要的章节**：每章都是自包含的，开头有元信息行（适用版本 / 前置章节 / 阅读时长），结尾有「本章自检」和「参考源码」。
 
+> 📌 **第一次接触命令行或前端？** 本手册偏「操作参考 + 字段级细节」，默认你能跑起项目。如果连 Node.js、终端、JSON 都还不熟，请先读 **[小白入门手册](../manual-beginner/README.md)**（10 章，从装环境讲到部署），再回来查字段。两份手册内容互补，可随时互跳。
+
 ---
 
 ## 1. 30 秒跑起来
@@ -39,7 +41,7 @@ npm start
 
 或者**完全不启动服务器**：直接用浏览器打开仓库根目录的 `index.html`（`file://` 模式可用，配置从 `config/bundle.js` 兜底加载）。
 
-改完 `config/*.json` 之后要重建配置包，刷新页面才生效：
+改完 `config/*.json` 后：用 `npm start`（`http://`）时刷新页面即生效（页面直接 fetch 原始 JSON）；用 `file://` 双击打开、或要把产物打包分发时，**必须**重建配置包再刷新：
 
 ```bash
 npm run build:config   # = node tools/build-config.js && node tools/build-all.js
@@ -85,7 +87,7 @@ npm run build:config   # = node tools/build-config.js && node tools/build-all.js
 | 15 | [15-troubleshooting.md](15-troubleshooting.md) | 排错手册、FAQ、诊断工具、上线验收清单 | 全部 |
 | 16 | [16-boot.md](16-boot.md) | 加载层组件 `boot`：启动屏、时钟指针进度算法、结构化拆装、接入自有项目/跨项目复用 | 03、04、08 |
 
-> 手册配套校验脚本：`node tools/check-manual.js`（检查 JSON 示例可解析、字段/类型/动作/链接/数量口径与运行时一致）。改动手册后建议跑一次。
+> 手册配套校验脚本：`node tools/check-manual.js`（检查 JSON 示例可解析、字段/类型/动作/链接/数量口径与运行时一致）。改动手册后建议跑一次；小白手册对应 `node tools/check-beginner-manual.js`。
 
 ---
 
@@ -303,6 +305,6 @@ toast.notify      toast.show        toast.success     toast.warning
 
 ## 11. 手册的维护约定
 
-- **改配置不用改手册**；改源码（新增 type / action / handler / theme / 字段）时，按第 3 节索引更新对应章节，并跑 `node tools/check-manual.js`。
+- **改配置不用改手册**；改源码（新增 type / action / handler / theme / 字段）时，按第 3 节索引更新对应章节，并跑 `node tools/check-manual.js` 与 `node tools/check-beginner-manual.js`（后者校验小白手册）。
 - 手册中的数量口径（41 / 19 / 28 / 61 / 6）由校验脚本与运行时枚举比对；历史口径需加「截至 v1.3.8」等限定语。
 - 报告手册问题请附：章节文件 + 小节标题 + 复现步骤（命令/配置片段）+ 期望 vs 实际。

@@ -435,7 +435,7 @@
 
     syncValue();
     syncDisabled();
-    if (p(ctx, 'autofocus', false)) {
+    if (p(node, 'autofocus', false)) {
       try { trigger.focus(); } catch (e) { /* ignore */ }
     }
 
@@ -729,7 +729,7 @@
 
     syncTags();
     syncDisabled();
-    if (p(ctx, 'autofocus', false)) {
+    if (p(node, 'autofocus', false)) {
       try { trigger.focus(); } catch (e) { /* ignore */ }
     }
 

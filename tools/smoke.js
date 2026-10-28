@@ -1558,6 +1558,74 @@ currentSection = 28;  console.log('\n[28] 配置接线：app.json 的 boot 段 /
     return 'escClosable + smooth + keepAlive';
   });
 
+currentSection = 29;  console.log('\n[29] 配置接线：v1.3.9 五类缺陷修复');
+
+  check('[29.1] menu.props.width / collapsedWidth 注入正确的 CSS 变量（v1.3.9）', function () {
+    var host = env.document.createElement('div');
+    env.document.body.appendChild(host);
+    var inst = KUI.menu.create(host, {
+      width: 320, collapsedWidth: 88,
+      brand: { title: 'T', subtitle: 'S' },
+      items: [{ id: 'a', label: '甲' }]
+    });
+    var root = host.querySelector('.kui-menu');
+    assert(root, '菜单根节点未渲染');
+    var w = root.style.getPropertyValue('--kui-menu-width');
+    var cw = root.style.getPropertyValue('--kui-menu-width-collapsed');
+    var legacy = root.style.getPropertyValue('--kui-menu-w');
+    assert(w === '320px', '--kui-menu-width 应为 320px，实际 ' + JSON.stringify(w));
+    assert(cw === '88px', '--kui-menu-width-collapsed 应为 88px，实际 ' + JSON.stringify(cw));
+    assert(legacy === '320px', '兼容变量 --kui-menu-w 应为 320px，实际 ' + JSON.stringify(legacy));
+    inst.destroy();
+    return 'width=320px/collapsedWidth=88px/legacy 同步';
+  });
+
+  check('[29.2] menunav.props.breadcrumb.max 有读取点（v1.3.9）', function () {
+    function countEllipsis(props) {
+      var host = env.document.createElement('div');
+      env.document.body.appendChild(host);
+      var inst = KUI.menunav.create(host, props);
+      var n = host.querySelectorAll('.kui-menunav__crumb-ellipsis').length;
+      inst.destroy();
+      return n;
+    }
+    var items = [{ label: 'A' }, { label: 'B' }, { label: 'C' }, { label: 'D' }, { label: 'E' }];
+    var n1 = countEllipsis({ title: 'T', breadcrumb: { enabled: true, max: 3, home: { label: '首页' }, items: items } });
+    assert(n1 === 1, 'breadcrumb.max=3 时应折叠出 1 个省略号，实际 ' + n1);
+    var n2 = countEllipsis({ title: 'T', maxBreadcrumb: 3, breadcrumb: { enabled: true, home: { label: '首页' }, items: items } });
+    assert(n2 === 1, '旧写法 maxBreadcrumb=3 仍应生效，实际 ' + n2);
+    var n3 = countEllipsis({ title: 'T', breadcrumb: { enabled: true, home: { label: '首页' }, items: items } });
+    assert(n3 === 0, '未配置 max 时不应折叠，实际 ' + n3);
+    return 'breadcrumb.max / maxBreadcrumb 双写法生效';
+  });
+
+  check('[29.3] 设置弹窗返回值真正应用（shellName / density / startTab / remember）', function () {
+    var applied = { title: null };
+    var appStub = { setTitle: function (t) { applied.title = t; }, setCollapsed: function () {} };
+    KUI.boot.applySettings(appStub, { shellName: '结界终端', density: 'compact', startTab: 'home', remember: false });
+    assert(applied.title === '结界终端', 'shellName 未应用到 app.setTitle，实际 ' + JSON.stringify(applied.title));
+    var root = env.document.documentElement;
+    var ls = env.window && env.window.localStorage;
+    assert(root.getAttribute('data-kui-density') === 'compact', 'density 未写入 data-kui-density');
+    assert(ls && ls.getItem('kui-start-tab') === 'home', 'startTab 未持久化');
+    assert(ls && ls.getItem('kui-remember-tab') === '0', 'remember 未持久化');
+    assert(ls && ls.getItem('kui-last-tab') === null, 'remember=false 时应清空 lastTab');
+    KUI.boot.applySettings(appStub, { collapsed: true });
+    return 'shellName/density/startTab/remember + 旧字段兼容';
+  });
+
+  check('[29.4] select 的 autofocus 真正生效（v1.3.9）', function () {
+    if (!KUI.registry.get('select')) { return 'SKIP: select 未注册（standalone profile）'; }
+    var host = env.document.createElement('div');
+    env.document.body.appendChild(host);
+    var node = KUI.renderNode({ type: 'select', props: { options: [{ value: 'd', label: '默认' }, { value: 'a', label: 'A' }], model: 'a', autofocus: true } });
+    host.appendChild(node.el || node);
+    var active = env.document.activeElement;
+    assert(active && active !== env.document.body, 'autofocus:true 时未聚焦任何元素');
+    try { active.blur(); } catch (e) { /* ignore */ }
+    return 'activeElement=' + (active.className || active.tagName);
+  });
+
 currentSection = 6;   console.log('\n[6] 控制台与错误汇总');
       check('加载与启动期无 console.error', function () {
         assert(consoleErrors.length === 0, consoleErrors.slice(0, 3).join(' | '));

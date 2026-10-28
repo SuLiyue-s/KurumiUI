@@ -1,6 +1,6 @@
 # 16 · 加载层组件 boot：启动屏、时钟指针进度与拆装指南
 
-> 适用版本：KurumiUI v1.3.8 ｜ 前置章节：[03-assembly.md](03-assembly.md)、[04-config-app.md](04-config-app.md)、[08-components.md](08-components.md) ｜ 阅读时长：约 50 分钟
+> 适用版本：KurumiUI v1.3.9 ｜ 前置章节：[03-assembly.md](03-assembly.md)、[04-config-app.md](04-config-app.md)、[08-components.md](08-components.md) ｜ 阅读时长：约 50 分钟
 
 ## 本章目标
 
@@ -68,7 +68,7 @@
 | --- | --- | --- | --- | --- |
 | ① 静态降级骨架 | `#kui-boot`（`index.html:28-36`） | 纯 HTML + `boot.css` | 首帧立刻显示；`boot.js` 缺失时一直保留 | 是（只引 CSS 即可看） |
 | ② 注册组件 | `boot`（`src/components/boot.js`） | `KUI.registry` 里的类型 | 被 `renderNode` / `mount` / `create` / `attach` 触发 | 是（`standalone/boot.html`） |
-| ③ 启动器 | `KUI.boot()`（`src/app/bootstrap.js:852`） | 全局函数 | `index.html` 的 `#kui-app` 存在且 DOM 就绪时自动跑 | 是（`standalone` 页没有它） |
+| ③ 启动器 | `KUI.boot()`（`src/app/bootstrap.js:952`） | 全局函数 | `index.html` 的 `#kui-app` 存在且 DOM 就绪时自动跑 | 是（`standalone` 页没有它） |
 
 三者关系：③ 在启动时调用 ② 的 `attach()`；② 会把 ① 的 `#kui-boot` 节点「接管」并重建内部。② 不存在时，③ 退回操作 ①（legacy 分支，见 `bootstrap.js:25-126` 的 `bootNode()` / `setBootText()` / `hideBoot()`）。
 
@@ -411,7 +411,7 @@ inst.el.classList.add('my-boot-theme');   // 再用 .my-boot-theme .kui-boot__ba
 | 配置 | 路径 | 读取方 | 用途 |
 | --- | --- | --- | --- |
 | 启动层默认值 | `src/components/boot.js:126-150` 的 `DEFAULTS` | `normalizeConfig` | 所有字段的最终兜底 |
-| 应用级配置 | `config/app.json` 的顶层 `boot` 段（`config/app.json:38-48`） | 设计上由 `bootstrap.js` 的 `configureBootLayer` 读取（**v1.3.8 未接线**） | 阶段、时钟、进度条、meta |
+| 应用级配置 | `config/app.json` 的顶层 `boot` 段（`config/app.json:38-48`） | `bootstrap.js` 的 `applyBootConfig`（v1.3.8 起接线，`:72-90`）→ `configureBootLayer`（`:56-64`） | 阶段、时钟、进度条、meta |
 | 文案字典 | `config/text.json` 的 `boot` 组（`config/text.json:76-89`） | `KUI.text('boot.*')` | 各阶段文案、错误卡片文案 |
 
 `config/app.json` 里现在实际写的是：
@@ -438,8 +438,8 @@ inst.el.classList.add('my-boot-theme');   // 再用 .my-boot-theme .kui-boot__ba
 
 | 字段 | 类型 | 默认值 | app.json 现值 | 作用与消费状态 |
 | --- | --- | --- | --- | --- |
-| `boot.enabled` | boolean | `true` | 未写 | 设计为「是否启用加载层」；**无任何读取点**，设 `false` 仍会渲染（见 §5.5） |
-| `boot.mode` | string | `"fullscreen"` | 未写 | `fullscreen` 遮罩整页 / `inline` 嵌入容器；组件侧生效（`buildNode` 加 `--inline` 类），但 app.json 的值当前不会传进来 |
+| `boot.enabled` | boolean | `true` | 未写 | 是否启用加载层；v1.3.8 起有读取点：`false` 时不创建新实例，已创建实例会被 `destroy()`，并移除 `#kui-boot`、标记 `html[data-kui-boot="off"]`（`bootstrap.js:72-90`；见 §5.5） |
+| `boot.mode` | string | `"fullscreen"` | 未写 | `fullscreen` 遮罩整页 / `inline` 嵌入容器；v1.3.8 起 `app.json` 的值经 `applyBootConfig` 传入，`inline` 会给根节点加 `.kui-boot--inline`（`boot.js:166`/`:327`） |
 | `boot.title` | string | `""` | 未写 | 主标题；`DEFAULTS` 为空时用 `KUI.text('boot.title','KurumiUI')` 回退 |
 | `boot.subtitle` | string | `""` | 未写 | 副标题；为空则隐藏 `.kui-boot__sub` |
 | `boot.text` | string | `""` | 未写 | 初始阶段文案；为空时回退 `KUI.text('boot.text','正在加载界面配置…')`。**注意是字符串，不是对象** |
@@ -449,7 +449,7 @@ inst.el.classList.add('my-boot-theme');   // 再用 .my-boot-theme .kui-boot__ba
 | `boot.clock.mode` | string | `"progress"` | `"progress"` | `progress` 指针随进度 / `spin` 表盘自转 / `none` 无专门实现（指针仍随进度） |
 | `boot.clock.size` | number | `74` | `74` | 表盘直径 px，写入 `--kui-boot-size` |
 | `boot.clock.ticks` | number | `12` | `12` | 刻度数，写入 `--kui-boot-ticks` |
-| `boot.clock.smooth` | boolean | `true` | `true` | 设计为「指针是否平滑」；**无任何读取点**（CSS 过渡恒定，见 §5.5） |
+| `boot.clock.smooth` | boolean | `true` | `true` | 指针是否平滑；v1.3.8 起有读取点：写入 `data-boot-smooth="on\|off"`（`boot.js:173`/`:330`），`false` 时不走过渡（含 `prefers-reduced-motion`，见 §5.5） |
 | `boot.bar.enabled` | boolean | `true` | `true` | 关闭后 `data-boot-bar="off"`，CSS 隐藏进度条 |
 | `boot.bar.mode` | string | `"progress"` | `"progress"` | `progress` 普通 / `indeterminate` 不确定态循环 |
 | `boot.stages` | array | 4 段 | 4 段 | 阶段表，`setStep(n)` 按 `step` 匹配后同时改文案与进度 |
@@ -470,25 +470,26 @@ inst.el.classList.add('my-boot-theme');   // 再用 .my-boot-theme .kui-boot__ba
 
 | 键 | 默认文案 | 读取点 | 生效状态 |
 | --- | --- | --- | --- |
-| `boot.title` | `KurumiUI` | `normalizeConfig`（`boot.js:445`） | 🟡 仅在 `attach(props,textCfg)` 显式传 `textCfg` 且 `props.title` 为空时生效；主流程 attach 不传 textCfg |
-| `boot.subtitle` | `CONFIG-DRIVEN UI FRAMEWORK` | 同上（`:446`） | 🟡 同上 |
-| `boot.loading` | `正在加载界面配置…` | `bootstrap.js:700-701/763`、`applyAppMeta` | ✅ 阶段 1 文案 + 启动层初始文案 |
-| `boot.theme` | `正在应用界面风格…` | `bootstrap.js:783` | ✅ 阶段 2 |
-| `boot.shell` | `正在构建界面…` | `bootstrap.js:799` | ✅ 阶段 3 |
-| `boot.ready` | `结界已就绪` | **无读取点** | ⚪ 预留（阶段 4 文案来自 `DEFAULTS.stages[3].text`） |
-| `boot.text` | `正在加载界面配置…` | `normalizeConfig`（`:447`） | 🟡 仅在 cfg.text 为空时回退；主流程被 `boot.loading` 覆盖 |
+| `boot.title` | `KurumiUI` | `normalizeConfig`（`boot.js:445`）→ `configure` 的 `textCfg` | 🟡 有兜底但不改可见标题：v1.3.8 起 `applyBootConfig` 会传 `textCfg`，但主流程 `applyAppMeta` 已把 `app.name` 写进 `cfg.title`（非空），`textCfg` 只填空字段 |
+| `boot.subtitle` | `CONFIG-DRIVEN UI FRAMEWORK` | 同上（`:446`） | 🟡 可兜底：`app.subtitle` 为空时 `textCfg` 会填上（v1.3.8）；非空则不覆盖 |
+| `boot.loading` | `正在加载界面配置…` | `bootstrap.js:791-800`（`applyAppMeta` 的 `setText`）、`:857` | ✅ 阶段 1 文案 + 启动层初始文案 |
+| `boot.theme` | `正在应用界面风格…` | `bootstrap.js:883` | ✅ 阶段 2 |
+| `boot.shell` | `正在构建界面…` | `bootstrap.js:899` | ✅ 阶段 3 |
+| `boot.ready` | `结界已就绪` | **v1.3.9 起读取**：主流程最后一步 `setBootText(KUI.text('boot.ready','准备就绪'))` | ✅ 生效（阶段 4 文案仍来自 `DEFAULTS.stages[3].text`） |
+| `boot.text` | `正在加载界面配置…` | `normalizeConfig`（`:447`） | 🟡 v1.3.8 的 `textCfg` 同样传入，但 `boot.loading` 已把 `cfg.text` 填非空 → 实际不生效 |
 | `boot.errorTitle` | `界面启动失败` | `error()`（`boot.js:376`） | ✅ 错误卡片标题 |
 | `boot.errorTip` | 排查建议长句 | `error()`（`boot.js:387`） | ✅ 错误卡片建议 |
 | `boot.retry` | `重新加载` | `error()`（`boot.js:391`） | ✅ 错误卡片按钮 |
-| `boot.noHost` | `页面缺少挂载点：#kui-app` | `bootstrap.js:755` | ✅ 无 `#kui-app` 时的错误 |
-| `boot.noConfig` | `未找到 config/app.json` | `bootstrap.js:772` | ✅ 配置缺失时的错误 |
+| `boot.noHost` | `页面缺少挂载点：#kui-app` | `bootstrap.js:849` | ✅ 无 `#kui-app` 时的错误 |
+| `boot.noConfig` | `未找到 config/app.json` | `bootstrap.js:866` | ✅ 配置缺失时的错误 |
 
 ### 5.5 历史缺陷与修复：`app.json` 的 `boot` 段（v1.3.7 不生效 → v1.3.8 已接通）
 
 > **现状（v1.3.8 起）**：`src/app/bootstrap.js` 在启动流程里调用 `applyBootConfig(appCfg, res.text)`，
 > 它内部先 `configureBootLayer(...)`（把 `appCfg.boot` 交给 `KUI.bootLayer.configure`），
-> 再处理 `boot.enabled === false`（不创建启动层，已创建的则 `destroy()`）。
-> 因此 `config/app.json` 的 `boot.clock / bar / meta / stages / mode / hideDelay` 与 `text.json` 的 `boot` 组**全部生效**。
+> 再处理 `boot.enabled === false`：不新建实例，已创建的实例 `destroy()` 并移除 `#kui-boot` 节点、标记 `html[data-kui-boot="off"]`。
+> 因此 `config/app.json` 的 `boot.clock / bar / meta / stages / mode / hideDelay` 与 `boot.subtitle` 兜底**已生效**；
+> `text.json` 的 `boot.title`/`boot.text` 仍会被 `app.name` / `boot.loading` 优先填充（`textCfg` 只填空字段，见 §5.4）。
 > 验证方法：控制台 `KUI.boot.appliedBootConfig` 应等于 `config/app.json` 的 `boot` 段；冒烟 `[28]` 已覆盖。
 
 **历史背景（v1.3.7 及更早）**：
@@ -515,12 +516,12 @@ applyBootConfig(appCfg, res.text);   // ① configureBootLayer(appCfg, textCfg) 
 
 | 字段 | v1.3.8 状态 | 说明 |
 | --- | --- | --- |
-| `boot.enabled` | ✅ 有读取点 | `false` 时不创建启动层；已创建的实例会被 `destroy()` 移除 |
+| `boot.enabled` | ✅ 有读取点 | `false` 时销毁已创建实例、移除 `#kui-boot` 并标记 `html[data-kui-boot="off"]`（`bootstrap.js:72-90`），不新建实例 |
 | `boot.clock.smooth` | ✅ 有读取点 | 写入 `data-boot-smooth`，`false` 时 `.kui-boot__hand` 关闭过渡（含 `prefers-reduced-motion`） |
 | `boot.clock.mode: "none"` | ⚠ 仍受限 | CSS 只实现 `"spin"`；`"none"` 与 `"progress"` 视觉相同（要「不转」请用 `clock.enabled:false`） |
-| `text.json` 的 `boot.title/subtitle/text` | ⚠ 有优先级 | `attach()` 会用 `KUI.text()` 填默认值；想让 `text.json` 生效，`app.json.boot.title` 留空即可（显式 patch 优先） |
+| `text.json` 的 `boot.title/subtitle/text` | ⚠ 部分生效 | v1.3.8 起 `applyBootConfig` 会传 `textCfg`：`subtitle` 可在 `app.subtitle` 为空时兜底；但 `title` 被 `app.name`、`text` 被 `boot.loading` 填为非空 → 二者仍不生效（`textCfg` 只填空字段） |
 
-> 结论：v1.3.8 起加载层由 `app.json.boot` + `text.json.boot` 完整驱动；等价的 API 写法（`KUI.bootLayer.configure`）仍然可用，适合在自己控制的渲染时机里动态改配置（见 §12）。
+> 结论：v1.3.8 起加载层的行为由 `app.json.boot` 驱动，`text.json.boot` 仅在字段为空时兜底（`title`/`text` 实际被应用元信息覆盖）；等价的 API 写法（`KUI.bootLayer.configure`）仍然可用，适合在自己控制的渲染时机里动态改配置（见 §12）。
 
 ### 5.6 配置优先级
 
@@ -550,22 +551,24 @@ DEFAULTS  ←  deepMerge  ←  patch（app.json.boot / create 的 props / config
 | 1 | 浏览器解析 HTML，`<head>` 第一段执行 `theme-boot.js`，写入主题 token | `index.html:5` | 静态骨架尚未显示（CSS 未到） | — |
 | 2 | CSS 依次加载，最后 `boot.css` | `index.html:14-20` | `#kui-boot` 静态骨架可见（logo 转圈），`html[data-kui-boot="loading"]` | 0% |
 | 3 | `kui-all.js`（app profile）同步注入 29 个脚本 | `index.html:51` | 骨架仍在；`boot.js` 注册 `type:"boot"` 与 `KUI.bootLayer` | 0% |
-| 4 | `bootstrap.js` 注册 `KUI.boot`，DOM 就绪后 `autoBoot()` | `bootstrap.js:841-850` | 同上 | 0% |
-| 5 | `boot()` 校验挂载点 `#kui-app` | `bootstrap.js:747-757` | 缺失则错误卡片 | — |
-| 6 | `attachBootLayer(null)` → `KUI.bootLayer.attach(null)` 接管静态骨架，清空重建内部（logo→时钟），标题写 `KurumiUI`、读数 `12:00` | `bootstrap.js:759`；`boot.js:458-470` | 组件实例就绪，`data-boot-layer="true"` | 0% |
-| 7 | `setBootStep(1)` + `setBootText(KUI.text('boot.loading'))` | `bootstrap.js:762-763` | 阶段 1 文案 | 8% |
-| 8 | `KUI.config.loadMany(['text','themes','app'])` 异步读三份配置 | `bootstrap.js:765` | 文案保持阶段 1 | 8% |
-| 9 | 注入 i18n：`KUI.i18n.set(res.text)`、`appCfg.text` | `bootstrap.js:767-769` | 文案字典就绪 | 8% |
-| 10 | 缺 `app.json` → 抛错（`boot.noConfig`） | `bootstrap.js:771-773` | 错误卡片 | 8% |
-| 11 | `applyAppMeta(appCfg)`：`document.title`、`setMeta({title,subtitle})`、`setText(boot.loading)` | `bootstrap.js:689-718`、`:776` | 标题/副标题来自 `app.json` 的 `app.*` | 8% |
-| 12 | `applyUiConfig`（tooltip/toast/dialog 的全局参数） | `bootstrap.js:727-745`、`:782-792` | 加载层不变 | 8% |
-| 13 | `setBootStep(2)` + 文案 `boot.theme`，`KUI.theme.init(...)` 应用主题 | `bootstrap.js:782-795` | 阶段 2；表盘颜色切到当前主题 | 46% |
-| 14 | `setBootStep(3)` + 文案 `boot.shell`，`KUI.app.create(host, appCfg)` 建外壳 | `bootstrap.js:798-800` | 阶段 3；遮罩后面开始出现菜单/标签 | 78% |
-| 15 | `registerActions(app, appCfg)` 注册 app 扩展动作 | `bootstrap.js:803` | 仍 78% | 78% |
-| 16 | `setBootStep(4)`；`body.kui-ready`；`html[data-kui-boot="done"]` | `bootstrap.js:806-810` | 阶段 4，文案「结界已就绪」 | 100% |
-| 17 | `hideBoot()` → `inst.done()`：`setProgress(100)` + 加 `is-done` + 360ms 后移除节点 | `bootstrap.js:812`；`boot.js:356-368` | 淡出（0.32s），随后 `#kui-boot` 从 DOM 移除 | 100% |
-| 18 | 派发 `boot:done` `{app, cost}`；可选 debug 日志 | `bootstrap.js:823-827` | 加载层已结束 | — |
-| 19 | 任一步抛错 → `showBootError` + `boot:error` `{error}` | `bootstrap.js:829-834` | 错误卡片常驻 | 保持出错前进度 |
+| 4 | `bootstrap.js` 定义 `KUI.boot` 启动器，DOM 就绪后 `autoBoot()` | `bootstrap.js:952-963`（API）、`:941-950`（autoBoot） | 同上 | 0% |
+| 5 | `boot()` 校验挂载点 `#kui-app` | `bootstrap.js:841-851` | 缺失则错误卡片 | — |
+| 6 | `attachBootLayer(null)` → `KUI.bootLayer.attach(null)` 接管静态骨架，清空重建内部（logo→时钟），标题写 `KurumiUI`、读数 `12:00` | `bootstrap.js:853`；`boot.js:458-470` | 组件实例就绪，`data-boot-layer="true"` | 0% |
+| 7 | `setBootStep(1)` + `setBootText(KUI.text('boot.loading'))` | `bootstrap.js:856-857` | 阶段 1 文案 | 8% |
+| 8 | `KUI.config.loadMany(['text','themes','app'])` 异步读三份配置 | `bootstrap.js:859` | 文案保持阶段 1 | 8% |
+| 9 | 注入 i18n：`KUI.i18n.set(res.text)`，再叠加 `appCfg.text` | `bootstrap.js:861-863` | 文案字典就绪 | 8% |
+| 10 | 缺 `app.json` → 抛错（`boot.noConfig`） | `bootstrap.js:865-867` | 错误卡片 | 8% |
+| 11 | `applyAppMeta(appCfg)`：`document.title`、`setMeta({title,subtitle})`、`setText(boot.loading)` | `bootstrap.js:870`（定义 `:783-800`） | 标题/副标题来自 `app.json` 的 `app.*` | 8% |
+| 12 | **`applyBootConfig(appCfg, res.text)`（v1.3.8 新增）**：`app.json` 的 `boot` 段在此生效；`boot.enabled:false` 则销毁实例、移除 `#kui-boot`、标 `data-kui-boot="off"` | `bootstrap.js:873`（定义 `:72-90`） | 阶段/时钟/进度条/meta 按配置重配 | 8% |
+| 13 | `applyUiConfig(appCfg)`（tooltip/toast/dialog 的全局参数） | `bootstrap.js:876`（定义 `:821-838`） | 加载层不变 | 8% |
+| 14 | **`applyAppMetaToConfig(appCfg)`（v1.3.8 新增）**：把 `app.*` 元信息注入菜单品牌/页脚与顶部导航 | `bootstrap.js:879`（定义 `:761-781`） | 加载层不变 | 8% |
+| 15 | `setBootStep(2)` + 文案 `boot.theme`，`KUI.theme.init(...)` 应用主题 | `bootstrap.js:882-895` | 阶段 2；表盘颜色切到当前主题 | 46% |
+| 16 | `setBootStep(3)` + 文案 `boot.shell`，`KUI.app.create(host, appCfg)` 建外壳 | `bootstrap.js:898-900` | 阶段 3；遮罩后面开始出现菜单/标签 | 78% |
+| 17 | `registerActions(app, appCfg)` 注册 app 扩展动作 | `bootstrap.js:903` | 仍 78% | 78% |
+| 18 | `setBootStep(4)`；`body.kui-ready`；`html[data-kui-boot="done"]` | `bootstrap.js:906-910` | 阶段 4，文案「结界已就绪」 | 100% |
+| 19 | `hideBoot()` → `inst.done()`：`setProgress(100)` + 加 `is-done` + 360ms 后移除节点 | `bootstrap.js:912`；`boot.js:356-368` | 淡出（0.32s），随后 `#kui-boot` 从 DOM 移除 | 100% |
+| 20 | 派发 `boot:done` `{app, cost}`；`?debug` 时打日志 | `bootstrap.js:923-927` | 加载层已结束 | — |
+| 21 | 任一步抛错 → `showBootError` + `boot:error` `{error}` | `bootstrap.js:929-934` | 错误卡片常驻 | 保持出错进度 |
 
 ### 6.2 视觉状态机
 
@@ -580,10 +583,10 @@ DEFAULTS  ←  deepMerge  ←  patch（app.json.boot / create 的 props / config
 
 | 失败 | 触发点 | 用户看到 | 控制台 |
 | --- | --- | --- | --- |
-| 页面没有 `#kui-app` | `bootstrap.js:753-757` | 错误卡片：`页面缺少挂载点：#kui-app`（若连 `#kui-boot` 也没有，则生成页面级错误块，`bootstrap.js:106-111`） | `[boot] 页面缺少挂载点：#kui-app` |
-| 配置读不到 | `bootstrap.js:771-773` | 错误卡片：`未找到 config/app.json` | `[boot] 未找到 config/app.json` |
-| 主题/外壳初始化异常 | `bootstrap.js:829-834` | 错误卡片：异常 message + `errorTip` + 「重新加载」按钮 | `[boot] <message>` + 堆栈 |
-| 组件 attach 抛错 | `bootstrap.js:43-51` | 回退静态骨架（`warnOnce`，不阻断） | `启动层组件 attach 失败：…` |
+| 页面没有 `#kui-app` | `bootstrap.js:847-851` | 错误卡片：`页面缺少挂载点：#kui-app`（若连 `#kui-boot` 也没有，则生成页面级错误块，`bootstrap.js:125-140`） | `[boot] 页面缺少挂载点：#kui-app` |
+| 配置读不到 | `bootstrap.js:865-867` | 错误卡片：`未找到 config/app.json` | `[boot] 未找到 config/app.json` |
+| 主题/外壳初始化异常 | `bootstrap.js:929-934` | 错误卡片：异常 message + `errorTip` + 「重新加载」按钮 | `[boot] <message>` + 堆栈 |
+| 组件 attach 抛错 | `bootstrap.js:46-54` | 回退静态骨架（`warnOnce`，不阻断） | `启动层组件 attach 失败：…` |
 
 错误卡片的 DOM（`boot.js:370-395`）：`.kui-boot.is-error` 根 → `__inner` 被 `display:none` → `.kui-boot__error` 里依次是 `__error-title`、`__error-msg`、可选 `__error-detail`（`<pre>`）、`__error-tip`、重试 `button`。按钮点击执行 `location.reload()`。
 
@@ -597,7 +600,7 @@ DEFAULTS  ←  deepMerge  ←  patch（app.json.boot / create 的 props / config
 
 ### 6.5 自动启动与手动启动
 
-`autoBoot()`（`bootstrap.js:841-850`）的执行条件：
+`autoBoot()`（`bootstrap.js:941-950`）的执行条件：
 
 | 条件 | 说明 |
 | --- | --- |
@@ -704,7 +707,7 @@ inst.done();
 
 ### 7.4 方式 D：`bootstrap.js` 默认流程
 
-不写任何代码，页面放 `#kui-app` + `kui-all.js` 即可（§6.1 的 19 步）。这是「主应用」的装法，也是唯一会自动读配置的路径（v1.3.8 起 §5.5 的接线缺口已修复）。
+不写任何代码，页面放 `#kui-app` + `kui-all.js` 即可（§6.1 的 21 步）。这是「主应用」的装法，也是唯一会自动读配置的路径（v1.3.8 起 §5.5 的接线缺口已修复）。
 
 ### 7.5 四种方式对比
 
@@ -715,7 +718,7 @@ inst.done();
 | 是否占 `#kui-boot` | 否 | 否 | 是（接管或新建） | 是 |
 | 返回 | DOM / 通用实例 | 实例 API | 实例 API | `Promise<app>` |
 | 典型场景 | 页面里嵌一块预览 | 演示页、多个实例 | 自定义启动流程 | 主应用 |
-| 自动读配置 | 否 | 否 | 否（可传 props） | 设计上会（v1.3.8 未接线） |
+| 自动读配置 | 否 | 否 | 否（可传 props） | 会（v1.3.8 起：`applyBootConfig` → `configureBootLayer`） |
 | 结束后 | 需自己 `destroy` | 需自己 `destroy` | `done()` 自动移除 | 自动 |
 
 ---
@@ -839,8 +842,8 @@ inst.getState();
 | 事件 | 载荷 | 派发点 | 说明 |
 | --- | --- | --- | --- |
 | `boot:progress` | `{ percent, hands }` | `setProgress`（`boot.js:284-286`） | 每次进度变化都发，包括 `silent`；`hands` 是 `handsAt` 返回对象 |
-| `boot:done` | `{ app, cost }` | `bootstrap.js:824` | 仅主流程启动完成时发；`cost` 毫秒 |
-| `boot:error` | `{ error }` | `bootstrap.js:832` | 仅主流程异常时发；`error` 是 Error 对象 |
+| `boot:done` | `{ app, cost }` | `bootstrap.js:924` | 仅主流程启动完成时发；`cost` 毫秒 |
+| `boot:error` | `{ error }` | `bootstrap.js:932` | 仅主流程异常时发；`error` 是 Error 对象 |
 
 ```js
 // 监听进度（注意：这是全局总线，不是实例上的 on）
@@ -887,10 +890,10 @@ KUI.bus.on('boot:error', function (p) { console.error('启动失败', p.error); 
 | --- | --- |
 | 首屏 | 静态骨架可见，`__logo` 齿轮在转（`boot.css:69-98`） |
 | 进度 | 进度条**停在 0%**（没有 JS 更新 `--kui-boot-progress`） |
-| 文案 | `bootstrap.setBootText` 的 legacy 分支能改 `[data-boot-text]`（`bootstrap.js:63-71`） |
-| 阶段属性 | `setBootStep` 只写 `data-boot-step`，不改文案/进度（`bootstrap.js:73-80`） |
-| 结束 | `hideBoot` 加 `is-done` 后 360ms 移除（`bootstrap.js:82-94`） |
-| 错误 | `showBootError` 生成页面级错误块（`bootstrap.js:96-125`） |
+| 文案 | `bootstrap.setBootText` 的 legacy 分支能改 `[data-boot-text]`（`bootstrap.js:92-101`） |
+| 阶段属性 | `setBootStep` 只写 `data-boot-step`，不改文案/进度（`bootstrap.js:102-110`） |
+| 结束 | `hideBoot` 加 `is-done` 后 360ms 移除（`bootstrap.js:111-124`） |
+| 错误 | `showBootError` 生成页面级错误块（`bootstrap.js:125-140`） |
 
 限制：没有读数、没有时钟、进度条不动、错误卡片样式退化。**只建议在「打包尺寸极度敏感」或「临时排障」时使用。**
 
@@ -1209,7 +1212,7 @@ KUI.bootLayer.instance().error('网络异常', 'HTTP 503');
 | 表盘不转（`spin` 模式） | 传的是 `clock.mode` 到 `configure` 的旧对象 / CSS 被禁用动画 | `data-boot-clock-mode` 属性值 | 确认属性为 `spin`；关闭系统「减少动态效果」不影响 `spin`（只影响过渡） |
 | 刻度数量改了没变化 | CSS 的 12 格是固定 `repeating-conic-gradient`；`--kui-boot-ticks` 只写变量 | 查看 `boot.css:121-135` | 要改刻度数需覆盖 `.kui-boot__dial` 的 background（自算角度） |
 | 改成 `app.json` 的 `boot` 完全没反应 | 历史缺陷：v1.3.7 及更早版本的接线缺口（§5.5） | 确认 `KUI.version` 是否 ≥ 1.3.8，并看 `KUI.boot.appliedBootConfig` | 升级到 v1.3.8+，或改用 `KUI.bootLayer.configure()` 写法 |
-| `boot.enabled: false` 关不掉 | 该字段无读取点 | `grep -rn "boot.enabled" src/` | 拆组件或改用 API 不创建 |
+| `boot.enabled: false` 关不掉 | 历史旧版 v1.3.7 及更早无读取点；v1.3.8 已修复 | 确认 `KUI.version` ≥ 1.3.8，看 `KUI.boot.appliedBootConfig` | 升级到 v1.3.8+；临时可自行 `KUI.bootLayer.destroy()` |
 | 错误卡片出现后无法恢复内容 | `show()` 不恢复 `__inner`（§9.3） | 看 `.kui-boot__inner` 的 `display` | 手动 `style.display=''` 或销毁重建 |
 | 出现多个加载层叠在一起 | 既 `attach()` 又 `create()`；或 `bootstrap` 跑了两次 | `document.querySelectorAll('#kui-boot').length` 与 `[data-boot-layer]` 数量 | 只保留一个 `attach`；多实例用 `create` 并挂在各自容器 |
 | `done()` 后节点仍在 | `hideDelay` 太大 / 定时器被节流（后台标签页） | 等 1 秒再查；`inst.config.hideDelay` | 正常；需要立即移除用 `destroy()` |
@@ -1275,11 +1278,11 @@ KUI.registry.get('boot');                                          // 注册描�
 | 文档说法 | 源码实际 | 以谁为准 |
 | --- | --- | --- |
 | 实例 API 含 `reset` | 无 `reset` 方法（`boot.js:262-419`） | 本章 |
-| `boot.enabled:false` 不渲染 | 无读取点，仍渲染 | 本章 §5.5 |
+| `boot.enabled:false` 不渲染 | v1.3.7 及更早无读取点；v1.3.8 起销毁已创建实例并移除 `#kui-boot` | 本章 §5.5 |
 | `boot.text` 是对象、按 `stages[].textKey` 覆盖 | `boot.text` 是字符串；`stages[]` 用 `text` 字段 | 本章 §5.2/5.3 |
 | `boot:progress` 载荷 `{percent,step,clockText}` | 实际 `{percent, hands}` | 本章 §9.4 |
 | `boot:error` 载荷 `{message,detail}` | 实际 `{error}`（Error 对象） | 本章 §9.4 |
-| `clock.smooth` 控制指针平滑 | 无读取点，CSS 过渡恒定 | 本章 §5.5 |
+| `clock.smooth` 控制指针平滑 | v1.3.7 及更早无读取点；v1.3.8 起写 `data-boot-smooth`，`false` 时关闭过渡 | 本章 §5.5 |
 | `clock.mode: "none"` 不转 | 只实现 `spin`；`none` 与 `progress` 视觉相同 | 本章 §5.5 |
 
 > 这些差异会随框架版本修正；升级后请以 `KUI.bootLayer.DEFAULTS` 与 `boot.js` 源码为准，并重跑 `npm run check:manual`。
@@ -1289,8 +1292,8 @@ KUI.registry.get('boot');                                          // 注册描�
 ## 本章自检
 
 1. `handsAt(37.5)` 的 `hourAngle`、`minuteAngle`、`clockText` 分别是多少？为什么 0% 与 100% 都显示 `12:00`？
-2. `boot.enabled` 设为 `false` 后加载层会消失吗？为什么？
-3. 想让 `app.json` 的 `boot.stages` 生效，v1.3.8 需要改哪一行？改在哪个函数之后？
+2. `boot.enabled` 设为 `false` 后加载层会消失吗？历史旧版 v1.3.7 与 v1.3.8 行为有何不同？
+3. `app.json` 的 `boot.stages` 现在通过哪个函数生效？它被调用在 `boot()` 的哪一步？
 4. `KUI.bootLayer.create` 与 `KUI.bootLayer.attach` 的三点区别是什么？
 5. `inst.setProgress(50).setText('x')` 为什么会报错？应该怎么写？
 6. 删掉 `config/kui-modules.json` 里的 `boot.js` 后，加载层会变成什么样？还有哪些能力保留？
@@ -1311,7 +1314,7 @@ KUI.registry.get('boot');                                          // 注册描�
 | `src/components/boot.js` | 162-252 | `buildNode` 构建 DOM（含 data-* 与 CSS 变量） |
 | `src/components/boot.js` | 256-419 | `createInstance` 与 14 个实例方法 |
 | `src/components/boot.js` | 421-436 | `__kuiBootApi` 挂载、单例 id 策略、初始 12:00/0% |
-| `src/components/boot.js` | 440-454 | `normalizeConfig` 合并顺序与文案回退 |
+| `src/components/boot.js` | 442-456 | `normalizeConfig` 合并顺序与文案回退 |
 | `src/components/boot.js` | 458-487 | `attach` / `configure` / `destroy`（单例接管） |
 | `src/components/boot.js` | 491-528 | `renderNode` 默认 inline、注册 `type:"boot"`、`KUI.bootLayer` 静态 API |
 | `src/styles/boot.css` | 30-57 | `.kui-boot` 遮罩层与 `--inline` 内嵌 |
@@ -1320,20 +1323,20 @@ KUI.registry.get('boot');                                          // 注册描�
 | `src/styles/boot.css` | 189-262 | 标题/副标题/进度条/文案/读数/meta 隐藏 |
 | `src/styles/boot.css` | 264-324 | 错误卡片样式 |
 | `src/styles/boot.css` | 326-334 | `.kui-boot-preview` 内嵌预览容器 |
-| `src/app/bootstrap.js` | 19-51 | `BOOT_ID`、`bootNode`、`bootLayer`、`bootConfigOf`、`attachBootLayer` |
-| `src/app/bootstrap.js` | 53-61 | `configureBootLayer`（**定义了但 v1.3.8 未调用**） |
-| `src/app/bootstrap.js` | 63-125 | `setBootText` / `setBootStep` / `hideBoot` / `showBootError` 的组件分支与 legacy 分支 |
-| `src/app/bootstrap.js` | 689-718 | `applyAppMeta`（标题/副标题/`boot.loading` 文案） |
-| `src/app/bootstrap.js` | 747-835 | `boot()` 主流程（19 步时序，含 `attachBootLayer(null)` 与 4 个阶段） |
-| `src/app/bootstrap.js` | 841-860 | `autoBoot` 与 `KUI.boot` 启动器 API |
+| `src/app/bootstrap.js` | 19-54 | `BOOT_ID`、`bootNode`、`bootLayer`、`bootConfigOf`、`attachBootLayer` |
+| `src/app/bootstrap.js` | 56-90 | `configureBootLayer`（`:56-64`）与 `applyBootConfig`（`:72-90`，v1.3.8 接线 + `boot.enabled` 处理） |
+| `src/app/bootstrap.js` | 92-140 | `setBootText` / `setBootStep` / `hideBoot` / `showBootError` 的组件分支与 legacy 分支 |
+| `src/app/bootstrap.js` | 761-800 | `applyAppMetaToConfig`（品牌/页脚/标题注入）与 `applyAppMeta`（含 `boot.loading` 文案） |
+| `src/app/bootstrap.js` | 841-935 | `boot()` 主流程（含 `attachBootLayer(null)`、`applyBootConfig` 与 4 个阶段） |
+| `src/app/bootstrap.js` | 941-963 | `autoBoot` 与 `KUI.boot` 启动器 API |
 | `index.html` | 2 | `<html data-kui-boot="loading">` |
 | `index.html` | 14-20 | 样式加载顺序（`boot.css` 最后） |
 | `index.html` | 25-36 | `#kui-app` 挂载点与静态降级骨架 `#kui-boot` |
 | `index.html` | 51 | 唯一入口 `kui-all.js`（`data-kui-profile="app"`） |
 | `config/kui-modules.json` | 28 / 62 | app / standalone 两个 profile 中的 `boot.js` 条目 |
-| `config/app.json` | 38-48 | 顶层 `boot` 段（当前 v1.3.8 未接线，见 §5.5） |
+| `config/app.json` | 38-48 | 顶层 `boot` 段（v1.3.8 起由 `applyBootConfig` 接线，见 §5.5） |
 | `config/text.json` | 76-89 | `boot` 文案组 12 键 |
 | `standalone/boot.html` | 69 / 100 / 113 / 148 / 190 / 201 | 六个演示区块（交互测试台/映射表/JSON 渲染/API 表/拆装说明/日志） |
-| `tools/smoke.js` | 1347-1450 | 冒烟 `[27]` 加载层 5 项（注册、`handsAt` 采样、`create`、`attach`、静态断言） |
+| `tools/smoke.js` | 1347-1507 | 冒烟 `[27]` 加载层 5 项（历史旧版 v1.3.7）与 `[28]` 配置接线 5 项（`boot.*` / 元信息 / `enabled:false` / 菜单页脚 / `keepAlive`） |
 | `tools/audit-components.js` | 73 / 219-233 | boot 拆装审查用例与「完整装配下可创建 boot」检查 |
 | `CHANGELOG.md` | `v1.3.8` 一节 | 需求原文、能力表、接线与验证记录（与本章 §14.5 的差异以本章为准） |

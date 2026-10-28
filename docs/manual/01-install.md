@@ -1,6 +1,6 @@
 # 01 · 安装与首次运行
 
-> 适用版本：KurumiUI v1.3.8 ｜ 前置章节：无（本手册起点）｜ 阅读时长：约 14 分钟
+> 适用版本：KurumiUI v1.3.9 ｜ 前置章节：无（本手册起点）｜ 阅读时长：约 14 分钟
 
 ## 本章目标
 
@@ -145,7 +145,7 @@ npx serve -l 8080 .
 | `node tools/check-assets.js` | HTML 的 CSS / JS 引用存在性、空文件、外链、重复、ESM | 末行 `汇总: 21 个 HTML，错误 0 个，警告 0 个` |
 | `node tools/check-compat.js` | 禁用语法 / API 与 Node 13.14 语法校验 | 出现 `[PASS] 未发现禁用语法 / API` |
 | `npm test` | compat / config / server / render 四套件共 33 条用例 | 末行 `=> PASS` |
-| `npm run verify` | 冒烟 104 项 + handlers 演示页 + 弹窗动作桥 + 产物一致性 | 四段均打印 ✔ / PASS |
+| `npm run verify` | 冒烟 108 项 + handlers 演示页 + 弹窗动作桥 + 产物一致性 | 四段均打印 ✔ / PASS |
 | `npm run audit` | 一致性审计 17 项 + 组件拆装审计 19 项 | 两个脚本均 `失败 0 项` |
 
 `npm run build` 预期输出（数值以实际输出为准）：
@@ -193,7 +193,7 @@ typeof window.__KUI_BUNDLE__ // 'object'
 | `src/styles/` | 样式 | `base.css` / `controls.css` / `components.css` / `tooltip.css` / `boot.css`（v1.3.8 起启动层独立样式）/ `avatar.css`，主题 token 在 `themes/` |
 | `src/themes.json` | 主题数据 | 6 套主题（kurumi 默认、kurumi-angel、starry、sakura、abyss、dawn） |
 | `pages/`、`standalone/` | 页面 | 7 个配置驱动业务页；12 个独立渲染页 + `embedded.js` |
-| `test/`、`tools/` | 测试与工程工具 | `run.js` + 四个套件 + `dom-stub.js`；构建 2 个脚本；校验 / 审计 / 冒烟 9 个（含手册校验器 `check-manual.js`，`node tools/check-manual.js [--json] [--strict]`）；截图 1 个 |
+| `test/`、`tools/` | 测试与工程工具 | `run.js` + 四个套件 + `dom-stub.js`；`tools/` 共 15 个 .js：构建 2 个（`build-config.js` / `build-all.js`），校验 / 审计 / 冒烟 12 个（含 `verify-build.js`、`audit-config.js`、两份手册的校验器 `check-manual.js` 与 `check-beginner-manual.js`，可用 `node tools/check-manual.js [--json] [--strict]` / `node tools/check-beginner-manual.js`），截图 1 个（`screenshot.js`） |
 
 `index.html:51` 只引一行 `src/core/kui-all.js`，加载哪些模块由 `config/kui-modules.json` 的 `files` 数组决定，详见 [02-build.md](02-build.md) 与第 03 章。
 

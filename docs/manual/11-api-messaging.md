@@ -1,6 +1,6 @@
 # 11 · JS API 全表与跨页通信
 
-> 适用版本：KurumiUI v1.3.8 ｜ 前置章节：10-actions-handlers.md、08-components.md ｜ 阅读时长：约 40 分钟
+> 适用版本：KurumiUI v1.3.9 ｜ 前置章节：10-actions-handlers.md、08-components.md ｜ 阅读时长：约 40 分钟
 
 ## 本章目标
 
@@ -306,7 +306,7 @@ KUI.dialog.form({
 ## 9. 调试
 
 - **`?kui_debug=1`**：URL 参数或 `localStorage['kui-debug']='1'` 启用诊断面板（`diag.js:235-241`）；滚动显示 `boot/error/longtask/focus/type/msg` 日志，钩子含全局错误、长任务、焦点、输入耗时与 postMessage 摘要。
-- **`?debug=1`**：仅 `bootstrap.js:770` 判断（`opts.debug || /[?&]debug/`），打印启动步骤，与 `kui_debug` 互不替代。
+- **`?debug=1`**：仅 `bootstrap.js:925` 判断（`opts.debug || /[?&]debug/`），打印启动步骤，与 `kui_debug` 互不替代。
 - **`KUI.info()`**：app 沙箱实测 `{name:'KurumiUI', version:'1.3.8', controls:41, themes:0, env:{isBrowser:true,isNode:false,nodeVersion:null}}`。`themes` 为 `KUI.theme.list()` 长度：未调用 `load/init` 时为 0，standalone 主页面加载 6 套主题后为 6；`controls` 为注册表内控件类型数。
 
 ```js

@@ -704,3 +704,19 @@ dialog iframe→主框架：
 | 弹窗 `subtitle` | `dialog-frame` 从不渲染该字段（`theme.picker.desc` 丢失） | `renderSubtitle()` + `.kui-dialog__subtitle` 样式 |
 
 验证：`tools/audit-config.js`（静态核对 `config/app.json` 全部叶子键的读取点）；`tools/smoke.js` `[28]`；`test/config.test.js` 用例 5；`test/render.test.js` keepAlive 用例。
+## 21. v1.3.9 配置接线补强
+
+| 字段 / 能力 | 此前 | v1.3.9 |
+| --- | --- | --- |
+| `menu.props.width` / `collapsedWidth` | 只写无人消费的 `--kui-menu-w` | 写 `--kui-menu-width(-collapsed)`；app-shell 优先读 props，回退 `layout.menu.*` |
+| `menunav.props.breadcrumb.max` | 只合并进 `breadcrumb` 对象，无读取点 | `normalizeProps` 归一为 `maxBreadcrumb`（两条 create 路径均生效） |
+| `dialogs.settings.desc/draggable/layout` | `openSettings` 不透传 | 透传给 `KUI.dialog.form` |
+| 设置弹窗保存 | 只认 `theme/collapsed/motion` | `KUI.boot.applySettings`：`shellName/defaultTheme/startTab/remember/density` + 旧字段；`boot()` 启动恢复 |
+| `boot.ready` | 无读取点 | 主流程末尾显示「准备就绪」文案 |
+| `select/multiselect.autofocus` | 传 `ctx` 给只认 node 的 `p()`，恒 false | 改传 `node`，渲染后聚焦 |
+
+新增公开 API：`KUI.boot.applySettings(app, values)`；持久化键：`kui-shell-name / kui-start-tab / kui-remember-tab / kui-last-tab / kui-density`。
+
+验证：smoke `[29]` 四组、`test/run.js` 33 项、`tools/audit-config.js` 0 缺口、真实浏览器设置弹窗保存生效。
+
+

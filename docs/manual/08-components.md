@@ -1,6 +1,6 @@
 # 08 · 组件详解：menu / menunav / tabs / dialog / toast / app-shell / boot
 
-> 适用版本：KurumiUI v1.3.8 ｜ 前置章节：[03-assembly.md](03-assembly.md)、[04-config-app.md](04-config-app.md)、[07-form-engine.md](07-form-engine.md) ｜ 阅读时长：约 45 分钟
+> 适用版本：KurumiUI v1.3.9 ｜ 前置章节：[03-assembly.md](03-assembly.md)、[04-config-app.md](04-config-app.md)、[07-form-engine.md](07-form-engine.md) ｜ 阅读时长：约 45 分钟
 
 ## 本章目标
 
@@ -115,7 +115,7 @@ var menu = el.__kuiMenu;               // 等价：el.__kuiInstance
 | `brand.title` | string | `''`，渲染时回落 `KUI.text('app.title','KurumiUI')` | 否 | 品牌主标题 |
 | `brand.subtitle` | string | `''` | 否 | 品牌副标题；为空不渲染 `.kui-menu__brand-subtitle` |
 | `brand.logoIcon` | string | `'clock'` | 否 | Logo 图标名；`brand.avatar` 生效时作为头像兜底图标 |
-| `brand.logoText` | string | 源码未读取 | 否 | **源码未实现**：`menu.js` 只读 `title/subtitle/logoIcon/href/avatar`，`logoText` 配了不生效（`config/demos/menu.json` 里有该字段，仅作约定） |
+| `brand.logoText` | string | `''` | 否 | 图标下的文字徽记；v1.3.8 起真实渲染（`menu.js:227-229`，折叠态 CSS 隐藏），未配时由 `app.logoText` 注入（`bootstrap.js:770`） |
 | `brand.href` | string | `''` | 否 | 非空时标题成链接（`.is-link`），点击整页跳到该地址 |
 | `brand.avatar` | object | 无（`undefined`） | 否 | 头像配置，交给 `KUI.avatar`；`fallbackIcon` 兜底 `brand.logoIcon \|\| 'clock'`，`alt` 兜底 `brand.title` |
 | `collapsed` | boolean | `false` | 否 | 初始是否折叠；折叠后宽度取 `collapsedWidth` |
@@ -139,8 +139,9 @@ var menu = el.__kuiMenu;               // 等价：el.__kuiInstance
 | `items[].target.tab` | object | 无（`undefined`） | 否 | 目标标签，字段 `id/title/url/icon/pinned/closable`，最终传给 `tabs.open` |
 | `footer` | object \| null | `null` | 否 | 页脚配置；`null` 时不渲染页脚 |
 | `footer.title` | string | 无（`undefined`） | 否 | 页脚标题 |
-| `footer.subtitle` | string | 源码未读取 | 否 | **源码未渲染**：`menu.js` 只渲染 `title`/`version`/`actions`，`subtitle` 配了不显示 |
-| `footer.version` | string | 无（`undefined`） | 否 | 版本文字（例：`v1.3.8`） |
+| `footer.subtitle` | string | 无（`undefined`） | 否 | 页脚副标题；v1.3.8 起渲染（`menu.js:742-743`），未配时可由 `app.footerSubtitle` 注入（`bootstrap.js:774`） |
+| `footer.version` | string | 无（`undefined`） | 否 | 版本文字（例：`v1.3.8`）；未配时由 `app.version` 自动注入 `v<version>`（`bootstrap.js:773`） |
+| `footer.copyright` | string | 无（`undefined`） | 否 | 版权行；v1.3.8 起渲染（`menu.js:748-749`），未配时可由 `app.copyright` 注入（`bootstrap.js:775`） |
 | `footer.actions` | array | 无（`undefined`） | 否 | 页脚动作：字符串（按钮文本）或节点对象（`button` 等，经 `KUI.renderNode`），对象也可写 `{text,icon,on:{click}}` |
 | `accordion` | boolean | `true` | 否 | 同级子菜单是否互斥展开（手风琴） |
 | `flyout` | boolean | `true` | 否 | 折叠态是否悬停弹出浮出子菜单（flyout） |
@@ -302,7 +303,7 @@ menu.collapse('pages');
 | --- | --- | --- |
 | 点击菜单项没有任何反应 | 既没有 `target` 也没有 `url`，或 `disabled: true` | 配 `target.tab` 或 `url`；检查该项是否被禁用 |
 | 折叠后看不到悬浮子菜单 | `flyout: false`，或该层没有 `children` | 保持 `flyout: true`，并确认子菜单层级 |
-| `brand.logoText` / `footer.subtitle` 配了不显示 | 源码未实现这两个字段（见 1.3 注） | 用 `brand.title`、`footer.title/version` 表达 |
+| `brand.logoText` / `footer.subtitle` / `footer.copyright` 配了不显示 | v1.3.7 及更早未实现；v1.3.8 起已真实渲染（`menu.js:227-229` / `:742-743` / `:748-749`） | 升级到 v1.3.8+；旧版本请用 `brand.title`、`footer.title` 等已知字段表达 |
 | 面包屑不跟随菜单变化 | `menu` 的实例 select 事件不派发，`app-shell` 监听落空 | 用 `menu.select` 动作或 `app.selectMenu()`；或在 `on.select` 里手动 `setBreadcrumb` |
 | 菜单宽度改成字符串无效 | `width` 只接受数字（内部拼 `px`） | 传 `252` 而不是 `"252px"`；必要时改用 CSS 变量 |
 
@@ -375,7 +376,7 @@ console.log(nav.getBreadcrumb());        // { home: {...}, items: [...] }
 | `breadcrumb.home.icon` | string | `'home'` | 否 | 首项图标；只给图标不给文字时加 `.is-icon-only` |
 | `breadcrumb.items` | array | `[]` | 否 | 中间层级；每项可写 `id/label/text/icon/title/disabled/action/tab/url` |
 | `breadcrumb.separator` | string | `'/'` | 否 | 分隔符**文本**（按文本渲染，不是图标名；写 `'chevron-right'` 会显示成这串字符） |
-| `breadcrumb.max` | number | 源码未读取 | 否 | **不生效**：源码只读顶层 `maxBreadcrumb`，此处写了无效 |
+| `breadcrumb.max` | number | 无 | 否 | 折叠阈值；v1.3.9 起由 `normalizeProps` 归一为 `maxBreadcrumb`，两条 create 路径都生效 |
 | `maxBreadcrumb` | number | `0` | 否 | 面包屑折叠阈值，`0` 不裁剪；`>0` 且超长时保留首项 + 省略号 + 末 `max-2` 项 |
 | `actions` | array | `[]` | 否 | 右侧动作按钮组；空数组时容器 `display:none` |
 | `actions[].id` | string | 无（`undefined`） | 建议填 | 作为 `data-action`；未写 `action` 时点击执行的就是它 |
@@ -580,7 +581,7 @@ console.log(tabs.count(), tabs.list(), tabs.getActive());
 | --- | --- | --- | --- | --- |
 | `closable` | boolean | `true` | 否 | 标签是否可关闭；单个标签的 `closable` 优先 |
 | `pinnedClosable` | boolean | `false` | 否 | 固定标签（`pinned:true`）是否允许关闭 |
-| `keepAlive` | boolean | `true` | 否 | **源码读取默认值但正文从未使用**：标签恒为保活（pane/iframe 永不重建），关掉它也没有效果 |
+| `keepAlive` | boolean | `true` | 否 | 保活开关；`false` 时标签切走即卸载 iframe（`tabs.js:613`；`unloadPane` 定义 `:422-430`，重置 `loaded/inited`），切回时重建（`:615`）；默认 `true` 永不重建 |
 | `maxTabs` | number | `24` | 否 | 最大标签数；超出时 `open` 失败并弹 `toast.warning`（文案键 `tabs.maxTabs`） |
 | `contextMenu` | boolean | `true` | 否 | 是否启用标签右键菜单（刷新/关闭/关闭其他/关闭全部） |
 | `drag` | boolean | `true` | 否 | 是否允许拖拽排序标签（只换 DOM 顺序与内部 order，不动 pane/iframe） |
@@ -755,7 +756,7 @@ tabs.closeOthers('home');
 
 - 渲染文件：`src/components/dialog.js`（约 1155 行），类型名 `dialog`，`category: 'shell'`（`src/components/dialog.js:1115-1120`）；同时暴露静态 API `KUI.dialog`。
 - **每个弹窗都是一个独立 iframe**（`src/frame/dialog-frame.html`）。父页面只负责遮罩、层叠、尺寸、拖拽/最大化、消息转发；标题、正文、表单、按钮都渲染在 iframe 里，所以弹窗内容不会污染主页面样式。
-- 主应用里没有「dialog 节点」的固定位置：任何组件、动作、业务页都可以随时打开弹窗（`dialog.*` 动作、`KUI.dialog.*`）。`app.json` 的 `dialogs` 段只是**示例配置**（`src/app/bootstrap.js:629-643` 用它作为「设置」弹窗的内容），不是组件 props 默认值。
+- 主应用里没有「dialog 节点」的固定位置：任何组件、动作、业务页都可以随时打开弹窗（`dialog.*` 动作、`KUI.dialog.*`）。`app.json` 的 `dialogs` 段只是**示例配置**（`src/app/bootstrap.js:698-716` 用它作为「设置」弹窗的内容），不是组件 props 默认值。
 - 独立使用：`standalone/dialog.html`。
 - DOM：`.kui-dialog-layer[data-dialog-id]`（含 `--{type}`、`.is-open`、`.is-loading`、`.is-stacked`）→ `.kui-dialog-mask` + `.kui-dialog-wrap`（`.is-maximized`、`.kui-dialog-handle` 拖拽手柄）→ `.kui-dialog-frame`。打开时 `body` 加 `.kui-dialog-open` 锁滚动；层级基准取 CSS 变量 `--kui-z-dialog`（`src/styles/base.css:342` 为 2000，JS 读取失败时兜底 1200，见 `src/components/dialog.js:256-268`）。
 - 依赖：`dialog-frame.html` 必须在同一 http 源下（`file://` 直接打开会因同源策略失败）；表单内容需要表单引擎与控件（见 [05-controls-input.md](05-controls-input.md)、[07-form-engine.md](07-form-engine.md)）。
@@ -805,13 +806,14 @@ KUI.dialog.form({
 
 ### 4.3 props 全字段表
 
-默认值取自 `src/components/dialog.js:137-181` 的 `DEFAULTS`。**注意：源码没有 `desc`、`content`、`escClosable` 三个字段**——对应物分别是 `message`（说明文字）、`nodes`（内容节点树）、`closeOnEsc`（Esc 关闭），旧文档里的写法不会生效。
+默认值取自 `src/components/dialog.js:137-181` 的 `DEFAULTS`。**注意：源码没有 `desc`、`content`、`escClosable` 三个字段**——对应物分别是 `message`（说明文字）、`nodes`（内容节点树）、`closeOnEsc`（Esc 关闭），旧文档里的写法不会生效；`escClosable` 另有一处兼容别名（`dialog.js:1149-1166` 把它映射到 `closeOnEsc`）。`subtitle` 同样不在 `DEFAULTS`，但 v1.3.8 起 `dialog-frame.js:505-534` 会渲染它（配置对象经 `deepMerge(DEFAULTS, config)` 透传，见下表）。
 
 | 字段 | 类型 | 默认值 | 必填 | 作用与取值 |
 | --- | --- | --- | --- | --- |
 | `id` | string | `''` | 否 | 弹窗 id；不传自动生成；同 id 再次打开会先关旧窗 |
 | `type` | string | `'dialog'` | 否 | `dialog` / `alert` / `confirm` / `prompt` / `form` / `custom`；决定 iframe 内的骨架与按钮 |
 | `title` | string | `''` | 否 | 标题（也写入 iframe 的 `title`） |
+| `subtitle` | string | 无（`undefined`，未列入 `DEFAULTS`） | 否 | 标题下的副标题；v1.3.8 起由弹窗页渲染（`dialog-frame.js:505-534`），不传则不渲染 |
 | `icon` | string | `''` | 否 | 标题左侧图标名 |
 | `width` | number \| string | `480` | 否 | 宽度；数字按 px，字符串原样 |
 | `height` | number \| string | `'auto'` | 否 | 高度；`'auto'` 时由 iframe 上报内容高度自动撑开 |
@@ -1014,7 +1016,7 @@ function openSealForm() {
 - **Esc 只关栈顶**：全局 Escape 监听要求 `closeOnEsc` 且 `closable`，并只关最上层弹窗（`src/components/dialog.js:1046-1080`）。
 - **主题**：全局 `theme:change` 会向所有弹窗 iframe `postMessage` 主题；弹窗内请求切主题也会回写主页面。
 - **弹窗内动作**：`actions[].action` 或 iframe 里的按钮触发未注册动作时，父页面会提示「动作未注册」，并要求先用 `KUI.actions.register` 注册；这是故意 fail-fast，不是 bug。
-- **与 `app.json` 的边界**：`app.json.dialogs` 只是「设置」弹窗的示例内容（`src/app/bootstrap.js:629-643`），字段语义见 [04-config-app.md](04-config-app.md)，本节讲的是 `KUI.dialog` 与节点 props。
+- **与 `app.json` 的边界**：`app.json.dialogs` 只是「设置」弹窗的示例内容（`src/app/bootstrap.js:698-716`），字段语义见 [04-config-app.md](04-config-app.md)，本节讲的是 `KUI.dialog` 与节点 props。
 
 ### 4.9 常见错误与排查
 
@@ -1036,7 +1038,7 @@ function openSealForm() {
 - 渲染文件：`src/components/toast.js`（约 531 行），类型名 `toast`，同时暴露静态 API `KUI.toast`；**加载完成即挂载**，不依赖页面节点。
 - 两种形态：`mode: 'toast'`（角落小条，默认）与 `mode: 'notification'`（右上大卡片，带标题/说明/动作）。
 - 四种语义类型：`info` / `success` / `warning` / `error`（兼容别名 `danger` → `error`）。
-- 主应用里没有它的配置段；`app.json` 的 `ui.toast` 会被 `bootstrap` 转交给 `KUI.toast.config`（`src/app/bootstrap.js:727-745`），用来改全局默认位置/数量/时长。
+- 主应用里没有它的配置段；`app.json` 的 `ui.toast` 会被 `bootstrap` 转交给 `KUI.toast.config`（`src/app/bootstrap.js:821-838`），用来改全局默认位置/数量/时长。
 - 独立使用：`standalone/toast.html`；也可以在任意业务页直接 `KUI.toast.info('...')`。
 - DOM：按位置分图层 `.kui-toast-layer[data-toast-layer]`（notification 另有 `--notification` 修饰），每条约 `.kui-toast.kui-toast--{type}.kui-toast--{mode}`，内含 `.kui-toast__accent`、`.kui-toast__icon`、`.kui-toast__body`（`__title`/`__message`）、可选的 `__action`、`__close`、`__progress > __progress-bar`。层级用 CSS 变量 `--kui-z-toast`（`src/styles/base.css:343`，默认 3000）。
 
@@ -1224,7 +1226,7 @@ KUI.toast.notify({
 
 - 渲染文件：`src/components/app-shell.js`（约 663 行），类型名 `app-shell`，`category: 'layout'`（`src/components/app-shell.js:638-661`）；实例挂在 `el.__kuiApp`，静态入口是 `KUI.app`。
 - 它**不直接画界面**，只负责三件事：① 搭骨架（左侧 menu、顶部 menunav、中间 tabs）；② 把 `app.json` 的 `app`/`layout`/`menu`/`menunav`/`tabs` 段注入子组件；③ 维护折叠状态、面包屑兜底、历史按钮、子组件生命周期。
-- 主应用装配：`index.html` 里只有挂载点 `#kui-app`（`index.html:24-25`），`bootstrap` 读 `config/app.json` 后调用 `KUI.app.create(host, appCfg, { initialTabs })`（`src/app/bootstrap.js:800`）。也可以直接写节点：`{"type":"app-shell","props":{...}}`。
+- 主应用装配：`index.html` 里只有挂载点 `#kui-app`（`index.html:24-25`），`bootstrap` 读 `config/app.json` 后调用 `KUI.app.create(host, appCfg, { initialTabs })`（`src/app/bootstrap.js:900`）。也可以直接写节点：`{"type":"app-shell","props":{...}}`。
 - 独立使用：`standalone/no-shell.html` 演示了**不用** app-shell、手工拼 menu + menunav + tabs 的等价写法。
 - DOM 与 CSS 变量：`.kui-app[data-kui-shell]` → `.kui-app__left`（menu）+ `.kui-app__main` → `.kui-app__header`（menunav）+ `.kui-app__center`（tabs）。布局用变量驱动：`--kui-menu-width`、`--kui-menu-width-collapsed`、`--kui-header-height`、`--kui-tabbar-height`、`--kui-app-gap`；折叠时根节点加 `.is-menu-collapsed` / `.kui-app--collapsed`。
 - 折叠状态记忆：`localStorage['kui-menu-collapsed']`（`src/components/app-shell.js:57-73`），刷新后保持。
@@ -1538,8 +1540,8 @@ KUI.bus.on('tabs:activate', function (payload) {
 | 事件 | 参数 | 派发者 | 说明 |
 | --- | --- | --- | --- |
 | `boot:progress` | `{ percent, hands }` | 实例 `setProgress`（`src/components/boot.js:284-286`） | 每次进度变化都发；`silent` 只跳过文本更新，**仍会发** |
-| `boot:done` | `{ app, cost }` | `bootstrap.js:824` | 仅主流程启动完成时发；`cost` 为毫秒 |
-| `boot:error` | `{ error }` | `bootstrap.js:832` | 仅主流程异常时发；`error` 是 Error 对象 |
+| `boot:done` | `{ app, cost }` | `bootstrap.js:924` | 仅主流程启动完成时发；`cost` 为毫秒 |
+| `boot:error` | `{ error }` | `bootstrap.js:932` | 仅主流程异常时发；`error` 是 Error 对象 |
 
 ### 6.5.7 常见错误与排查
 
@@ -1585,7 +1587,7 @@ KUI.bus.on('tabs:activate', function (payload) {
 - **关闭权限**：标签 `closable` 优先于 `tabs.closable`；`pinned:true` 的标签在 `pinnedClosable:false`（默认）时不可关，且被 `closeOthers`/`closeAll` 跳过。
 - **脏关闭**：`tab.dirty` 为真时，`close(id,{confirmDirty:true})` 或用户点关闭会弹 `dialog.confirm`；业务页若实现了 `tab:before-close` 握手，可返回 `{ok:false}` 拒绝关闭（260ms 未响应按默认放行）。
 - **上限**：`maxTabs`（默认 24）满了以后 `open` 返回 `null` 并提示，不自动淘汰——淘汰策略由业务决定（例如关掉最久未用的标签）。
-- **保活**：每个标签一个固定 iframe，**切换不销毁**；`keepAlive` 字段存在但源码未使用，不能通过它关闭保活。要释放资源只能 `close`。
+- **保活**：默认每个标签一个固定 iframe，**切换不销毁**；`keepAlive:false` 时切走会卸载 iframe（`tabs.js:613` 重置 `loaded/inited`，切回重建 `:615`），适合内存敏感的多标签场景。要释放资源仍可直接 `close`。
 
 ## 8. 跨组件排查速查表
 
