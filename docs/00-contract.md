@@ -132,7 +132,7 @@ v1.0.9 起，页面**不再逐条引入框架脚本**，改由单一入口 `src/
 
 ```js
 window.KUI = {
-  version: '1.0.5',
+  version: '1.3.9',
   utils: {
     el(tag, attrs, children),          // 创建元素；attrs 支持 class/属性/onXxx/style/text/html
     qs(sel, root), qsa(sel, root),

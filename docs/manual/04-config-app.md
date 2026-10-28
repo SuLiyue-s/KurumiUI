@@ -110,7 +110,7 @@ KurumiUI 的“节点”没有强类型 schema，字段由渲染器按需读取�
 | `name` | string | `"KurumiUI"` | 否 | 应用名。启动层标题（`bootstrap.js:791-800`）、品牌区兜底（`app-shell.js:240-244`）、`app.info`（`app-shell.handlers.js:126-128`） |
 | `title` | string | `"刻刻帝终端"` | 否 | 应用标题。品牌/顶部导航标题默认（`:268-269`）；渲染后**改写 `document.title`**（`:535-537`），优先于 `documentTitle`；启动层标题实际取 `name` |
 | `subtitle` | string | `"灵装回路 · 时间结界控制台"` | 否 | 启动层副标题（`bootstrap.js:791-800`）、品牌/导航副标题默认（`:242,269`）；缺省回退 `text.app.subtitle` |
-| `version` | string | `"1.0.5"` | 否 | 应用版本。v1.3.8 起注入 `menu.props.footer.version`（配置未写时补 `'v'+version`）；显式写 `menu.props.footer.version` 仍优先 |
+| `version` | string | `"1.3.9"` | 否 | 应用版本（演示应用版本，随发布更新）。v1.3.8 起注入 `menu.props.footer.version`（配置未写时补 `'v'+version`）；显式写 `menu.props.footer.version` 仍优先 |
 | `documentTitle` | string | `"刻刻帝终端 · KurumiUI"` | 否 | 浏览器标题兜底：仅 `title` 缺失时生效（`bootstrap.js:786-789`），实际被 `title` 覆盖 |
 | `logoIcon` | string | `"clock"` | 否 | 仅 `menu` 节点**没有** `props.brand` 时兜底品牌区图标（`app-shell.js:239-244`）；也作头像 `fallbackIcon` 兜底（`menu.js:180`） |
 | `logoText` | string | `"KUI"` | 否 | 品牌区图标旁徽记文字。v1.3.8 起：`menu.props.brand.logoText` 未写时回落到本字段，由 `menu.js` 渲染 `.kui-menu__logo-text`（有 `avatar` 时不显示） |
