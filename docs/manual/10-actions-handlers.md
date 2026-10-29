@@ -1,6 +1,6 @@
 # 10 · 交互与业务函数：on、动作与 handlers
 
-> 适用版本：KurumiUI v1.4.0 ｜ 前置章节：04-config-app.md、05-controls-input.md ｜ 阅读时长：约 30 分钟
+> 适用版本：KurumiUI v1.4.1 ｜ 前置章节：04-config-app.md、05-controls-input.md ｜ 阅读时长：约 30 分钟
 
 ## 本章目标
 

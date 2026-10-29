@@ -1,6 +1,6 @@
 # 16 · 加载层组件 boot：启动屏、时钟指针进度与拆装指南
 
-> 适用版本：KurumiUI v1.4.0 ｜ 前置章节：[03-assembly.md](03-assembly.md)、[04-config-app.md](04-config-app.md)、[08-components.md](08-components.md) ｜ 阅读时长：约 50 分钟
+> 适用版本：KurumiUI v1.4.1 ｜ 前置章节：[03-assembly.md](03-assembly.md)、[04-config-app.md](04-config-app.md)、[08-components.md](08-components.md) ｜ 阅读时长：约 50 分钟
 
 ## 本章目标
 
@@ -1246,7 +1246,7 @@ KUI.registry.get('boot');                                          // 注册描�
 | `npm start` | 起静态服务并自动构建 | 打印端口；`index.html` 正常 |
 | `npm run build:config` | 生成 `config/bundle.js` | 无异常；文件更新 |
 | `npm run build:all` | 生成 `src/core/kui-all.js` | Node 环境 `module.exports`；浏览器注入脚本 |
-| `npm test` | 配置/服务/渲染/兼容套件 | `34 通过 / 0 失败` |
+| `npm test` | 配置/服务/渲染/兼容套件 | `35 通过 / 0 失败` |
 | `npm run smoke` | 全链路冒烟（含 `[27]` 加载层 5 项） | 全部 PASS，0 失败 |
 | `npm run check:assets` | HTML 资源引用 | `22 个 HTML，错误 0，警告 0` |
 | `npm run audit:components` | 组件拆装审查（含 boot 独立渲染） | 全部通过 |

@@ -28,10 +28,6 @@
     if (!size || size === 'md') { return; }
     base.addClass(box, prefix + '--' + size);
   }
-  function labelOf(flat, value) {
-    var label = base.optionLabelByValue(flat, value);
-    return label === null || label === undefined ? (value === null || value === undefined ? '' : String(value)) : label;
-  }
   function sameValue(a, b) {
     if (a === b) { return true; }
     if (a === null || a === undefined || b === null || b === undefined) { return false; }

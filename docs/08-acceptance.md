@@ -362,3 +362,15 @@ node tools/check-assets.js                # HTML 引用完整性
 | 9 | 现有框架不回归 | 注册类别 `data`，不占 19 个表单控件；样式全 token 化 | 六套主题下截图；闸门全绿 |
 
 **回归数字**：`test/run.js` 34/0/0（Node24 & Node13.14）；`smoke.js` 111/0；`audit-consistency` 17/0；`audit-components` 19/0；`audit-all-pages` 20/20；`audit-config` 0 缺口；`check-assets` 22 HTML 0/0；`check-manual` 0/0；`check-beginner-manual` 0/0；`verify-build` 6/0。
+
+## v1.4.1 未消费资产审计 + 头像持久化（2026-10-29）
+
+| 用户反馈 | 根因 | 修复 | 验证 |
+| --- | --- | --- | --- |
+| 头像更换后刷新失效（疑似缓存未被消费） | `avatar.create()` 取 `options.url \|\| stored`，配置默认恒真 | 改为 `stored \|\| options.url`；`data-kui-avatar` 按生效值 | `test/render.test.js` 头像持久化用例；smoke `[31.3]`；真实浏览器刷新 |
+| 同类问题：疑似存在先写后读链路 | — | 逐条核查 theme / 菜单折叠 / bootstrap 偏好键 / kui-frame 自愈 / diag 标记，读写对称 | 源码审阅 + smoke 既有 `[29.3]` 偏好持久化断言 |
+| 未消费样式 | `dialog-frame.html` 使用不存在的 token 名 | 7 处改为真实 token（`--kui-control-bg-hover` / `--kui-control-bg-active` / `--kui-control-text`） | `tools/audit-unused.js` B 类 0 ERROR；弹窗真实浏览器核对 |
+| 未消费函数 | 9 个函数声明后从未调用 | 删除（control-base / selects / datatable / form / avatar / theme / kui-frame） | `audit-unused` D 类 0 ERROR；`node --check` 全通过 |
+| 需要长期防回归 | 无自动检查 | 新增 `tools/audit-unused.js` + npm scripts + smoke `[31]` | ERROR 0 / WARN 0；`npm run audit` 串联通过 |
+
+**回归数字**：`test/run.js` **35/0/0**（Node24 & Node13.14）；`smoke.js` **115/0**；`audit-unused` ERROR 0 / WARN 0；`audit-consistency` 17/0；`audit-components` 19/0；`audit-all-pages` 20/20；`audit-config` 0 缺口；`check-assets` 22/0/0；`check-manual` 0/0；`check-beginner-manual` 0/0；`verify-build` 6/0。

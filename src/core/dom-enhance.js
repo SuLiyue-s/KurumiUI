@@ -32,7 +32,7 @@
   var KUI = global.KUI;
   if (!KUI) { return; }
 
-  var VERSION = '1.4.0';
+  var VERSION = '1.4.1';
   var doc = global.document;
 
   /* =============================================================

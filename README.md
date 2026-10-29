@@ -107,7 +107,7 @@ node tools/check-assets.js     # HTML 引用 JS/CSS 齐全性
 
 ## 一点六、使用手册（两份，按需选读）
 
-仓库提供**两份互相独立、互相链接**的中文手册，均与源码、运行时同版本（v1.4.0 基线）：
+仓库提供**两份互相独立、互相链接**的中文手册，均与源码、运行时同版本（v1.4.1 基线）：
 
 | 手册 | 入口 | 给谁看 | 规模 |
 | --- | --- | --- | --- |
@@ -438,7 +438,7 @@ node tools/check-beginner-manual.js  # 校验 docs/manual-beginner 小白手册�
 
 - 零依赖测试：自带极简 DOM stub（`test/dom-stub.js`），不装 jsdom；
 - 兼容扫描黑名单：`?.` `??` `||=` `&&=` `??=` `#private` `replaceAll` `Array.at` `Object.fromEntries` `structuredClone` 顶层 await 等；
-- **Node 13.14 实测全绿**：`node test/run.js` 双版本各 **34 通过 / 0 失败 / 0 跳过**；集成冒烟 `tools/smoke.js` **111 / 0**（含 v1.0.1 的 pages 装配 / 主题双向同步 / 多级菜单回归，v1.0.2 的业务函数层与弹窗动作桥，v1.0.3 的图标 sprite 回归，v1.0.4 的版本戳/版本自愈，v1.0.5 的悬浮提示/UI 配置，v1.0.7 的主题预置防闪烁与实心按钮悬浮配色，v1.0.8 的原生控件升级器，v1.0.9 的单入口 kui-all，v1.1.0 的弹窗加固与诊断面板，v1.1.1 的消息乒乓防护，v1.1.2 的 form footer 与必填校验回归，v1.1.3 的菜单折叠联动整壳，v1.1.4 的弹窗表单必填校验归一化，v1.1.5 的模块级全局事件兼容层 / 菜单折叠按钮联动，v1.3.0 的必填组与弹层关闭，v1.3.1 的头像框裁切与更换方式，v1.3.3 的菜单 footer 两行布局，v1.3.4 的悬浮提示文案实时同步，v1.3.6 的菜单搜索多结果选择，v1.3.7 的加载层组件与时钟指针动画，v1.3.8 的配置接线修复与一致性审计，v1.3.9 的菜单宽度 / 面包屑 / 设置弹窗保存 / autofocus 接线修复与同类缺陷审计，v1.4.0 的可拆卸数据表格 datatable 与一体化配置）；`tools/verify-handlers-demo.js` 真实渲染并点击 JSON 按钮出提醒；`tools/verify-dialog-bridge.js` 验证弹窗动作转发；资源检查 `tools/check-assets.js` **22 HTML / 0 错误 0 警告**；全页面审计 `tools/audit-all-pages.js` **20 / 20**。v1.3.5 起新增审计脚本（v1.3.6 补全控件类型清单项）：`tools/audit-consistency.js`（源码↔测试↔产物一致性，17 项）与 `tools/audit-components.js`（组件拆解/组装矩阵，19 项），可用 `npm run audit` 一键复跑；审计报告见 [`docs/10-audit-report.md`](docs/10-audit-report.md)。
+- **Node 13.14 实测全绿**：`node test/run.js` 双版本各 **35 通过 / 0 失败 / 0 跳过**；集成冒烟 `tools/smoke.js` **115 / 0**（含 v1.0.1 的 pages 装配 / 主题双向同步 / 多级菜单回归，v1.0.2 的业务函数层与弹窗动作桥，v1.0.3 的图标 sprite 回归，v1.0.4 的版本戳/版本自愈，v1.0.5 的悬浮提示/UI 配置，v1.0.7 的主题预置防闪烁与实心按钮悬浮配色，v1.0.8 的原生控件升级器，v1.0.9 的单入口 kui-all，v1.1.0 的弹窗加固与诊断面板，v1.1.1 的消息乒乓防护，v1.1.2 的 form footer 与必填校验回归，v1.1.3 的菜单折叠联动整壳，v1.1.4 的弹窗表单必填校验归一化，v1.1.5 的模块级全局事件兼容层 / 菜单折叠按钮联动，v1.3.0 的必填组与弹层关闭，v1.3.1 的头像框裁切与更换方式，v1.3.3 的菜单 footer 两行布局，v1.3.4 的悬浮提示文案实时同步，v1.3.6 的菜单搜索多结果选择，v1.3.7 的加载层组件与时钟指针动画，v1.3.8 的配置接线修复与一致性审计，v1.3.9 的菜单宽度 / 面包屑 / 设置弹窗保存 / autofocus 接线修复与同类缺陷审计，v1.4.0 的可拆卸数据表格 datatable 与一体化配置）；`tools/verify-handlers-demo.js` 真实渲染并点击 JSON 按钮出提醒；`tools/verify-dialog-bridge.js` 验证弹窗动作转发；资源检查 `tools/check-assets.js` **22 HTML / 0 错误 0 警告**；全页面审计 `tools/audit-all-pages.js` **20 / 20**。v1.3.5 起新增审计脚本（v1.3.6 补全控件类型清单项）：`tools/audit-consistency.js`（源码↔测试↔产物一致性，17 项）与 `tools/audit-components.js`（组件拆解/组装矩阵，19 项），可用 `npm run audit` 一键复跑；v1.4.1 起新增 `tools/audit-unused.js`（未消费字段/样式/函数/API：storage 键、CSS 变量、`data-*`、死函数、未引用样式类；`npm run audit:unused` 单独运行）。审计报告见 [`docs/10-audit-report.md`](docs/10-audit-report.md)。
 - v1.0.3 修复的 8 个浏览器验收问题与逐条根因见 [`CHANGELOG.md`](CHANGELOG.md#v103--2026-10-26) 与 [`docs/08-acceptance.md`](docs/08-acceptance.md#6-版本修复记录)；v1.0.4 的版本缓存穿透加固见 [`CHANGELOG.md`](CHANGELOG.md#v104--2026-10-26)；v1.0.5–v1.1.2 的悬浮提示 / 弹窗修复 / 主题预置 / 原生控件升级 / 单入口 / 诊断面板见 [`CHANGELOG.md`](CHANGELOG.md)。
 - 沙箱/CI 里若禁止子进程，server 用例会自动降级为同进程模式（打印 WARN），断言不变；请在自己的终端各跑一次 Node13 / Node24 以消除 WARN。
 - 详细测试矩阵与验收对照见 [`docs/test-report.md`](docs/test-report.md) 与 [`docs/08-acceptance.md`](docs/08-acceptance.md)。

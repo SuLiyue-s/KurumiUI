@@ -85,7 +85,7 @@
       cursor: pointer;
       transition: color var(--kui-duration-fast) var(--kui-ease), background-color var(--kui-duration-fast) var(--kui-ease), border-color var(--kui-duration-fast) var(--kui-ease);
     }
-    .kui-dialog__close:hover { color: var(--kui-text-1); background: var(--kui-control-hover); }
+    .kui-dialog__close:hover { color: var(--kui-text-1); background: var(--kui-control-bg-hover); }
     .kui-dialog__close:focus-visible { outline: none; border-color: var(--kui-control-border-focus); box-shadow: 0 0 0 2px var(--kui-accent-soft); }
     .kui-dialog__body {
       flex: 1 1 auto;
@@ -153,14 +153,14 @@
       transition: background-color var(--kui-duration-fast) var(--kui-ease), border-color var(--kui-duration-fast) var(--kui-ease), color var(--kui-duration-fast) var(--kui-ease), transform var(--kui-duration-fast) var(--kui-ease);
     }
     .kui-dialog__btn:hover {
-      background: var(--kui-control-hover);
+      background: var(--kui-control-bg-hover);
       border-color: var(--kui-control-border-hover);
-      color: var(--kui-control-text-hover, var(--kui-control-text));
+      color: var(--kui-control-text);
     }
     .kui-dialog__btn:active {
       transform: translateY(1px);
-      background: var(--kui-control-active, var(--kui-control-hover));
-      color: var(--kui-control-text-hover, var(--kui-control-text));
+      background: var(--kui-control-bg-active, var(--kui-control-bg-hover));
+      color: var(--kui-control-text);
     }
     .kui-dialog__btn:focus-visible { outline: none; border-color: var(--kui-control-border-focus); box-shadow: 0 0 0 2px var(--kui-accent-soft); }
     .kui-dialog__btn.is-primary {
@@ -195,7 +195,7 @@
       filter: brightness(.94);
     }
     .kui-dialog__btn.is-ghost { background: transparent; color: var(--kui-control-text); }
-    .kui-dialog__btn.is-ghost:hover { background: var(--kui-control-hover); }
+    .kui-dialog__btn.is-ghost:hover { background: var(--kui-control-bg-hover); }
     .kui-dialog__btn:disabled {
       opacity: .55;
       cursor: not-allowed;

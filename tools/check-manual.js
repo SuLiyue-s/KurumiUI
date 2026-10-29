@@ -16,7 +16,7 @@
  *
  * 校验项：
  *   [1] 章节文件完整性（README + NN-*.md）与编号唯一
- *   [2] 每章元信息行「> 适用版本：KurumiUI v1.4.0」与必备小节
+ *   [2] 每章元信息行「> 适用版本：KurumiUI v1.4.1」与必备小节
  *       「## 本章目标 / ## 本章自检 / ## 参考源码」
  *   [3] 所有 ```json 代码块可 JSON.parse；```jsonc 括号配对
  *   [4] 代码示例中的节点 type 属于运行时 40 个注册类型（变体值有白名单）
@@ -269,8 +269,8 @@ var EXEMPT_LINE = /(截至|历史|旧版|此前|以前|v1\.3\.5|1\.3\.5|v1\.3\.8
 
 function checkMeta(file, text, lines) {
   if (file === 'README.md') { return; }
-  if (!/^>\s*适用版本[:：]\s*KurumiUI v1.4.0/m.test(text)) {
-    addError(file, 1, 'META', '缺少元信息行「> 适用版本：KurumiUI v1.4.0 ｜ 前置章节：… ｜ 阅读时长：…」');
+  if (!/^>\s*适用版本[:：]\s*KurumiUI v1.4.1/m.test(text)) {
+    addError(file, 1, 'META', '缺少元信息行「> 适用版本：KurumiUI v1.4.1 ｜ 前置章节：… ｜ 阅读时长：…」');
   }
   var required = [
     { re: /^##\s+(?:\d+\.\s*)?本章目标/m, name: '## 本章目标' },
@@ -471,7 +471,7 @@ function checkVersions(file, lines) {
     var re = /v?(1\.\d+\.\d+)/g;
     var m;
     while ((m = re.exec(line))) {
-      if (m[1] === '1.4.0') { continue; }
+      if (m[1] === '1.4.1') { continue; }
       // 章节交叉引用（§1.3.1、第 1.3.2 节、1.3.3 小节）同样不是版本号
       var before = line.slice(Math.max(0, m.index - 8), m.index);
       if (/[§]\s*$/.test(before) || /(?:第|节|小节)\s*$/.test(before)) { continue; }

@@ -40,15 +40,6 @@
     }
   }
 
-  function txt(key, fallback, vars) {
-    var value = safe(function () { return K.text(key, fallback, vars); }, fallback);
-    return (value === undefined || value === null || value === '') ? fallback : value;
-  }
-
-  function uid(prefix) {
-    return safe(function () { return K.utils.uid(prefix); }, (prefix || 'kui') + '-' + Math.random().toString(36).slice(2, 8));
-  }
-
   /* ------------------------------------------------------------------ */
   /* 消息发送                                                            */
   /* ------------------------------------------------------------------ */
@@ -760,7 +751,7 @@
   }
 
   var api = {
-    version: currentVersion() || '1.4.0',
+    version: currentVersion() || '1.4.1',
     /* 生命周期 */
     ready: ready,
     boot: boot,

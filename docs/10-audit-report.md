@@ -279,3 +279,43 @@ npm test               # 测试
 
 - 分页控件中的「更多页」按钮仍沿用基础 `table` 的 `more-horizontal` 图标名笔误（历史遗留，GitHub 图标集里只有 `more-h`），已在手册 06 记录；datatable 走同一 `kui-datatable__pager` 渲染，显示为占位问号的风险仍存在，列入下次图标别名修复项。
 - 大数据量（>1 万行）仍建议服务端分页：当前 `data` 全量进内存，排序/筛选在客户端完成。
+
+## 13. v1.4.1 未消费资产审计（字段 / 样式 / 函数 / API）
+
+> 需求（用户）：「检查是否存在未消费的字段、样式、函数、api，如果有需要修复。展示页的头像缓存在浏览器了，但是刷新后失效，怀疑该缓存未被消费，需要检查是否存在同类问题。」
+
+### 13.1 方法
+
+先人工按「写入点 → 读取点」逐链路走查（storage / CSS token / data-* / 函数 / API），再把可自动化的判定沉淀为 `tools/audit-unused.js`，纳入 `npm run audit` 与 smoke `[31]` 长期门禁：
+
+| 检查 | 判定方式 | 门禁 |
+| --- | --- | --- |
+| A storage 键 | 收集 `localStorage/sessionStorage` 的读写键，比较写集合与读集合 | 只写不读 = ERROR；只读不写 = WARN |
+| B CSS 变量 | CSS 里 `--kui-*` 定义/`var()` 引用，并合并 `src/themes.json` 运行时 token 与 JS `setProperty` | 定义未引用 / 引用未定义 = ERROR |
+| C `data-*` 属性 | JS `setAttribute`/`dataset` 写入 vs CSS/JS `getAttribute`/`hasAttribute`/`data-*` 读取 | 只写不读 = WARN |
+| D 死函数 / 未引用样式类 | 顶层函数声明与调用计数；样式类在 js/html/json/md 中的出现 | 死函数 = ERROR；未引用类 = INFO（公共工具类豁免） |
+
+### 13.2 发现与修复
+
+| # | 发现 | 级别 | 处理 |
+| --- | --- | --- | --- |
+| P1 | 头像持久化：`create()` 取 `options.url \|\| stored`，配置默认图恒真 → 用户更换的头像刷新后被覆盖 | 功能缺陷 | 改 `stored \|\| options.url`；补 render 用例 + smoke `[31.3]`；真实浏览器刷新验证 |
+| P2 | `dialog-frame.html` 引用 3 个不存在的 token（`--kui-control-hover` / `--kui-control-active` / `--kui-control-text-hover`），聚焦/悬浮配色落空 | 样式缺陷 | 7 处改为真实 token（见 `docs/02-config-reference.md` §18 token 表） |
+| P3 | 9 个函数从未被调用（control-base / selects / datatable / form / avatar / theme / kui-frame） | 死代码 | 删除；`node --check` + 全量闸门通过 |
+| P4 | 缺少「未消费资产」的自动检查，同类问题会反复出现 | 流程缺陷 | 新增 `tools/audit-unused.js`，接入 `npm run audit` / `audit:unused` / smoke `[31]` |
+| P5（INFO） | 87 个样式类在 js/html/json/md 中未出现 | 公共工具类 | 人工复核后保留：`--kui-*` 工具类（flex/gap/anim/text/scroll/truncate/sr-only/glass 等）、状态类、以及 `base + '--' + modifier` 动态拼接类（尺寸/类型/badge 变体） |
+
+### 13.3 同类链路核查（无缺陷，记录以防回归）
+
+| 链路 | 写 | 读 | 结论 |
+| --- | --- | --- | --- |
+| 主题 | `theme.apply` → localStorage | `theme` 初始化 + `theme-boot.js` 首屏预置 | ✅ 对称 |
+| 菜单折叠 | `app-shell` 写 `kui-menu-collapsed` | 初始化时读 | ✅ 对称 |
+| 启动偏好 | `applySettings` 写 `kui-shell-name` / `kui-start-tab` / `kui-remember-tab` / `kui-last-tab` / `kui-density` | `applyStoredPrefs` 读 | ✅ 对称（smoke `[29.3]`） |
+| 弹窗 frame 自愈标记 | `kui-frame` 写 sessionStorage | 同文件读 | ✅ 对称 |
+| 诊断标记 | `?kui_debug=1` 只读 URL | 无写入 | ✅ 有意只读 |
+
+### 13.4 残余与说明
+
+- INFO 87 项不逐一列出（`node tools/audit-unused.js --json` 可导出）；判定为公共 CSS 钩子/状态类/动态拼接类，删除会破坏按 `class` 自定义样式的用户配置。
+- 审计为静态扫描：通过字符串拼接、运行时算出名字的键/类仍可能漏检；新增「写入侧」代码时同步补读取点是维护约定（契约 §23）。

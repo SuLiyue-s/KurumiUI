@@ -134,10 +134,6 @@
 
   var globalDefaults = null;
 
-  function isPlainObject(v) {
-    return !!v && typeof v === 'object' && !Array.isArray(v) && !v.nodeType;
-  }
-
   function mergeOptions(opts) {
     var base = KUI.utils && KUI.utils.deepMerge ? KUI.utils.deepMerge({}, DEFAULTS) : DEFAULTS;
     if (globalDefaults) { base = KUI.utils.deepMerge(base, globalDefaults); }
@@ -239,14 +235,16 @@
     if (!doc) { return null; }
     var options = mergeOptions(opts);
 
-    // persist：允许从 localStorage 恢复用户选择（同页面只读一次，避免多次实例互相覆盖）
+    // persist：允许从 localStorage 恢复用户选择。
+    // v1.4.1 修复：存储值优先于配置 url —— 之前写成 options.url || stored，
+    // 而 app.json 的 avatar.url 是默认图（恒为真），导致用户更换的头像刷新后永远被配置覆盖。
     var stored = '';
     if (options.persist) {
       try {
         stored = global.localStorage ? (global.localStorage.getItem(options.storageKey) || '') : '';
       } catch (errStored) { stored = ''; }
     }
-    var currentUrl = options.url || stored || '';
+    var currentUrl = stored || options.url || '';
 
     var el = KUI.h('div', {
       'class': 'kui-avatar',
@@ -256,7 +254,7 @@
     if (options.shape === 'square') { el.classList.add('kui-avatar--square'); }
     el.style.width = options.size + 'px';
     el.style.height = options.size + 'px';
-    el.setAttribute('data-kui-avatar', options.url ? 'custom' : 'auto');
+    el.setAttribute('data-kui-avatar', currentUrl ? 'custom' : 'auto');
 
     // 内层：图片或回退图标
     var inner = KUI.h('div', { 'class': 'kui-avatar__inner' });

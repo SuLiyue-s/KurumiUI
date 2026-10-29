@@ -1,6 +1,6 @@
 # 05 · 新建自己的页面
 
-> 适用版本：KurumiUI v1.4.0 ｜ 难度：⭐ 入门 ｜ 前置章节：[04-config-ui.md](04-config-ui.md) ｜ 阅读时长：约 20 分钟
+> 适用版本：KurumiUI v1.4.1 ｜ 难度：⭐ 入门 ｜ 前置章节：[04-config-ui.md](04-config-ui.md) ｜ 阅读时长：约 20 分钟
 
 ## 本章目标
 

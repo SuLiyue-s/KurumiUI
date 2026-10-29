@@ -1,6 +1,6 @@
 # 08 · 把界面部署到自己的网站或项目
 
-> 适用版本：KurumiUI v1.4.0 ｜ 难度：⭐ 入门 ｜ 前置章节：[02-first-run.md](02-first-run.md)、[05-new-page.md](05-new-page.md) ｜ 阅读时长：约 20 分钟
+> 适用版本：KurumiUI v1.4.1 ｜ 难度：⭐ 入门 ｜ 前置章节：[02-first-run.md](02-first-run.md)、[05-new-page.md](05-new-page.md) ｜ 阅读时长：约 20 分钟
 
 ## 本章目标
 

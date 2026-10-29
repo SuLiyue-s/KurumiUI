@@ -1,6 +1,6 @@
 # 03 · 认识界面
 
-> 适用版本：KurumiUI v1.4.0 ｜ 难度：⭐ 入门 ｜ 前置章节：[02-first-run.md](02-first-run.md) ｜ 阅读时长：约 18 分钟
+> 适用版本：KurumiUI v1.4.1 ｜ 难度：⭐ 入门 ｜ 前置章节：[02-first-run.md](02-first-run.md) ｜ 阅读时长：约 18 分钟
 
 ## 本章目标
 

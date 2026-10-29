@@ -76,16 +76,6 @@
     };
   }
 
-  function clearAppliedTokens() {
-    var el = root();
-    if (!el || !el.style) return;
-    for (var name in state.appliedTokens) {
-      if (!Object.prototype.hasOwnProperty.call(state.appliedTokens, name)) continue;
-      try { el.style.removeProperty(name); } catch (e) { /* noop */ }
-    }
-    state.appliedTokens = Object.create(null);
-  }
-
   function writeTokens(tokens) {
     var el = root();
     if (!el || !el.style) return;

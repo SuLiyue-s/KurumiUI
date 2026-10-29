@@ -1,6 +1,6 @@
 # 08 · 组件详解：menu / menunav / tabs / dialog / toast / app-shell / boot
 
-> 适用版本：KurumiUI v1.4.0 ｜ 前置章节：[03-assembly.md](03-assembly.md)、[04-config-app.md](04-config-app.md)、[07-form-engine.md](07-form-engine.md) ｜ 阅读时长：约 45 分钟
+> 适用版本：KurumiUI v1.4.1 ｜ 前置章节：[03-assembly.md](03-assembly.md)、[04-config-app.md](04-config-app.md)、[07-form-engine.md](07-form-engine.md) ｜ 阅读时长：约 45 分钟
 
 ## 本章目标
 
@@ -117,7 +117,7 @@ var menu = el.__kuiMenu;               // 等价：el.__kuiInstance
 | `brand.logoIcon` | string | `'clock'` | 否 | Logo 图标名；`brand.avatar` 生效时作为头像兜底图标 |
 | `brand.logoText` | string | `''` | 否 | 图标下的文字徽记；v1.3.8 起真实渲染（`menu.js:227-229`，折叠态 CSS 隐藏），未配时由 `app.logoText` 注入（`bootstrap.js:884`） |
 | `brand.href` | string | `''` | 否 | 非空时标题成链接（`.is-link`），点击整页跳到该地址 |
-| `brand.avatar` | object | 无（`undefined`） | 否 | 头像配置，交给 `KUI.avatar`；`fallbackIcon` 兜底 `brand.logoIcon \|\| 'clock'`，`alt` 兜底 `brand.title` |
+| `brand.avatar` | object | 无（`undefined`） | 否 | 头像配置，交给 `KUI.avatar`；`fallbackIcon` 兜底 `brand.logoIcon \|\| 'clock'`，`alt` 兜底 `brand.title`；`persist: true` 时**存储值优先于 `url`**（v1.4.1 起，刷新后恢复用户选择） |
 | `collapsed` | boolean | `false` | 否 | 初始是否折叠；折叠后宽度取 `collapsedWidth` |
 | `collapsible` | boolean | `true` | 否 | 是否显示折叠按钮（`button.kui-menu__collapse`）；`false` 时不渲染按钮 |
 | `width` | number | `252` | 否 | 展开宽度（px），写入 CSS 变量 `--kui-menu-width`（同时保留旧别名 `--kui-menu-w`） |

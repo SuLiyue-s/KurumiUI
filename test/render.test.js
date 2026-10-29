@@ -730,4 +730,64 @@ module.exports = function register(suite, ctx) {
     }
   });
 
+  /* ==========================================================
+   * 11. avatar：持久化恢复优先级（契约 §13 / v1.4.1）
+   * ========================================================== */
+
+  suite.test('头像持久化：localStorage 存储值优先于配置 url，刷新后仍能恢复（v1.4.1）', function () {
+    var rt = boot();
+    try {
+      var win = rt.win;
+      var doc = rt.doc;
+      var KUI = rt.KUI;
+      ctx.assert.ok(KUI.avatar && KUI.avatar.create, 'KUI.avatar.create 应存在');
+
+      var KEY = 'kui-avatar';
+      var CFG_URL = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22%3E%3C/svg%3E';
+      var STORED_URL = 'data:image/svg+xml,%3Csvg%20id%3D%22stored%22%3E%3C/svg%3E';
+      var NEW_URL = 'data:image/svg+xml,%3Csvg%20id%3D%22new%22%3E%3C/svg%3E';
+
+      // 模拟「浏览器里已缓存用户选择」后再刷新页面
+      win.localStorage.setItem(KEY, STORED_URL);
+
+      var host1 = doc.createElement('div');
+      doc.body.appendChild(host1);
+      var api1 = KUI.avatar.create(host1, {
+        url: CFG_URL, persist: true, storageKey: KEY, editable: true, size: 40,
+        frame: { enabled: false }, picker: { mode: 'url' }
+      }, {});
+      ctx.assert.ok(api1, 'avatar.create 应返回实例 API');
+      ctx.assert.strictEqual(api1.getUrl(), STORED_URL,
+        '存储值应优先于配置 url（v1.4.1 修复点），实际 ' + api1.getUrl());
+      ctx.assert.strictEqual(host1.querySelector('.kui-avatar').getAttribute('data-kui-avatar'), 'custom',
+        '有存储值时 data-kui-avatar 应为 custom');
+
+      // 更换头像 → 写入 localStorage → 再次 create（模拟刷新）应恢复新值
+      api1.setUrl(NEW_URL);
+      ctx.assert.strictEqual(win.localStorage.getItem(KEY), NEW_URL, 'setUrl 后应写入 localStorage');
+      api1.destroy();
+
+      var host2 = doc.createElement('div');
+      doc.body.appendChild(host2);
+      var api2 = KUI.avatar.create(host2, {
+        url: CFG_URL, persist: true, storageKey: KEY, size: 40,
+        frame: { enabled: false }, picker: { mode: 'url' }
+      }, {});
+      ctx.assert.strictEqual(api2.getUrl(), NEW_URL, '刷新后应恢复上次更换的头像');
+
+      // 清除存储后应回退到配置 url
+      win.localStorage.removeItem(KEY);
+      api2.destroy();
+      var host3 = doc.createElement('div');
+      doc.body.appendChild(host3);
+      var api3 = KUI.avatar.create(host3, {
+        url: CFG_URL, persist: true, storageKey: KEY, size: 40,
+        frame: { enabled: false }, picker: { mode: 'url' }
+      }, {});
+      ctx.assert.strictEqual(api3.getUrl(), CFG_URL, '无存储值时回退配置 url');
+    } finally {
+      teardown(rt);
+    }
+  });
+
 };

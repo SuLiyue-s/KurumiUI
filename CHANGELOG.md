@@ -1,3 +1,42 @@
+## v1.4.1（2026-10-29）— 未消费资产审计 + 头像持久化修复
+
+> 需求（用户）：「要检查是否存在未消费的字段、样式、函数、api，如果有需要修复。展示页的头像缓存在浏览器了，但是刷新后失效，怀疑该缓存未被消费，需要检查是否存在同类问题，存在的话也需要修复。」
+
+### 一、头像持久化：存储值优先于配置（真实缺陷）
+
+- 现象：在展示页更换头像后写入 `localStorage['kui-avatar']`，但刷新后被 `config/app.json` 的默认头像覆盖。
+- 根因：`src/core/avatar.js` 的 `create()` 用 `options.url || stored || ''` 取当前头像——`app.json` 的 `avatar.url` 是默认图（恒为真），存储值永远排不上；`data-kui-avatar` 也按 `options.url` 判定。
+- 修复：改为 `stored || options.url || ''`（存储优先，清空存储后回退配置），`data-kui-avatar` 按实际生效值判定。
+- 同类链路核查（theme / 菜单折叠 / bootstrap 偏好键 / kui-frame 自愈标记 / diag 调试标记）均为「先读后写」且读写对称，无同类缺陷。
+
+### 二、弹窗 frame 的 7 处无效 token（样式静默失效）
+
+- `src/frame/dialog-frame.html` 引用了 `--kui-control-hover` / `--kui-control-active` / `--kui-control-text-hover`，而主题定义的是 `--kui-control-bg-hover` / `--kui-control-bg-active` / `--kui-control-text`，导致输入框聚焦/悬浮配色落空。
+- 已改为真实 token（3 个变量 × 共 7 处）。
+
+### 三、死代码清理
+
+- 删除 9 个从未被调用的函数：`control-base.stopPropagationPress`、`selects.labelOf`、`datatable.displayRows`、`form.h`/`form.hasClass`、`avatar.isPlainObject`、`theme.clearAppliedTokens`、`kui-frame.txt`/`kui-frame.uid`。
+
+### 四、新增审计工具 `tools/audit-unused.js`（可复用为回归门禁）
+
+- 四类检查：A storage 键（只写不读/只读不写）、B CSS 变量（定义未引用/引用未定义，含 `themes.json` 运行时 token）、C `data-*` 属性（写入但从不读取）、D 死函数与未引用样式类。
+- 输出 ERROR（会静默失效）/ WARN（疑似未消费）/ INFO（公共工具类与动态拼接类），`--strict` 时 ERROR>0 退出码 1；可被 `require()` 复用。
+- 接入 `npm run audit`（与 consistency / components 串行）与 `npm run audit:unused`；smoke 新增 `[31]` 断言 ERROR/WARN 均为 0。
+- 当前基线：ERROR 0 / WARN 0 / INFO 87（87 项均为公共工具类、状态类或 `base + '--' + modifier` 动态拼接类，已人工复核）。
+
+### 五、测试与文档
+
+- `test/render.test.js` 新增「头像持久化：localStorage 存储值优先于配置 url」用例（35 项）。
+- `tools/smoke.js` 新增 `[31]` 三组：未消费审计 ERROR 0 / WARN 0 / 头像持久化运行时恢复（115 项）。
+- 文档：契约 §23（未消费资产审计工具与维护约定）、配置参考 §10.1 头像字段补充「存储优先」、手册 08 头像小节补充恢复优先级、`docs/10-audit-report.md` §13、验收表 v1.4.1、README 审计工具清单与回归数字。
+
+### 验证
+
+- `node test/run.js` 35 通过 / 0 失败（Node 24 与 Node 13.14 双版本）；`node tools/smoke.js` 115 通过 / 0 失败。
+- `tools/audit-unused.js --strict` ERROR 0 / WARN 0；`audit-consistency` 17/0、`audit-components` 19/0、`audit-all-pages` 20/20、`audit-config` 0 缺口、`check-assets` 22/0/0、`check-manual` 0/0、`check-beginner-manual` 0/0、`verify-build` 6/0。
+- 真实浏览器：`standalone/avatar.html` 更换头像 → 刷新 → 头像保持（修复前会被默认图覆盖）。
+
 ## v1.4.0（2026-10-29）— 可拆卸数据表格组件 datatable
 
 ### 新增组件

@@ -940,8 +940,6 @@
     }
 
     /* ---------- 行 ---------- */
-    function displayRows() { return pageRows; }
-
     function buildRow(row, index) {
       var tr = el('tr', 'kui-datatable__row');
       var key = keyOf(row, props.rowKey);

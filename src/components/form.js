@@ -140,26 +140,6 @@
 
   /* ---------------- DOM 小工具（尽量复用 KUI，缺失时自建） ---------------- */
 
-  function h(tag, attrs, children) {
-    if (isFn(KUI.h)) { return KUI.h(tag, attrs, children); }
-    var el = document.createElement(tag);
-    if (attrs) {
-      for (var k in attrs) {
-        if (!hasOwn.call(attrs, k)) { continue; }
-        var v = attrs[k];
-        if (v === null || v === undefined || v === false) { continue; }
-        if (k === 'class' || k === 'className') { el.className = String(v); }
-        else if (k === 'text') { el.textContent = String(v); }
-        else { el.setAttribute(k, v === true ? '' : String(v)); }
-      }
-    }
-    if (children) {
-      if (isArr(children)) { each(children, function (c) { if (c) { el.appendChild(c); } }); }
-      else if (children.nodeType) { el.appendChild(children); }
-    }
-    return el;
-  }
-
   function addClass(el, cls) {
     if (!el || !cls) { return el; }
     if (isFn(KUI.addClass)) { return KUI.addClass(el, cls); }
@@ -188,12 +168,6 @@
     if (isFn(KUI.toggleClass)) { return KUI.toggleClass(el, cls, on); }
     if (on) { return addClass(el, cls); }
     return removeClass(el, cls);
-  }
-
-  function hasClass(el, cls) {
-    if (!el || !cls) { return false; }
-    if (isFn(KUI.hasClass)) { return KUI.hasClass(el, cls); }
-    return (' ' + el.className + ' ').indexOf(' ' + cls + ' ') !== -1;
   }
 
   function clearEl(el) {

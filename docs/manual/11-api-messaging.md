@@ -1,6 +1,6 @@
 # 11 · JS API 全表与跨页通信
 
-> 适用版本：KurumiUI v1.4.0 ｜ 前置章节：10-actions-handlers.md、08-components.md ｜ 阅读时长：约 40 分钟
+> 适用版本：KurumiUI v1.4.1 ｜ 前置章节：10-actions-handlers.md、08-components.md ｜ 阅读时长：约 40 分钟
 
 ## 本章目标
 

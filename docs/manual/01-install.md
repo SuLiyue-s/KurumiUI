@@ -1,6 +1,6 @@
 # 01 · 安装与首次运行
 
-> 适用版本：KurumiUI v1.4.0 ｜ 前置章节：无（本手册起点）｜ 阅读时长：约 14 分钟
+> 适用版本：KurumiUI v1.4.1 ｜ 前置章节：无（本手册起点）｜ 阅读时长：约 14 分钟
 
 ## 本章目标
 
@@ -193,7 +193,7 @@ typeof window.__KUI_BUNDLE__ // 'object'
 | `src/styles/` | 样式 | `base.css` / `controls.css` / `components.css` / `tooltip.css` / `boot.css`（v1.3.8 起启动层独立样式）/ `avatar.css`，主题 token 在 `themes/` |
 | `src/themes.json` | 主题数据 | 6 套主题（kurumi 默认、kurumi-angel、starry、sakura、abyss、dawn） |
 | `pages/`、`standalone/` | 页面 | 7 个配置驱动业务页；13 个独立渲染页 + `embedded.js` |
-| `test/`、`tools/` | 测试与工程工具 | `run.js` + 四个套件 + `dom-stub.js`；`tools/` 共 15 个 .js：构建 2 个（`build-config.js` / `build-all.js`），校验 / 审计 / 冒烟 12 个（含 `verify-build.js`、`audit-config.js`、两份手册的校验器 `check-manual.js` 与 `check-beginner-manual.js`，可用 `node tools/check-manual.js [--json] [--strict]` / `node tools/check-beginner-manual.js`），截图 1 个（`screenshot.js`） |
+| `test/`、`tools/` | 测试与工程工具 | `run.js` + 四个套件 + `dom-stub.js`；`tools/` 共 16 个 .js：构建 2 个（`build-config.js` / `build-all.js`），校验 / 审计 / 冒烟 13 个（含 `verify-build.js`、`audit-config.js`、`audit-unused.js`（v1.4.1 未消费资产审计）、两份手册的校验器 `check-manual.js` 与 `check-beginner-manual.js`，可用 `node tools/check-manual.js [--json] [--strict]` / `node tools/check-beginner-manual.js`），截图 1 个（`screenshot.js`） |
 
 `index.html:51` 只引一行 `src/core/kui-all.js`，加载哪些模块由 `config/kui-modules.json` 的 `files` 数组决定，详见 [02-build.md](02-build.md) 与第 03 章。
 
@@ -247,10 +247,10 @@ v24.14.0
 KurumiUI 配置打包完成
 [build-all] profiles: app=30, standalone=29
 汇总: 22 个 HTML，错误 0 个，警告 0 个
-汇总: 34 通过 / 0 失败 / 0 跳过   总计 34   耗时 ...ms   => PASS
+汇总: 35 通过 / 0 失败 / 0 跳过   总计 34   耗时 ...ms   => PASS
 ```
 
-最后 `npm start`，打开 `http://127.0.0.1:8080/`，在控制台执行 1.6 节检查，得到 `1.4.0 / true / 42 / 28 / 61 / true` 即安装完成。
+最后 `npm start`，打开 `http://127.0.0.1:8080/`，在控制台执行 1.6 节检查，得到 `1.4.1 / true / 42 / 28 / 61 / true` 即安装完成。
 
 ## 参考源码
 

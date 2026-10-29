@@ -759,3 +759,24 @@ dialog iframe→主框架：
 **拆装**：从 `config/kui-modules.json` 的 `profiles.*.files` 移除 `src/components/datatable.js` 并重跑 `npm run build:config` 即可整体下架；此时 JSON 中 `{ "type": "datatable" }` 节点会渲染为未注册类型占位块，其余组件不受影响。单独页面使用时只需 `base.css + datatable.css + boot.js 之前的 core + datatable.js`，`KUI.datatable.create(host, props)` 手动挂载。
 
 **验证**：smoke `[30]` 三组；`test/run.js` 的 datatable 渲染/交互用例；`tools/audit-components.js` 的拆解矩阵；真实测试页 `standalone/datatable.html`。
+
+## §23 未消费资产审计（v1.4.1）
+
+**约定**：框架声明的每个字段、样式、函数、API 都必须有真实读取点；新增「只写不读」的声明视为缺陷。
+
+| 工具 | 命令 | 覆盖 |
+| --- | --- | --- |
+| `tools/audit-unused.js` | `node tools/audit-unused.js [--strict] [--json]` | storage 键 / CSS 变量 / `data-*` 属性 / 死函数 / 未引用样式类 |
+| `tools/audit-config.js` | `node tools/audit-config.js` | `config/app.json` 叶子字段的代码读取点 |
+| `tools/audit-consistency.js` | `npm run audit:consistency` | 清单 / 常量 / 动作 / 路径 / 顺序 |
+
+**门禁**：`npm run audit` 依次运行 consistency → components → unused（严格模式），任一失败即退出码非 0；`tools/smoke.js` `[31]` 同步断言 ERROR/WARN 为 0。
+
+**维护规则**：
+1. 新增配置字段必须在 `src/` 有读取点，并更新对应文档；
+2. 新增 CSS token 必须在样式里 `var()` 使用，或写入 `themes.json`；
+3. 新增 `data-*` 必须至少被 CSS 或 JS 读取；
+4. 有意保留但静态扫描无法判定的项，加入 `tools/audit-unused.js` 的 `ALLOW` 并写明原因，**不要放宽正则**；
+5. 删除功能时同步删除其样式类、token、data 属性与函数，避免再次出现「只写不读」。
+
+**存储读取优先级（v1.4.1 起）**：`avatar.persist` 为真时，`localStorage[storageKey]` 中的用户选择优先于配置 `url`；清除存储后回退配置。

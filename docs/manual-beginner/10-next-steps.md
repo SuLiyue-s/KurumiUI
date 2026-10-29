@@ -1,6 +1,6 @@
 # 10 · 下一步：把 KurumiUI 真正用起来
 
-> 适用版本：KurumiUI v1.4.0 ｜ 难度：⭐⭐ 入门进阶 ｜ 前置章节：[08-deploy.md](08-deploy.md) ｜ 阅读时长：约 20 分钟
+> 适用版本：KurumiUI v1.4.1 ｜ 难度：⭐⭐ 入门进阶 ｜ 前置章节：[08-deploy.md](08-deploy.md) ｜ 阅读时长：约 20 分钟
 
 ## 本章目标
 
@@ -102,6 +102,7 @@
 | `npm run check:assets` | 检查 21 个 HTML 引用的文件是否齐全 | 移动/删除文件之后 |
 | `npm run verify:build` | 校验构建产物与源码是否一致 | 担心产物过期或改错产物 |
 | `node tools/audit-config.js` | 审计 `app.json` 的字段有没有实际读取点 | 想确认某个配置是否真的生效 |
+| `node tools/audit-unused.js` | 审计是否有「写了但没人读」的字段 / 样式 / 函数 / API（v1.4.1 新增） | 怀疑某个样式或配置没生效 |
 | `npm run verify` | 冒烟 + 动作演示 + 弹窗桥接 + 构建校验 | 发布前完整自检 |
 
 ## 7. 常用文件路径速查

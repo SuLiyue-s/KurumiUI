@@ -1184,11 +1184,6 @@ window.KUI = window.KUI || {};
     });
   }
 
-  function stopPropagationPress(el) {
-    if (!el) { return; }
-    on(el, 'mousedown', function (ev) { ev.preventDefault(); });
-  }
-
   /**
    * 长按连发：用于 number 加减、time 列箭头。
    * handler(kind) kind: 'click' | 'repeat' | 'start'

@@ -994,6 +994,14 @@ function main() {
         assert(base.indexOf('@import url("avatar.css")') >= 0, 'base.css 未 @import avatar.css');
         return '静态资产 OK';
       });
+      check('静态：头像持久化恢复优先级为「存储 > 配置」（v1.4.1）', function () {
+        var avatarJs = fs.readFileSync(path.join(ROOT, 'src/core/avatar.js'), 'utf8');
+        assert(avatarJs.indexOf('var currentUrl = stored || options.url') >= 0,
+          'avatar.create 应使用 stored || options.url（存储优先）');
+        assert(avatarJs.indexOf('var currentUrl = options.url || stored') === -1,
+          'avatar.create 不得回到 options.url || stored（配置恒真会覆盖用户选择）');
+        return '头像持久化优先级 OK';
+      });
       check('静态：app.json 含 avatar 配置且菜单挂载头像测试页', function () {
         var appCfg = JSON.parse(fs.readFileSync(path.join(ROOT, 'config/app.json'), 'utf8'));
         assert(appCfg.avatar && typeof appCfg.avatar === 'object', 'app.json 缺少顶层 avatar');
@@ -1691,6 +1699,38 @@ currentSection = 30;  console.log('\n[30] 数据表格 datatable（v1.4.0 新组
     inst.destroy();
     assert(!host.querySelector('.kui-datatable'), 'destroy 后 DOM 应移除');
     return '筛选/排序/分页/全选/销毁';
+  });
+
+currentSection = 31;  console.log('\n[31] 未消费资产与持久化（v1.4.1）');
+
+  if (fs.existsSync(path.join(ROOT, 'tools/audit-unused.js'))) {
+    var auditUnused = require(path.join(ROOT, 'tools/audit-unused.js'));
+
+    check('[31.1] 未消费资产审计：ERROR 0 项', function () {
+      assert(auditUnused.ERROR.length === 0, '存在 ' + auditUnused.ERROR.length + ' 个 ERROR（运行 node tools/audit-unused.js 查看）');
+      return 'ERROR 0 / WARN ' + auditUnused.WARN.length + ' / INFO ' + auditUnused.INFO.length;
+    });
+
+    check('[31.2] 未消费资产审计：WARN 0 项', function () {
+      assert(auditUnused.WARN.length === 0, '存在 ' + auditUnused.WARN.length + ' 个 WARN（需确认或加入 ALLOW）');
+      return 'WARN 0 / INFO ' + auditUnused.INFO.length;
+    });
+  }
+
+  check('[31.3] 头像持久化：存储值优先于配置 url（运行时）', function () {
+    var ls = win.localStorage;
+    var key = 'kui-avatar-smoke';
+    var stored = KUI.avatar.svgUrl('<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"><rect width="8" height="8" fill="#d4af37"/></svg>');
+    var cfgUrl = KUI.avatar.svgUrl('<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"><rect width="8" height="8" fill="#1b3355"/></svg>');
+    ls.setItem(key, stored);
+    var host = env.document.createElement('div');
+    env.document.body.appendChild(host);
+    var av = KUI.avatar.create(host, { url: cfgUrl, persist: true, storageKey: key, size: 40, frame: { enabled: false } });
+    assert(av && av.getUrl() === stored, '存储值应优先，实际 ' + (av && av.getUrl()));
+    av.destroy();
+    ls.removeItem(key);
+    if (host.parentNode) { host.parentNode.removeChild(host); }
+    return '运行时头像持久化 OK';
   });
 
 currentSection = 6;   console.log('\n[6] 控制台与错误汇总');

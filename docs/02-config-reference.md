@@ -1444,7 +1444,7 @@ v1.0.8 起由 `src/core/dom-enhance.js` 就地升级，**不改变原有 HTML �
 | --- | --- | --- | --- |
 | `url` | string | `''` | 头像地址（http/data URI 均可）；留空回退品牌图标 |
 | `editable` | boolean | `false` | 渲染后是否可点击头像打开更换弹窗 |
-| `persist` | boolean | `true` | 是否把用户选择写入 localStorage |
+| `persist` | boolean | `true` | 是否把用户选择写入 localStorage（v1.4.1 起：有存储值时优先于配置 `url`，清除存储后回退配置） |
 | `storageKey` | string | `kui-avatar` | localStorage 键名 |
 | `size` | number | `44` | 头像直径（px），齿轮框随直径自动缩放 |
 | `shape` | string | `circle` | `circle` 或 `square` |
