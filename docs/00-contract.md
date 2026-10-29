@@ -132,7 +132,7 @@ v1.0.9 起，页面**不再逐条引入框架脚本**，改由单一入口 `src/
 
 ```js
 window.KUI = {
-  version: '1.3.9',
+  version: '1.4.0',
   utils: {
     el(tag, attrs, children),          // 创建元素；attrs 支持 class/属性/onXxx/style/text/html
     qs(sel, root), qsa(sel, root),
@@ -719,4 +719,43 @@ dialog iframe→主框架：
 
 验证：smoke `[29]` 四组、`test/run.js` 33 项、`tools/audit-config.js` 0 缺口、真实浏览器设置弹窗保存生效。
 
+## 22. 数据表格组件（datatable，v1.4.0 新增）
 
+**文件**：`src/components/datatable.js`（注册 + 渲染 + 实例 API）、`src/styles/datatable.css`（全部样式走 `--kui-*` token）。
+
+**注册**：`type = 'datatable'`，`category = 'data'`（与 `table`/`pagination` 同属数据类控件，不计入 19 个表单控件）；`KUI.datatable.version = '1.0.0'`。依赖 core（`KUI.h`/`KUI.registry`/`KUI.icons`/`KUI.text`/`KUI.bus`），不依赖 menu/tabs/dialog，可独立挂载。
+
+**静态入口**：`KUI.datatable.create(host, props[, ctx])` 返回实例；`KUI.datatable.get()` 取最近创建的实例；`KUI.datatable.defaults` 为默认配置；其余方法以 `KUI.datatable.<方法>` 委托到最近实例。
+
+**props（节选，全部可省略）**：
+
+| 字段 | 类型 | 默认 | 说明 |
+| --- | --- | --- | --- |
+| `columns` | array | `[]` | 列定义：`key/title/width/minWidth/align/sortable/filter/format/formatOptions/dict/hidden/headerTip/className` |
+| `data` / `rows` | array | `[]` | 行数据（`rows` 为兼容别名） |
+| `rowKey` | string | `'id'` | 行唯一键字段；选择、行点击、跨页保持都用它 |
+| `size` | string | `'md'` | `sm/md/lg` 三档行高 |
+| `bordered` / `striped` / `hoverable` / `compact` | bool | `false/true/true/false` | 外观开关 |
+| `height` / `maxHeight` | number | `0` | 固定表体高度（滚动 + 表头吸附），0 = 自动 |
+| `showIndex` | bool | `false` | 序号列 |
+| `search` | object | `{enabled:true,placeholder:'',width:240,keys:[]}` | 全局搜索；`keys` 缺省时搜索全部列 |
+| `filter` | object | `{enabled:true,columns:true,clearable:true}` | 列筛选行开关 |
+| `sort` | object | `{enabled:true,mode:'single',default:[]}` | `mode=single/multi`；`default` 形如 `[{key,order:'asc'\|'desc'}]` |
+| `selection` | object | `{mode:'none',showSelectAll:true,selectOnRowClick:true,keepAcrossPages:true,selectAllScope:'page'}` | `mode=none/single/multi`；`selectAllScope=page\|all` |
+| `pagination` | object | `{enabled:true,pageSize:10,pageSizes:[10,20,50,100],showTotal:true,showSizer:true,showJumper:true,maxButtons:7}` | 分页 |
+| `rowHighlight` | bool | `true` | 行点击高亮 |
+| `rowClickAction` | object | `null` | 行点击时执行的动作（`{action:'...'}`，走 `KUI.actions`） |
+| `toolbar` | object | `{enabled:true,title:'',subtitle:'',actions:[],actionsAlign:'right'}` | 工具栏：标题/副标题/动作按钮 |
+| `columnsToggle` / `densityToggle` / `refresh` / `export` | bool | `true/true/false/false` | 列设置、密度切换、刷新、导出 CSV |
+| `selectionInfo` / `keyboard` | bool | `true/true` | 选中计数、键盘操作（↑↓ 移动、空格选择、Enter 触发行动作） |
+| `text` | object | `{}` | 覆盖内置文案（如 `{empty, loading, selected, columns, density}`） |
+
+**列格式（`format`）**：`text` / `number` / `date` / `boolean` / `tags` / `badge` / `dict` / `link` / `progress` / `code` / `ellipsis` / `actions`（行内动作列）；`dict` 传入 `{value: label}` 映射，`format` 为 `dict` 或提供 `dict` 时均生效；文本与表头统一用 `.kui-datatable__text` / `.kui-datatable__th-text` 承载，保证换肤一致。
+
+**实例 API**：`setData/getData/getRows/getFilteredRows`、`setColumns/getColumns/setColumnVisible`、`setKeyword/setFilter/getFilter/clearFilters`、`setSort/getSort`、`setPage/getPage/setPageSize/getPageSize`、`getSelection/getSelectedKeys/getSelectedRows/setSelection/clearSelection/selectAll/clearAllSelection`、`setActive/getActive`、`setLoading/setDensity/getDensity/setToolbarTitle`、`refresh/exportCsv/getState/getConfig/on/off/destroy`。
+
+**事件**：`api.on(name, fn)` 订阅，同时 `KUI.bus.emit('datatable:'+name, payload)`；name 为 `ready / refresh / sort / filter / page / action / destroy`。
+
+**拆装**：从 `config/kui-modules.json` 的 `profiles.*.files` 移除 `src/components/datatable.js` 并重跑 `npm run build:config` 即可整体下架；此时 JSON 中 `{ "type": "datatable" }` 节点会渲染为未注册类型占位块，其余组件不受影响。单独页面使用时只需 `base.css + datatable.css + boot.js 之前的 core + datatable.js`，`KUI.datatable.create(host, props)` 手动挂载。
+
+**验证**：smoke `[30]` 三组；`test/run.js` 的 datatable 渲染/交互用例；`tools/audit-components.js` 的拆解矩阵；真实测试页 `standalone/datatable.html`。

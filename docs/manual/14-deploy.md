@@ -1,6 +1,6 @@
 # 14 · 部署与跨项目复用
 
-> 适用版本：KurumiUI v1.3.9 ｜ 前置章节：03-assembly.md ｜ 阅读时长：约 18 分钟
+> 适用版本：KurumiUI v1.4.0 ｜ 前置章节：03-assembly.md ｜ 阅读时长：约 18 分钟
 
 KurumiUI 是纯前端 + JSON 配置，部署就是把「源码 + 两个构建产物」放到任意静态服务器上。本章先讲内置 `server.js` 的边界，再覆盖静态托管、子路径、file://、iframe 嵌入，最后是整框架/单组件复用、升级、回滚与上线清单。
 
@@ -72,6 +72,11 @@ npm run build   # = node tools/build-config.js && node tools/build-all.js
 ```
 
 产物两个（都被 `.gitignore` 忽略，必须随发布）：`config/bundle.js`（114,290 B，file:// 与 fetch 失败兜底）、`src/core/kui-all.js`（3,982 B，页面唯一入口）。
+
+> **要不要上传 `config/*.json`、`src/themes.json`？** 这决定“上线后还能不能直接改配置”：<br>
+> - **上传原始 JSON**（§2.2 清单里的必须项）：线上是 http(s)，页面会 `fetch` 原始 JSON（`no-cache`），以后改服务器上的 `config/app.json`、`config/text.json`、`src/themes.json` **刷新即生效**，不必重新构建。代价是配置文件公开可读。<br>
+> - **只上传 `bundle.js`**：页面 fetch 失败后回退 `__KUI_BUNDLE__`，以后任何配置改动都必须在本地 `npm run build:config` 后重传产物。<br>
+> - 无论哪种，改 `config/kui-modules.json` 都必须重新构建（它生成 `kui-all.js` 清单）；判定矩阵见 [04-config-app.md](04-config-app.md) §1.3.1。界面里用户保存的标题/皮肤等只在各自浏览器 localStorage，不会写服务器文件（§1.3.2）。
 
 ### 2.2 最小文件清单
 
@@ -252,7 +257,7 @@ window.addEventListener('message', function (e) {
 
 ### 6.1 方式 A：整个框架复制
 
-适合把 KurumiUI 当自家后台的技术底座。复制清单（按 v1.3.8 实测）：
+适合把 KurumiUI 当自家后台的技术底座。复制清单（按 v1.3.9 实测）：
 
 | 路径 | 作用 | 必须 |
 | --- | --- | --- |
@@ -304,7 +309,7 @@ window.addEventListener('message', function (e) {
 
 ### 7.3 回滚
 
-- 推荐发布包按版本目录保存：`/var/www/kurumi-v1.3.5`、`/var/www/kurumi-v1.3.8`，用软链 `/var/www/kurumi -> kurumi-v1.3.8`，回滚只改软链并 reload nginx。
+- 推荐发布包按版本目录保存：`/var/www/kurumi-v1.3.5`、`/var/www/kurumi-v1.3.9`，用软链 `/var/www/kurumi -> kurumi-v1.3.9`，回滚只改软链并 reload nginx。
 - 只换代码不换配置时，至少回滚两个产物；`config/app.json` 结构变化大的版本，回滚要连配置一起换。
 - 回滚后清 CDN 与浏览器强缓存路径（HTML 已 no-cache，一般无需强刷）。
 

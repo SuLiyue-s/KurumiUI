@@ -1,6 +1,6 @@
 # 08 · 组件详解：menu / menunav / tabs / dialog / toast / app-shell / boot
 
-> 适用版本：KurumiUI v1.3.9 ｜ 前置章节：[03-assembly.md](03-assembly.md)、[04-config-app.md](04-config-app.md)、[07-form-engine.md](07-form-engine.md) ｜ 阅读时长：约 45 分钟
+> 适用版本：KurumiUI v1.4.0 ｜ 前置章节：[03-assembly.md](03-assembly.md)、[04-config-app.md](04-config-app.md)、[07-form-engine.md](07-form-engine.md) ｜ 阅读时长：约 45 分钟
 
 ## 本章目标
 
@@ -40,7 +40,7 @@ KurumiUI 的界面由「一个骨架 + 三块外壳 + 两个全局浮层 + 一�
 - 主应用里**不要手写 HTML**：`app.json` 的 `menu` 段（`config/app.json:211` 起）被 `app-shell` 读取，补默认 brand 与宽度后挂到 `.kui-app__left`（`src/components/app-shell.js:237-258`）。
 - 独立使用：`standalone/menu.html` 用 `KUI.renderNode(node, null)` 直接渲染一个菜单实例；也可以 `KUI.menu.create(host, props)`（`src/components/menu.js:884-894`），或写一个 `{"type":"menu","props":{…}}` 节点交给 `KUI.renderNode`。
 - DOM 结构：`aside.kui-menu`（`role="navigation"`）→ `.kui-menu__brand` + `.kui-menu__scroll > .kui-menu__list-host` + `.kui-menu__footer`；每个菜单项是 `li.kui-menu__item > a.kui-menu__link`，子菜单是 `ul.kui-menu__sub`。
-- 尺寸走 CSS 变量：`--kui-menu-w`、`--kui-menu-w-collapsed`，由 `width` / `collapsedWidth` 写入（`src/components/menu.js:713-762`），自定义样式优先改这两个变量而不是覆盖 `width`。
+- 尺寸走 CSS 变量：`--kui-menu-width`、`--kui-menu-width-collapsed`（v1.3.9 修正为真正的消费名；旧别名 `--kui-menu-w` / `--kui-menu-w-collapsed` 仍会同步写入以兼容旧覆盖），由 `width` / `collapsedWidth` 写入（`src/components/menu.js:720-727`），自定义样式优先改这两个变量而不是覆盖 `width`。
 - 依赖：`avatar`（`brand.avatar` 生效时）、图标名（`icon`）、动作系统（`item.target`）。
 
 ### 1.2 最小可运行示例
@@ -115,13 +115,13 @@ var menu = el.__kuiMenu;               // 等价：el.__kuiInstance
 | `brand.title` | string | `''`，渲染时回落 `KUI.text('app.title','KurumiUI')` | 否 | 品牌主标题 |
 | `brand.subtitle` | string | `''` | 否 | 品牌副标题；为空不渲染 `.kui-menu__brand-subtitle` |
 | `brand.logoIcon` | string | `'clock'` | 否 | Logo 图标名；`brand.avatar` 生效时作为头像兜底图标 |
-| `brand.logoText` | string | `''` | 否 | 图标下的文字徽记；v1.3.8 起真实渲染（`menu.js:227-229`，折叠态 CSS 隐藏），未配时由 `app.logoText` 注入（`bootstrap.js:770`） |
+| `brand.logoText` | string | `''` | 否 | 图标下的文字徽记；v1.3.8 起真实渲染（`menu.js:227-229`，折叠态 CSS 隐藏），未配时由 `app.logoText` 注入（`bootstrap.js:884`） |
 | `brand.href` | string | `''` | 否 | 非空时标题成链接（`.is-link`），点击整页跳到该地址 |
 | `brand.avatar` | object | 无（`undefined`） | 否 | 头像配置，交给 `KUI.avatar`；`fallbackIcon` 兜底 `brand.logoIcon \|\| 'clock'`，`alt` 兜底 `brand.title` |
 | `collapsed` | boolean | `false` | 否 | 初始是否折叠；折叠后宽度取 `collapsedWidth` |
 | `collapsible` | boolean | `true` | 否 | 是否显示折叠按钮（`button.kui-menu__collapse`）；`false` 时不渲染按钮 |
-| `width` | number | `252` | 否 | 展开宽度（px），写入 CSS 变量 `--kui-menu-w` |
-| `collapsedWidth` | number | `68` | 否 | 折叠宽度（px），写入 `--kui-menu-w-collapsed` |
+| `width` | number | `252` | 否 | 展开宽度（px），写入 CSS 变量 `--kui-menu-width`（同时保留旧别名 `--kui-menu-w`） |
+| `collapsedWidth` | number | `68` | 否 | 折叠宽度（px），写入 `--kui-menu-width-collapsed`（同时保留旧别名 `--kui-menu-w-collapsed`） |
 | `defaultActive` | string | `''` | 否 | 初始高亮的菜单项 id |
 | `items` | array | `[]` | 否 | 菜单树；节点字段见下面 `items[]` 各行 |
 | `items[].type` | string | `'item'` | 否 | `item` 普通项 / `group` 分组 / `divider` 分隔线 |
@@ -139,9 +139,9 @@ var menu = el.__kuiMenu;               // 等价：el.__kuiInstance
 | `items[].target.tab` | object | 无（`undefined`） | 否 | 目标标签，字段 `id/title/url/icon/pinned/closable`，最终传给 `tabs.open` |
 | `footer` | object \| null | `null` | 否 | 页脚配置；`null` 时不渲染页脚 |
 | `footer.title` | string | 无（`undefined`） | 否 | 页脚标题 |
-| `footer.subtitle` | string | 无（`undefined`） | 否 | 页脚副标题；v1.3.8 起渲染（`menu.js:742-743`），未配时可由 `app.footerSubtitle` 注入（`bootstrap.js:774`） |
-| `footer.version` | string | 无（`undefined`） | 否 | 版本文字（例：`v1.3.8`）；未配时由 `app.version` 自动注入 `v<version>`（`bootstrap.js:773`） |
-| `footer.copyright` | string | 无（`undefined`） | 否 | 版权行；v1.3.8 起渲染（`menu.js:748-749`），未配时可由 `app.copyright` 注入（`bootstrap.js:775`） |
+| `footer.subtitle` | string | 无（`undefined`） | 否 | 页脚副标题；v1.3.8 起渲染（`menu.js:742-743`），未配时可由 `app.footerSubtitle` 注入（`bootstrap.js:888`） |
+| `footer.version` | string | 无（`undefined`） | 否 | 版本文字（例：`v1.3.9`）；未配时由 `app.version` 自动注入 `v<version>`（`bootstrap.js:887`） |
+| `footer.copyright` | string | 无（`undefined`） | 否 | 版权行；v1.3.8 起渲染（`menu.js:748-749`），未配时可由 `app.copyright` 注入（`bootstrap.js:889`） |
 | `footer.actions` | array | 无（`undefined`） | 否 | 页脚动作：字符串（按钮文本）或节点对象（`button` 等，经 `KUI.renderNode`），对象也可写 `{text,icon,on:{click}}` |
 | `accordion` | boolean | `true` | 否 | 同级子菜单是否互斥展开（手风琴） |
 | `flyout` | boolean | `true` | 否 | 折叠态是否悬停弹出浮出子菜单（flyout） |
@@ -286,7 +286,7 @@ menu.collapse('pages');
 
 - `flyout` 只在 **`collapsed: true` 且该项有 `children`** 时生效；菜单展开时是手风琴子菜单，不是浮层。
 - 折叠态**键盘**不会打开 flyout（源码里 `ArrowRight` 有 `!state.collapsed` 判断），用鼠标悬停或 `api.expand(id)`。
-- 想改宽度不要改 CSS `width`，改 `width` / `collapsedWidth` 两个 props（或运行时改 `--kui-menu-w` 变量）。
+- 想改宽度不要改 CSS `width`，改 `width` / `collapsedWidth` 两个 props（或运行时改 `--kui-menu-width` 变量；旧别名 `--kui-menu-w` 仍兼容）。
 
 ### 1.8 与其他组件的联动
 
@@ -504,7 +504,7 @@ KUI.bus.on('tabs:activate', function (payload) {
 });
 ```
 
-要点：`setBreadcrumb` 传 `{home, items}` 可同时替换首项；`maxBreadcrumb` 控制折叠，不要写 `breadcrumb.max`。
+要点：`setBreadcrumb` 传 `{home, items}` 可同时替换首项；折叠上限用顶层 `maxBreadcrumb` 控制；**v1.3.9 起也接受 `breadcrumb.max`**（`src/components/menunav.js:144-150` 归一为 `maxBreadcrumb`，两者同时写以顶层为准），`0` 表示不裁剪。
 
 ### 2.8 与其他组件的联动
 
@@ -519,7 +519,7 @@ KUI.bus.on('tabs:activate', function (payload) {
 | 现象 | 原因 | 处理 |
 | --- | --- | --- |
 | 面包屑整条不显示 | `breadcrumb.enabled` 为 `false`，或 `enabled` 未配而只给了 `items` | 配 `enabled: true` 并给 `home` |
-| 层级一长就换行、不折叠 | 写成了 `breadcrumb.max` | 改用顶层 `maxBreadcrumb`（源码只读它，`src/components/menunav.js:370`） |
+| 层级一长就换行、不折叠 | `breadcrumb.max` 与 `maxBreadcrumb` 冲突，或写了 `0` | v1.3.9 起两种写法等价；同时写时以顶层 `maxBreadcrumb` 为准，`0` = 不裁剪（`src/components/menunav.js:144-150,380-381`） |
 | 分隔符显示成 `chevron-right` 字样 | `separator` 是文本，不解析图标名 | 用 `/`、`›`、`·` 等字符；图标分隔符需自定义样式 |
 | 前进/后退永远是灰的 | 只有一次 `open`、没有历史栈；或历史被外部接管 | 先打开两个以上标签；外部接管时手动 `setBackForward` |
 | 折叠按钮点了没反应 | 页面里没有 `menu` 实例，或外部监听后未自行处理 | 主应用用 `KUI.app.toggleCollapsed()`；独立页先创建菜单实例 |
@@ -1038,7 +1038,7 @@ function openSealForm() {
 - 渲染文件：`src/components/toast.js`（约 531 行），类型名 `toast`，同时暴露静态 API `KUI.toast`；**加载完成即挂载**，不依赖页面节点。
 - 两种形态：`mode: 'toast'`（角落小条，默认）与 `mode: 'notification'`（右上大卡片，带标题/说明/动作）。
 - 四种语义类型：`info` / `success` / `warning` / `error`（兼容别名 `danger` → `error`）。
-- 主应用里没有它的配置段；`app.json` 的 `ui.toast` 会被 `bootstrap` 转交给 `KUI.toast.config`（`src/app/bootstrap.js:821-838`），用来改全局默认位置/数量/时长。
+- 主应用里没有它的配置段；`app.json` 的 `ui.toast` 会被 `bootstrap` 转交给 `KUI.toast.config`（`src/app/bootstrap.js:935-953`），用来改全局默认位置/数量/时长。
 - 独立使用：`standalone/toast.html`；也可以在任意业务页直接 `KUI.toast.info('...')`。
 - DOM：按位置分图层 `.kui-toast-layer[data-toast-layer]`（notification 另有 `--notification` 修饰），每条约 `.kui-toast.kui-toast--{type}.kui-toast--{mode}`，内含 `.kui-toast__accent`、`.kui-toast__icon`、`.kui-toast__body`（`__title`/`__message`）、可选的 `__action`、`__close`、`__progress > __progress-bar`。层级用 CSS 变量 `--kui-z-toast`（`src/styles/base.css:343`，默认 3000）。
 
@@ -1226,7 +1226,7 @@ KUI.toast.notify({
 
 - 渲染文件：`src/components/app-shell.js`（约 663 行），类型名 `app-shell`，`category: 'layout'`（`src/components/app-shell.js:638-661`）；实例挂在 `el.__kuiApp`，静态入口是 `KUI.app`。
 - 它**不直接画界面**，只负责三件事：① 搭骨架（左侧 menu、顶部 menunav、中间 tabs）；② 把 `app.json` 的 `app`/`layout`/`menu`/`menunav`/`tabs` 段注入子组件；③ 维护折叠状态、面包屑兜底、历史按钮、子组件生命周期。
-- 主应用装配：`index.html` 里只有挂载点 `#kui-app`（`index.html:24-25`），`bootstrap` 读 `config/app.json` 后调用 `KUI.app.create(host, appCfg, { initialTabs })`（`src/app/bootstrap.js:900`）。也可以直接写节点：`{"type":"app-shell","props":{...}}`。
+- 主应用装配：`index.html` 里只有挂载点 `#kui-app`（`index.html:24-25`），`bootstrap` 读 `config/app.json` 后调用 `KUI.app.create(host, appCfg, { initialTabs })`（`src/app/bootstrap.js:1014`）。也可以直接写节点：`{"type":"app-shell","props":{...}}`。
 - 独立使用：`standalone/no-shell.html` 演示了**不用** app-shell、手工拼 menu + menunav + tabs 的等价写法。
 - DOM 与 CSS 变量：`.kui-app[data-kui-shell]` → `.kui-app__left`（menu）+ `.kui-app__main` → `.kui-app__header`（menunav）+ `.kui-app__center`（tabs）。布局用变量驱动：`--kui-menu-width`、`--kui-menu-width-collapsed`、`--kui-header-height`、`--kui-tabbar-height`、`--kui-app-gap`；折叠时根节点加 `.is-menu-collapsed` / `.kui-app--collapsed`。
 - 折叠状态记忆：`localStorage['kui-menu-collapsed']`（`src/components/app-shell.js:57-73`），刷新后保持。
@@ -1237,7 +1237,7 @@ KUI.toast.notify({
 {
   "type": "app-shell",
   "props": {
-    "app": { "title": "刻刻帝终端", "subtitle": "KurumiUI v1.3.8", "logoIcon": "clock", "home": "pages/home.html" },
+    "app": { "title": "刻刻帝终端", "subtitle": "KurumiUI v1.3.9", "logoIcon": "clock", "home": "pages/home.html" },
     "layout": {
       "gap": 10,
       "menu": { "width": 252, "collapsedWidth": 68, "collapsed": false },
@@ -1349,7 +1349,7 @@ console.log(app.isCollapsed(), app.getActiveTab());
 
 ```json
 {
-  "app": { "title": "刻刻帝终端", "subtitle": "KurumiUI v1.3.8", "logoIcon": "clock", "home": "pages/home.html" },
+  "app": { "title": "刻刻帝终端", "subtitle": "KurumiUI v1.3.9", "logoIcon": "clock", "home": "pages/home.html" },
   "layout": { "gap": 10, "menu": { "width": 252, "collapsedWidth": 68 }, "header": { "height": 56 }, "tabbarHeight": 38 },
   "menu": {
     "type": "menu",
@@ -1540,8 +1540,8 @@ KUI.bus.on('tabs:activate', function (payload) {
 | 事件 | 参数 | 派发者 | 说明 |
 | --- | --- | --- | --- |
 | `boot:progress` | `{ percent, hands }` | 实例 `setProgress`（`src/components/boot.js:284-286`） | 每次进度变化都发；`silent` 只跳过文本更新，**仍会发** |
-| `boot:done` | `{ app, cost }` | `bootstrap.js:924` | 仅主流程启动完成时发；`cost` 为毫秒 |
-| `boot:error` | `{ error }` | `bootstrap.js:932` | 仅主流程异常时发；`error` 是 Error 对象 |
+| `boot:done` | `{ app, cost }` | `bootstrap.js:1043` | 仅主流程启动完成时发；`cost` 为毫秒 |
+| `boot:error` | `{ error }` | `bootstrap.js:1051` | 仅主流程异常时发；`error` 是 Error 对象 |
 
 ### 6.5.7 常见错误与排查
 
@@ -1554,6 +1554,71 @@ KUI.bus.on('tabs:activate', function (payload) {
 | 改 `app.json` 的 `boot` 不生效（v1.3.7 及更早的历史问题） | 旧版 `bootstrap.js` 未调用 `configureBootLayer` | 升级到 v1.3.8+，或临时 `KUI.bootLayer.configure({...})`；详见 [16-boot.md](16-boot.md) §5.5 |
 
 ---
+
+## 6.6 datatable：数据表格（v1.4.0 新增）
+
+**定位**：`datatable` 是「一体化配置」的数据表格（注册类别 `data`），把搜索、筛选、排序、选择、工具栏、列设置、密度、导出、分页收进一个 `type` 的 `props`。文件 `src/components/datatable.js` + `src/styles/datatable.css`；版本号见 `KUI.datatable.version`。
+
+### 6.6.1 最小示例
+
+```json
+{
+  "type": "datatable",
+  "props": {
+    "rowKey": "id",
+    "columns": [
+      { "key": "name", "title": "名称", "sortable": true, "filter": { "type": "text" } },
+      { "key": "score", "title": "评分", "format": "number", "sortable": true },
+      { "key": "status", "title": "状态", "format": "badge", "dict": { "on": "在线", "off": "离线" } }
+    ],
+    "data": [
+      { "id": 1, "name": "一之弹", "score": 88.5, "status": "on" },
+      { "id": 2, "name": "二之弹", "score": 61, "status": "off" }
+    ],
+    "selection": { "mode": "multi", "showSelectAll": true, "keepAcrossPages": true },
+    "pagination": { "enabled": true, "pageSize": 10 }
+  }
+}
+```
+
+### 6.6.2 常用字段
+
+| 字段 | 说明 |
+| --- | --- |
+| `columns` | 列定义：`key/title/width/minWidth/align/sortable/filter/format/formatOptions/dict/hidden/headerTip/className` |
+| `data` / `rows` | 行数据（`rows` 为兼容别名） |
+| `rowKey` | 行唯一键，默认 `'id'` |
+| `search` | 全局搜索：`{enabled,placeholder,width,keys}` |
+| `filter` | 列筛选行：`{enabled,columns,clearable}`；列级 `filter: true \| {type:'text'\|'select'\|'range', options, placeholder}` |
+| `sort` | `{enabled,mode:'single'\|'multi',default:[{key,order}]}` |
+| `selection` | `{mode:'none'\|'single'\|'multi',showSelectAll,selectOnRowClick,keepAcrossPages,selectAllScope:'page'\|'all'}` |
+| `pagination` | `{enabled,pageSize,pageSizes,showTotal,showSizer,showJumper,maxButtons}` |
+| `toolbar` | `{enabled,title,subtitle,actions,actionsAlign}`；`actions: [{label,icon,variant,action}]` |
+| `rowHighlight` / `rowClickAction` | 行点击高亮（默认 true）/ 行点击动作 |
+| `columnsToggle` / `densityToggle` / `refresh` / `export` | 列设置 / 密度 / 刷新 / CSV 导出 |
+| `height` / `maxHeight` | 固定表体高度（滚动 + 表头吸附），0 = 自动 |
+
+### 6.6.3 列格式
+
+`format` 可选：`text`（默认）、`number`（`formatOptions: {digits,prefix,suffix,thousandSeparator}`）、`date`（`{pattern:'YYYY-MM-DD'}`）、`boolean`、`tags`、`badge`、`dict`（`{value:label}`）、`link`、`progress`、`code`、`ellipsis`、`actions`（行内动作列：`actions:[{label,icon,variant,action}]`）。
+
+### 6.6.4 实例 API 与事件
+
+实例 API：`setData/getData/getRows/getFilteredRows`、`setColumns/getColumns/setColumnVisible`、`setKeyword/setFilter/getFilter/clearFilters`、`setSort/getSort`、`setPage/getPage/setPageSize/getPageSize`、`getSelection/getSelectedKeys/getSelectedRows/setSelection/clearSelection/selectAll/clearAllSelection`、`setActive/getActive`、`setLoading/setDensity/getDensity/setToolbarTitle`、`refresh/exportCsv/getState/getConfig/on/off/destroy`。
+
+事件：`api.on(name, fn)` 订阅，同时 `KUI.bus.emit('datatable:'+name, payload)`；`name` ∈ `ready / refresh / sort / filter / page / action / destroy`。
+
+### 6.6.5 拆装
+
+从 `config/kui-modules.json` 的 `profiles.app.files` / `profiles.standalone.files` 移除 `src/components/datatable.js` → `npm run build:config`：`{type:'datatable'}` 渲染为未注册占位块，其他组件不受影响。单独页面只引 `base.css` + `datatable.css` + core 脚本 + `datatable.js`，然后 `KUI.datatable.create(host, props)` 手动挂载；参考 `standalone/datatable.html`。
+
+### 6.6.6 常见错误
+
+- `data` 忘写：表格空态（`.kui-datatable__empty`），不是报错。
+- `rowKey` 与实际字段不符：选择/跨页保真失效（选中键重复或错位）。
+- 列 `key` 用点路径（如 `meta.owner`）时数据要有对应嵌套；取不到显示空串。
+- 需要行内按钮时列 `format:'actions'` 并配 `actions`；要用全局动作写 `action` 字段（走 `KUI.actions`）。
+- 大数据量建议开 `pagination` + 关闭 `showIndex`；固定高度用 `height`（`maxHeight` 二选一）。
 
 ## 7. 组件间联动全景
 

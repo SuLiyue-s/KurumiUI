@@ -1,6 +1,6 @@
 # KurumiUI 使用手册
 
-> **适用版本：KurumiUI v1.3.8** ｜ 适用仓库：`SuLiyue-s/KurumiUI`（main 分支）｜ 手册语言：中文
+> **适用版本：KurumiUI v1.4.0** ｜ 适用仓库：`SuLiyue-s/KurumiUI`（main 分支）｜ 手册语言：中文
 > 本手册的所有字段、默认值、数量与行为，均以**仓库源码与运行时可枚举结果**为准；与 `docs/` 下旧文档或 `README.md` 冲突时，以源码为准（旧文档是设计档案，本手册是操作指南）。
 
 ---
@@ -47,6 +47,10 @@ npm start
 npm run build:config   # = node tools/build-config.js && node tools/build-all.js
 ```
 
+**哪些改完刷新即可、哪些必须重建？** 记住两条边界：① 配置类（`app.json`/`text.json`/`themes.json`/`demos`）在 http(s) 下刷新即生效，`file://` 或“只部署了 bundle.js”时必须重建；② **`config/kui-modules.json` 任何模式都必须重建**（它生成 `kui-all.js` 的脚本清单）。完整判定矩阵见 [04-config-app.md](04-config-app.md) §1.3.1。
+
+**界面里保存的标题名、皮肤等存在哪？** 全部存入**当前浏览器的 localStorage**（`kui-theme`、`kui-shell-name`、`kui-start-tab`、`kui-density`、`kui-avatar`、`kui-menu-collapsed` 等），**不会写 `config/*.json`**；配置 JSON 只提供默认值。因此换浏览器/清缓存会回到默认值；要让所有访问者看到新的默认标题/皮肤，请改配置 JSON 并按上面的规则决定是否重建。存储键全表、优先级与清除方法见 [04-config-app.md](04-config-app.md) §1.3.2～§1.3.3。
+
 详细步骤见 [01-install.md](01-install.md)；构建原理见 [02-build.md](02-build.md)。
 
 ---
@@ -73,7 +77,7 @@ npm run build:config   # = node tools/build-config.js && node tools/build-all.js
 | 01 | [01-install.md](01-install.md) | 环境要求、获取源码、首次运行、验证安装、目录地图、卸载 | — |
 | 02 | [02-build.md](02-build.md) | 构建原理：`build-config`（配置包）与 `build-all`（入口聚合）、产物格式、构建矩阵、工程化校验命令 | 01 |
 | 03 | [03-assembly.md](03-assembly.md) | 组装：`index.html` 逐行解剖、加载顺序、启动时序、5 种装配配方、iframe 体系 | 01 |
-| 04 | [04-config-app.md](04-config-app.md) | 配置总览 + `app.json` 全字段（`app`/`ui`/`layout`/`theme`/`avatar`/`text`/`dialogs`/`menu`/`menunav`/`tabs`） | 03 |
+| 04 | [04-config-app.md](04-config-app.md) | 配置总览 + `app.json` 全字段（`app`/`ui`/`layout`/`theme`/`avatar`/`text`/`dialogs`/`menu`/`menunav`/`tabs`）＋ **生效判定矩阵（改 JSON 即生效 vs 必须重建）** 与 **运行时持久化（界面保存的参数存 localStorage）** | 03 |
 | 05 | [05-controls-input.md](05-controls-input.md) | 19 个表单控件（input、select、date、slider…）逐字段、事件、实例 API | 04 |
 | 06 | [06-controls-display.md](06-controls-display.md) | 其余控件（按钮、图标、表格、分页、上传、头像、标签…）逐字段 | 04 |
 | 07 | [07-form-engine.md](07-form-engine.md) | 表单引擎：布局、数据绑定、校验、依赖联动、实例 API、`dialog.form` | 05 |
@@ -97,7 +101,7 @@ npm run build:config   # = node tools/build-config.js && node tools/build-all.js
 | --- | --- | --- |
 | KUI | 框架暴露在 `window.KUI` 上的全局命名空间（`KUI.registry`、`KUI.form` 等） | 11 |
 | 节点 / node | 一个 JSON 对象 `{ "type": "...", "props": {...}, ... }`，是界面描述的最小单位 | 03、04 |
-| type | 节点的类型名，决定用哪个注册器渲染（共 41 个，见附录 A） | 08 |
+| type | 节点的类型名，决定用哪个注册器渲染（共 42 个，见附录 A） | 08 |
 | props | 节点的属性包，字段由对应 type 的注册器定义 | 05–08 |
 | profile | 模块清单。`config/kui-modules.json` 里定义「一个入口要加载哪些 JS」，如 `app`、`standalone` | 02、03 |
 | 入口聚合文件 | `src/core/kui-all.js`，构建时按 profile 生成，浏览器只引它一个 | 02 |
@@ -189,7 +193,7 @@ node server.js [--port 8080] [--host 127.0.0.1] [--quiet]
 
 ---
 
-## 8. 附录 A：41 个注册类型（按 category 分组）
+## 8. 附录 A：42 个注册类型（按 category 分组）
 
 运行时枚举命令见 `02-build.md`；分类来自 `KUI.registry.list()` 的 `category` 字段。
 
@@ -241,13 +245,14 @@ node server.js [--port 8080] [--host 127.0.0.1] [--quiet]
 | `alert` | 内联提示条：类型、标题、描述、可关闭 | 06 |
 | `progress` | 进度条：百分比、颜色、尺寸 | 06 |
 
-**data（3）**
+**data（4）**
 
 | type | 说明 | 章节 |
 | --- | --- | --- |
 | `table` | 表格：列定义、空态、行操作 | 06 |
 | `pagination` | 分页：页码、总数、每页条数 | 06 |
 | `upload` | 上传：选择按钮、多文件、类型/大小限制 | 06 |
+| `datatable` | 数据表格（v1.4.0）：一体化配置、筛选/排序/分页/选择/工具栏/导出 | 08 §6.6 |
 
 **layout（4）**
 
@@ -306,5 +311,5 @@ toast.notify      toast.show        toast.success     toast.warning
 ## 11. 手册的维护约定
 
 - **改配置不用改手册**；改源码（新增 type / action / handler / theme / 字段）时，按第 3 节索引更新对应章节，并跑 `node tools/check-manual.js` 与 `node tools/check-beginner-manual.js`（后者校验小白手册）。
-- 手册中的数量口径（41 / 19 / 28 / 61 / 6）由校验脚本与运行时枚举比对；历史口径需加「截至 v1.3.8」等限定语。
+- 手册中的数量口径（42 / 19 / 28 / 61 / 6）由校验脚本与运行时枚举比对；历史口径需加「截至 v1.3.8」等限定语。
 - 报告手册问题请附：章节文件 + 小节标题 + 复现步骤（命令/配置片段）+ 期望 vs 实际。

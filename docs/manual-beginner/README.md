@@ -1,6 +1,6 @@
 # KurumiUI 小白入门手册
 
-> 适用版本：KurumiUI v1.3.9 ｜ 难度：⭐ 入门 ｜ 前置章节：无 ｜ 阅读时长：约 180 分钟（含动手）
+> 适用版本：KurumiUI v1.4.0 ｜ 难度：⭐ 入门 ｜ 前置章节：无 ｜ 阅读时长：约 180 分钟（含动手）
 
 ---
 
@@ -72,6 +72,8 @@ npm start
 
 > 打不开、白屏、命令行报错？直接翻 [09-troubleshooting.md](09-troubleshooting.md)，那里按「现象」列了 20 多个常见问题。
 
+**先记住两个结论（后面会反复用到）**：① 改 `config/*.json` 后，用 `npm start` 时刷新页面即生效，只有 `file://` 或“只部署了 bundle”时才必须 `npm run build:config`；② 界面上点的「保存」（终端名称、主题、头像、密度等）只写进**你自己浏览器的 localStorage**，**不会修改配置文件**。完整说明见 [04-config-ui.md](04-config-ui.md) 第 9 节。
+
 ---
 
 ## 3. 学习路线（10 步，约 2.5 小时）
@@ -104,7 +106,7 @@ npm start
 | 01 | [01-setup.md](01-setup.md) | 准备环境：命令行是什么、怎么装 Node.js、装完怎么验证 | — |
 | 02 | [02-first-run.md](02-first-run.md) | 第一次运行：两种运行方式、看到什么、改第一个配置 | 01 |
 | 03 | [03-tour.md](03-tour.md) | 认识界面：五个区域、区域↔配置对照、开发者工具入门 | 02 |
-| 04 | [04-config-ui.md](04-config-ui.md) | 用配置改界面：JSON 入门、改标题/菜单/标签页/布局/文案/头像 | 03 |
+| 04 | [04-config-ui.md](04-config-ui.md) | 用配置改界面：JSON 入门、改标题/菜单/标签页/布局/文案/头像＋**改完怎么生效、界面保存存哪** | 03 |
 | 05 | [05-new-page.md](05-new-page.md) | 新建自己的页面：复制模板、写页面、加菜单项、设为默认标签 | 04 |
 | 06 | [06-form-basics.md](06-form-basics.md) | 表单与控件入门：节点树、8 个常用控件、一个完整表单 | 04 |
 | 07 | [07-theme-basics.md](07-theme-basics.md) | 配色与主题：主题结构、改 token 换主色、头像与启动屏换色 | 04 |

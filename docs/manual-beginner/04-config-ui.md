@@ -1,6 +1,6 @@
 # 04 · 用配置把界面改成你的样子
 
-> 适用版本：KurumiUI v1.3.9 ｜ 难度：⭐ 入门 ｜ 前置章节：[02-first-run.md](02-first-run.md) ｜ 阅读时长：约 25 分钟
+> 适用版本：KurumiUI v1.4.0 ｜ 难度：⭐ 入门 ｜ 前置章节：[02-first-run.md](02-first-run.md) ｜ 阅读时长：约 25 分钟
 
 ## 本章目标
 
@@ -405,7 +405,7 @@ KurumiUI 的界面几乎都由 JSON 描述。JSON 不写代码，只写数据，
 }
 ```
 
-保存 → 刷新 → 左侧菜单明显变宽，顶部导航栏变高。调宽度只改 `layout.menu.width`，菜单组件内部的 `menu.props.width`、`menu.props.collapsedWidth` 不要拿来调宽度（它们不是尺寸入口）。
+保存 → 刷新 → 左侧菜单明显变宽，顶部导航栏变高。**调宽度优先改 `layout.menu.width`**；v1.3.9 起组件级的 `menu.props.width` / `menu.props.collapsedWidth` 也会生效（且优先于 `layout`），但小白阶段建议只用 `layout`，避免两处都写造成“改了没反应”的困惑。
 
 ## 7. 改文案：`text.json` 是默认值，`app.json` 的 `text` 是覆盖
 
@@ -504,6 +504,55 @@ KurumiUI 的界面几乎都由 JSON 描述。JSON 不写代码，只写数据，
 
 点击头像会打开「更换头像」弹窗（`editable: true` 时），可以填图片地址或选内置预设，也可以清除自定义头像恢复默认图标；选本地图片时大小受 `avatar.picker.maxSizeMB` 限制（默认 2MB）。
 
+## 9. 改完怎么生效？界面保存的东西存在哪？
+
+前面每节的最后都写「保存 → 刷新」。这一节把两个最容易踩的坑一次说清：**哪些改动刷新就好、哪些必须“重新生成配置包”**；以及**你在界面上点的保存，究竟存到了哪里**。
+
+### 9.1 三种情况，对号入座
+
+| 你改了什么 | `npm start`（`http://` 打开） | `file://` 双击打开 / 打包分发 |
+| --- | --- | --- |
+| `config/app.json`、`config/text.json`、`src/themes.json`、`config/demos/*.json` | 保存后**刷新页面即生效** | 必须先 `npm run build:config` 再刷新 |
+| `config/kui-modules.json`（脚本清单/profile） | **必须** `npm run build:all`（或 `npm run build`）重建 `src/core/kui-all.js` | 同样必须重建 |
+| `index.html`、`src/styles/*.css`、`src/**/*.js` | 直接改、刷新即生效（浏览器重新加载源码） | 不需要构建 |
+
+记两句话：
+
+- **配置进 bundle，脚本进清单。** 配置类 JSON 会被打包进 `config/bundle.js`；`http` 下页面优先直接读原始 JSON，bundle 只是兜底。`kui-modules.json` 决定 `kui-all.js` 里有哪些脚本，改了它就必须重建。
+- **没有热更新，改完一律刷新页面**（`F5`；样式没变就用 `Ctrl+F5` 强制刷新）。
+
+> 部署到服务器后同理：上传了 `config/*.json` 的站点，线上改这些 JSON 刷新即可；只上传了 `config/bundle.js` 的站点，必须本地重建后重新上传（详见 [08-deploy.md](08-deploy.md)）。
+
+### 9.2 界面上点的“保存”，存到了浏览器里
+
+点右上角「设置」、选主题、换头像、折叠菜单——这些操作**不会修改任何配置文件**，而是把偏好写进**当前浏览器的 localStorage**；`config/*.json` 只提供默认值。
+
+| 你在界面上做了什么 | 浏览器存储键 | 下次打开还记得吗 |
+| --- | --- | --- |
+| 改终端名称 | `kui-shell-name` | 记得 |
+| 选主题 | `kui-theme` | 记得 |
+| 设启动页 | `kui-start-tab` | 记得 |
+| 记住上次标签 | `kui-remember-tab`、`kui-last-tab` | 记得 |
+| 改界面密度 | `kui-density` | 记得 |
+| 换头像 | `kui-avatar`（`avatar.persist: true` 时） | 记得 |
+| 折叠菜单 | `kui-menu-collapsed` | 记得 |
+| 打开/关闭诊断面板 | `kui-debug` | 记得 |
+| iframe 自愈标记 | `sessionStorage` 的 `kui-self-heal:<版本>` | 关标签即消失 |
+
+两个直接后果：
+
+1. **换浏览器、换电脑或清缓存，你保存的标题/皮肤就“没了”**——新浏览器里 localStorage 是空的，会回到 `config/app.json` 的默认值。
+2. 主题优先级是：网址 `?kuiTheme=` > 本机已保存的主题 > `config/app.json` 的 `theme.default`。所以“我改了 `theme.default` 怎么没变”，往往是本机还记着上次选的主题。
+
+### 9.3 清除偏好 / 让所有访问者看到新默认
+
+- 清掉全部偏好：打开 F12 → Application（应用）→ Local Storage → 选中本站 → 删除对应键（或控制台执行 `localStorage.clear()`）。
+- 只清主题：控制台执行 `KUI.theme.clearPersisted()`。
+- 只想“看一次默认效果”：开一个无痕窗口访问。
+- **想让所有访问者看到新标题、新默认皮肤**：改 `config/app.json`（`app.title`、`theme.default` 等），并按 9.1 的表格决定是否重建——不要只在自己的浏览器里点保存。
+
+> 一句话总结：**配置文件管“所有人的默认值”，localStorage 管“这台浏览器的偏好”。**
+
 ## 动手练习
 
 1. 把浏览器标签页标题改成「刻刻帝终端 · 我的版本」，同时把左侧品牌名和顶栏标题也改成同一个名字。提示：三处字段。
@@ -519,7 +568,8 @@ KurumiUI 的界面几乎都由 JSON 描述。JSON 不写代码，只写数据，
 - 「应用名」分三处：浏览器标题 `app.title`、品牌区 `menu.props.brand.title`、顶栏 `menunav.props.title`。
 - 菜单项写在 `menu.props.items`，节点有 `group`、`item`、`divider` 三种，点击行为在 `target.tab`。
 - 标签页的首页、启动时打开哪些、最多几个，都在 `tabs.props` 的 `home`、`initial`、`maxTabs`。
-- 布局尺寸只在 `layout` 里改；`npm start` 下保存刷新即生效，`file://` 方式需要先 `npm run build:config`。
+- 布局尺寸优先在 `layout` 里改；v1.3.9 起 `menu.props.width/collapsedWidth` 也生效（且优先于 `layout`）。
+- **配置 JSON 是默认值，界面保存的偏好进 localStorage**：改配置文件并按 9.1 判断是否重建，才能让所有访问者看到新默认。
 
 ## 延伸阅读
 

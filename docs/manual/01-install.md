@@ -1,6 +1,6 @@
 # 01 · 安装与首次运行
 
-> 适用版本：KurumiUI v1.3.9 ｜ 前置章节：无（本手册起点）｜ 阅读时长：约 14 分钟
+> 适用版本：KurumiUI v1.4.0 ｜ 前置章节：无（本手册起点）｜ 阅读时长：约 14 分钟
 
 ## 本章目标
 
@@ -133,7 +133,7 @@ npx serve -l 8080 .
 | --- | --- | --- |
 | `?kui_debug=1` | 打开诊断面板（`src/core/diag.js:237`） | `http://127.0.0.1:8080/?kui_debug=1` |
 | `?kuiTheme=<id>` | 强制主题（`src/core/theme.js:166`） | `http://127.0.0.1:8080/?kuiTheme=starry` |
-| `?kui_v=<版本>` | 由框架自动追加到 iframe 子页 URL 做缓存穿透，手加一般无意义 | `.../pages/home.html?kui_v=1.3.8` |
+| `?kui_v=<版本>` | 由框架自动追加到 iframe 子页 URL 做缓存穿透，手加一般无意义 | `.../pages/home.html?kui_v=1.3.9` |
 
 > `?demo=<name>` 只出现在菜单项的静态 URL（`config/app.json:575` 的 `standalone/menu.html?demo=menu`），框架层与 `standalone/*.html` 都不解析它，不要写进验收脚本。
 
@@ -142,10 +142,10 @@ npx serve -l 8080 .
 | 命令 | 校验内容 | 通过判据 |
 | --- | --- | --- |
 | `npm run build` | 重建配置包与入口清单 | 见下方预期输出 |
-| `node tools/check-assets.js` | HTML 的 CSS / JS 引用存在性、空文件、外链、重复、ESM | 末行 `汇总: 21 个 HTML，错误 0 个，警告 0 个` |
+| `node tools/check-assets.js` | HTML 的 CSS / JS 引用存在性、空文件、外链、重复、ESM | 末行 `汇总: 22 个 HTML，错误 0 个，警告 0 个` |
 | `node tools/check-compat.js` | 禁用语法 / API 与 Node 13.14 语法校验 | 出现 `[PASS] 未发现禁用语法 / API` |
 | `npm test` | compat / config / server / render 四套件共 33 条用例 | 末行 `=> PASS` |
-| `npm run verify` | 冒烟 108 项 + handlers 演示页 + 弹窗动作桥 + 产物一致性 | 四段均打印 ✔ / PASS |
+| `npm run verify` | 冒烟 111 项 + handlers 演示页 + 弹窗动作桥 + 产物一致性 | 四段均打印 ✔ / PASS |
 | `npm run audit` | 一致性审计 17 项 + 组件拆装审计 19 项 | 两个脚本均 `失败 0 项` |
 
 `npm run build` 预期输出（数值以实际输出为准）：
@@ -155,15 +155,15 @@ KurumiUI 配置打包完成
   大小: 111.6 KB
   demos      : 11 个
 [build-all] 已生成 src\core\kui-all.js (3982 字节)
-[build-all] profiles: app=29, standalone=28
+[build-all] profiles: app=30, standalone=29
 ```
 
 浏览器控制台检查（http 模式打开 `http://127.0.0.1:8080/`，F12 → Console）：
 
 ```js
-KUI.version                  // '1.3.8'
+KUI.version                  // '1.3.9'
 KUI.env.isBrowser            // true
-KUI.registry.list().length   // 41（其中 19 个是表单控件）
+KUI.registry.list().length   // 42（其中 19 个是表单控件）
 KUI.actions.list().length    // 28
 KUI.handlers.list().length   // 61
 KUI.config.isHttp()          // true；file:// 下为 false
@@ -178,7 +178,7 @@ typeof window.__KUI_BUNDLE__ // 'object'
 | `/?kui_debug=1`、`/?kuiTheme=starry` | 主应用 + 诊断面板 / 强制主题 |
 | `/pages/home.html` | 业务页：首页（同目录另有 dialogs、editor、form、notify、profile、theme，共 7 个） |
 | `/standalone/controls.html` | 独立渲染页：控件总览（同目录另有 11 个页面，共 12 个） |
-| `/standalone/boot.html` | v1.3.8 加载层交互测试页（handsAt 映射、进度动画、拆装示例），见 [16-boot.md](16-boot.md) |
+| `/standalone/boot.html` | v1.3.7 新增、v1.3.8 完善的加载层交互测试页（handsAt 映射、进度动画、拆装示例），见 [16-boot.md](16-boot.md) |
 
 ## 1.7 目录地图
 
@@ -192,7 +192,7 @@ typeof window.__KUI_BUNDLE__ // 'object'
 | `src/frame/` | 框架页 | `kui-frame.js` 内嵌页框架；`dialog-frame.html` + `dialog-frame.js` 弹窗页 |
 | `src/styles/` | 样式 | `base.css` / `controls.css` / `components.css` / `tooltip.css` / `boot.css`（v1.3.8 起启动层独立样式）/ `avatar.css`，主题 token 在 `themes/` |
 | `src/themes.json` | 主题数据 | 6 套主题（kurumi 默认、kurumi-angel、starry、sakura、abyss、dawn） |
-| `pages/`、`standalone/` | 页面 | 7 个配置驱动业务页；12 个独立渲染页 + `embedded.js` |
+| `pages/`、`standalone/` | 页面 | 7 个配置驱动业务页；13 个独立渲染页 + `embedded.js` |
 | `test/`、`tools/` | 测试与工程工具 | `run.js` + 四个套件 + `dom-stub.js`；`tools/` 共 15 个 .js：构建 2 个（`build-config.js` / `build-all.js`），校验 / 审计 / 冒烟 12 个（含 `verify-build.js`、`audit-config.js`、两份手册的校验器 `check-manual.js` 与 `check-beginner-manual.js`，可用 `node tools/check-manual.js [--json] [--strict]` / `node tools/check-beginner-manual.js`），截图 1 个（`screenshot.js`） |
 
 `index.html:51` 只引一行 `src/core/kui-all.js`，加载哪些模块由 `config/kui-modules.json` 的 `files` 数组决定，详见 [02-build.md](02-build.md) 与第 03 章。
@@ -245,12 +245,12 @@ npm test
 ```text
 v24.14.0
 KurumiUI 配置打包完成
-[build-all] profiles: app=29, standalone=28
-汇总: 21 个 HTML，错误 0 个，警告 0 个
-汇总: 33 通过 / 0 失败 / 0 跳过   总计 33   耗时 ...ms   => PASS
+[build-all] profiles: app=30, standalone=29
+汇总: 22 个 HTML，错误 0 个，警告 0 个
+汇总: 34 通过 / 0 失败 / 0 跳过   总计 34   耗时 ...ms   => PASS
 ```
 
-最后 `npm start`，打开 `http://127.0.0.1:8080/`，在控制台执行 1.6 节检查，得到 `1.3.8 / true / 41 / 28 / 61 / true` 即安装完成。
+最后 `npm start`，打开 `http://127.0.0.1:8080/`，在控制台执行 1.6 节检查，得到 `1.4.0 / true / 42 / 28 / 61 / true` 即安装完成。
 
 ## 参考源码
 

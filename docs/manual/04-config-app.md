@@ -1,10 +1,11 @@
 # 04 · 配置总览 + app.json 全字段
 
-> 适用版本：KurumiUI v1.3.9 ｜ 前置章节：[03-assembly.md](03-assembly.md) ｜ 阅读时长：约 40 分钟
+> 适用版本：KurumiUI v1.4.0 ｜ 前置章节：[03-assembly.md](03-assembly.md) ｜ 阅读时长：约 40 分钟
 
 ## 本章目标
 
-- 说清 `config/` 下 6 类配置的职责与「什么时候必须重建 `bundle.js`」的判定方法；
+- 说清 `config/` 下 6 类配置的职责，能按 §1.3 的判定矩阵回答「哪些改完刷新即生效、哪些必须重建」；
+- 说清界面里保存的标题名、皮肤、启动页、密度、头像存到哪（localStorage，不是配置 JSON），以及如何清除与“让所有访问者看到新默认”；
 - 查得到 `config/app.json`（755 行、12 键）任意字段的类型、默认值、作用与生效时机；
 - 会改 7 类常见配置并预判变化，识别「写了却不生效」的字段。
 
@@ -24,8 +25,8 @@ config/app.json → build:config → config/bundle.js → KUI.config 缓存 → 
 
 | 文件 | 职责 | 消费/生成方 |
 | --- | --- | --- |
-| `config/app.json` | 外壳全部配置（755 行、12 键） | `bootstrap.js:841-935`（`boot()` 主流程）、`app-shell.js:141-146` |
-| `config/text.json` | 全量文案字典（40 组，见 §7；含 v1.3.8 新增的 `boot` 组） | `bootstrap.js:861-863` → `KUI.i18n.set` |
+| `config/app.json` | 外壳全部配置（755 行、12 键） | `bootstrap.js:955-1054`（`boot()` 主流程）、`app-shell.js:141-146` |
+| `config/text.json` | 全量文案字典（40 组，见 §7；含 v1.3.8 新增的 `boot` 组） | `bootstrap.js:975-977` → `KUI.i18n.set` |
 | `src/themes.json` | 6 套主题 token（**不在 config/ 下**） | `theme.js:201` 载入、`:297` 应用 |
 | `config/demos/*.json` | 11 份示例数据，页面数据源，外壳不加载 | `KUI.config.load('demos/xxx')`（`pages/form.html:195-197`） |
 | `config/bundle.js` | 构建产物 `__KUI_BUNDLE__={app,text,themes,demos,meta}` | `config.js:82-96` 兜底读；勿手改 |
@@ -33,15 +34,75 @@ config/app.json → build:config → config/bundle.js → KUI.config 缓存 → 
 
 路径写死在 `config.js:25-31`；`config.js:73-77` 把 `demos/xxx` 映射到 `config/demos/xxx.json`。主题默认值在 `app.json.theme.default`，token 在 `src/themes.json`（见 [09-theme.md](09-theme.md)）。
 
+> 上表每个文件「改完是否需要重建」不同：`bundle.js` 是配置产物、`kui-all.js` 是模块清单产物，二者都由构建生成；判定方法与误区见 §1.3。
+
 ### 1.2 KUI.config 读取管线
 
-`load(name)`（`config.js:148-212`）依次：① 内存缓存（非 `force`）→ ② 同文件并发合并 → ③ 注入读取器 `setReader`（Node 测试）→ ④ 非浏览器直读 `__KUI_BUNDLE__` → ⑤ http(s) `fetch`（`cache:'no-cache'`，失败回退 bundle 并 `warnOnce('cfg-fallback:'+name)`，`config.js:175-194`）→ ⑥ file:// 先读 bundle 再试 fetch，失败报“请运行 `npm run build:config` 或使用 `npm start`”（`config.js:195-207`）。解析失败返回 `null` 并 `KUI.error`（`:98-106`）；只有 `app.json` 缺失才致命（`bootstrap.js:865-867`）。
+`load(name)`（`config.js:148-212`）依次：① 内存缓存（非 `force`）→ ② 同文件并发合并 → ③ 注入读取器 `setReader`（Node 测试）→ ④ 非浏览器直读 `__KUI_BUNDLE__` → ⑤ http(s) `fetch`（`cache:'no-cache'`，失败回退 bundle 并 `warnOnce('cfg-fallback:'+name)`，`config.js:175-194`）→ ⑥ file:// 先读 bundle 再试 fetch，失败报“请运行 `npm run build:config` 或使用 `npm start`”（`config.js:195-207`）。解析失败返回 `null` 并 `KUI.error`（`:98-106`）；只有 `app.json` 缺失才致命（`bootstrap.js:979-981`）。
 
-### 1.3 什么时候必须重建：三步生效链
+### 1.3 生效判定：改 JSON 就要重建吗？界面里保存的又存在哪？
 
-分两种运行方式：**http 模式**（`npm start` / 静态托管）下，`load()` 会 `fetch` 原始 JSON（`no-cache`），改完配置**刷新即生效**，`bundle.js` 只作 fetch 失败时的兜底；**file:// 模式**（双击 `index.html`）读不到原始 JSON，只能读 `bundle.js`，改任何配置都必须重建。
+KurumiUI 有**两套配置来源**，判断任何改动是否生效，先确认它走哪一套：
 
-所以发布/打包/离线分发时走 `① 改 app.json → ② npm run build:config → ③ 刷新`；② 展开为 `build-config.js && build-all.js`。`npm start` 启动时本就会自动重建（`server.js:236-248`）。注意：**手改 JSON 后若从不重建，file:// 与 fetch 失败场景读到的仍是旧快照**。bundle 头部含 `meta.generatedAt` 与“自动生成，请勿手工编辑”（`tools/build-config.js:94-97`），重建后约 114 KB。
+| 来源 | 包含什么 | 什么时候被读取 | 改完之后 |
+| --- | --- | --- | --- |
+| **原始 JSON** | `config/app.json`、`config/text.json`、`src/themes.json`、`config/demos/*.json` | http(s) 下 `fetch`（`cache:'no-cache'`，`config.js:148-212`）；fetch 失败回退 bundle | **刷新页面即生效**，无需构建 |
+| **构建产物** | `config/bundle.js`（`__KUI_BUNDLE__`）、`src/core/kui-all.js`（模块注入清单） | `file://` 双击、离线分发、fetch 失败兜底 | **必须重建**后才生效 |
+
+#### 1.3.1 判定矩阵
+
+| 你改的文件 | http(s) 打开（`npm start`/静态托管） | 双击 `index.html`（file://） | 静态部署但只上传了 `bundle.js` | 说明 |
+| --- | --- | --- | --- | --- |
+| `config/app.json` | 刷新即生效 | 先 `npm run build:config` | 必须重建并重传 | 外壳全部字段 |
+| `config/text.json` | 刷新即生效 | 先 `npm run build:config` | 必须重建并重传 | 文案字典 |
+| `src/themes.json` | 刷新即生效 | 先 `npm run build:config` | 必须重建并重传 | 主题 token |
+| `config/demos/*.json` | 刷新对应页面即生效 | 先 `npm run build:config` | 必须重建并重传 | 业务页示例数据 |
+| `config/kui-modules.json` | **★ 任何模式都必须重建**（`npm run build:config`，或 `npm run build:all` 只重建清单产物） | 同左 | 同左 | 它决定 `src/core/kui-all.js` 注入哪些脚本；`npm start` 启动时会自动重建一次（`server.js:236-248`），但改完清单后仍建议手动重建再刷新 |
+| `index.html`、`src/styles/*.css`、`src/**/*.js` | 刷新即生效 | 刷新即生效 | 直接上传覆盖即可 | 不由配置包打包，浏览器直接加载 |
+| `config/bundle.js`、`src/core/kui-all.js` | **产物，勿手改** | 产物，勿手改 | 产物，勿手改 | 由构建命令重新生成（bundle 头含 `meta.generatedAt` 与“自动生成，请勿手工编辑”，重建后约 114 KB） |
+
+**三条结论**：
+
+1. **只改配置 + 用 http 打开 → 保存后刷新即可，不必构建**；用 `file://` 双击、或部署时只给 `bundle.js` → 必须 `npm run build:config`（它等于 `build-config.js && build-all.js`）。
+2. **改 `config/kui-modules.json` 永远要重建**：它不写进 bundle，而是生成 `kui-all.js` 的脚本清单；漏重建会出现“配置改对了、新页面/新组件却没加载”。
+3. **没有热更新**：改完 JSON 必须手动刷新（必要时 `Ctrl + F5` 强制刷新）；`npm start` 的静态服务器不会监听文件变化自动刷新。
+
+> 判定口诀：**“配置进 bundle，脚本进清单；http 可现改现刷，file:// 与离线必须重建。”** 构建细节与矩阵的另一视角见 [02-build.md](02-build.md) §2.5。
+
+#### 1.3.2 运行时持久化：界面里「保存」的东西存在哪？
+
+**结论先说：浏览器页面不能、也不会写 `config/*.json`。** 界面里所有“保存 / 记住 / 切换后下次还在”的状态，都写入**当前浏览器的 localStorage**（唯一例外是 iframe 自愈用的 sessionStorage）。`config/app.json`、`config/text.json`、`src/themes.json` 只提供**默认值**；已经保存到 localStorage 的值**优先级高于**配置默认值。因此会出现“配置文件里写 `kurumi`，打开却是上次选的 `starry`”。
+
+| 存储键 | 由谁写入 | 保存的内容 | 读取时机 | 覆盖 / 优先级 |
+| --- | --- | --- | --- | --- |
+| `kui-theme`（可由 `theme.storageKey` 改名） | 主题选择弹窗、设置弹窗“默认主题”、`KUI.theme.apply()`、`theme.*` 动作 | 当前主题 id | 启动时 `theme.js:402-413` | `__KUI_EARLY_THEME__` > URL `?kuiTheme=` > **localStorage** > `theme.default` > `themes.json` 的 `default` > 第一套 |
+| `kui-shell-name` | 设置弹窗保存 `shellName`（`KUI.boot.applySettings`） | 终端名称 | 启动收尾 `applyStoredPrefs`（`bootstrap.js:752-774`） | 覆盖 `app.title`/`app.name` 的**显示**（不写回 JSON） |
+| `kui-start-tab` | 设置弹窗保存 `startTab` | 启动页 id | 启动收尾 | 与 `kui-last-tab` 竞争时显式 start-tab 优先 |
+| `kui-remember-tab` | 设置弹窗 `remember` 开关 | `'1'` / `'0'` | 启动收尾 + 每次 `tab:activate` | `'0'` 时清空 `kui-last-tab` |
+| `kui-last-tab` | 每次切换标签（remember=`'1'` 时） | 最后激活的标签 id | 启动收尾（remember 开启时） | 仅在 remember 开启时参与启动页决策 |
+| `kui-density` | 设置弹窗 `density`（`applyDensity`） | `normal` / `compact` / `loose` | 启动收尾 + 保存时 | 写 `html[data-kui-density]`，覆盖 CSS 默认间距 |
+| `kui-avatar` | 头像选择器保存（`avatar.persist:true` 时） | 头像 URL 或 dataURL | 头像挂载（`avatar.js:246`） | 覆盖 `avatar.url` |
+| `kui-menu-collapsed` | 菜单折叠按钮（`app-shell.js:60,71`） | `'1'` / `'0'` | app-shell 挂载 | 覆盖 `layout.menu.collapsed` |
+| `kui-debug` | 手动在控制台写 `localStorage['kui-debug']='1'` | 诊断面板开关 | 启动时（`diag.js:239`） | 等价于 URL `?kui_debug=1` |
+| `sessionStorage: kui-self-heal:<版本>` | iframe 自愈（`kui-frame.js:86-93`） | 自愈标记 | iframe 版本不一致时 | 仅当前标签页会话内有效，不是用户设置 |
+
+补充：
+
+- **主题键可改**：改 `config/app.json` 的 `theme.storageKey` 或 `<html data-kui-theme-key="...">`；换键后旧键里的选择不再生效。
+- **头像持久化可关**：`avatar.persist:false` 时运行期换头像不保存，刷新回到 `avatar.url`。
+- **菜单折叠每次都会写**，属于“上次状态”，不是配置；想固定初始状态改 `layout.menu.collapsed` 并在浏览器里清掉 `kui-menu-collapsed`。
+
+#### 1.3.3 清除浏览器记忆与「让所有访问者看到新默认」
+
+| 目标 | 操作 |
+| --- | --- |
+| 把某一项恢复成配置默认值 | F12 → Application → Local Storage → 删除对应键后刷新；控制台等价写法 `localStorage.removeItem('kui-theme')` |
+| 全部恢复默认 | `localStorage.clear()` 后刷新（会同时清掉主题、终端名、启动页、密度、头像、菜单折叠） |
+| 只把主题恢复默认 | `KUI.theme.clearPersisted()`，或删 `kui-theme` |
+| **修改默认值，让所有访问者首次打开就是新外观 / 新标题** | 改 `config/app.json`、`config/text.json`、`src/themes.json`（**不是**改 localStorage）；按 §1.3.1 判断是否需要重建；访问者若自己保存过 localStorage，仍以浏览器里的值为准 |
+| 验证“默认主题”是否写对 | 先清掉自己的 `kui-theme`，或开一个无痕窗口，再看首次进入的主题 |
+
+> 一句话：**配置 JSON 管“默认值”，localStorage 管“这个浏览器里的用户选择”。** 展示页（外壳/设置弹窗/头像/主题）里保存的标题名称、皮肤等，全部走 localStorage，不会回写 `config/*.json`。
 
 ### 1.4 点路径取值与文案读取
 
@@ -66,8 +127,8 @@ KUI.config.get('app.home', 'pages/home.html'); // ⚠️ 读 app.json 根（不�
 
 ### 1.6 app.json 顶层结构地图
 
-- `app`（3-18）名称/标题/版本/首页/启动层 → `bootstrap.js:783-800`、`app-shell.js:237-268`
-- `ui`（19-37）tooltip/toast/dialog 全局默认 → `bootstrap.js:821-838`
+- `app`（3-18）名称/标题/版本/首页/启动层 → `bootstrap.js:897-933`、`app-shell.js:237-268`
+- `ui`（19-37）tooltip/toast/dialog 全局默认 → `bootstrap.js:935-953`
 - `boot`（38-48）启动层（加载中页面）与时钟指针动画 → `bootstrap.js` 启动流程的 `applyBootConfig()`（v1.3.8 起生效，可用 `KUI.boot.appliedBootConfig` 观测），详见 §8.5 与 [16-boot.md](16-boot.md)
 - `dialogs`（49-177）弹窗预设（只有 settings）→ `bootstrap.js:698-731`
 - `theme`（178-198）默认主题/存储键/可见列表/选择器 → 主题初始化 + `openThemePicker`/`buildThemePickerNodes`（v1.3.8 起 `visible`/`picker` 全部生效，§6）
@@ -75,7 +136,7 @@ KUI.config.get('app.home', 'pages/home.html'); // ⚠️ 读 app.json 根（不�
 - `menu`（211-616）左侧菜单（品牌/树/页脚）→ `app-shell.js:237-258` → `menu.js`
 - `menunav`（617-669）顶部导航（面包屑/动作）→ `app-shell.js:260-271` → `menunav.js`
 - `tabs`（670-704）标签页（初始/上限/保活）→ `app-shell.js:273-275,539-550` → `tabs.js`
-- `text`（705-719）对 text.json 的增量覆盖 → `bootstrap.js:861-863`
+- `text`（705-719）对 text.json 的增量覆盖 → `bootstrap.js:975-977`
 - `avatar`（720-754）头像（URL/齿轮框/选择器）→ `app-shell.js:253-256` → `menu.js` → `avatar.js`
 
 ---
@@ -86,7 +147,7 @@ KurumiUI 的“节点”没有强类型 schema，字段由渲染器按需读取�
 
 | 字段 | 类型 | 默认值 | 必填 | 作用与取值 |
 | --- | --- | --- | --- | --- |
-| `type` | string | — | 是（渲染节点） | 渲染器类型（注册表 41 个；外壳用 `app-shell/menu/menunav/tabs`），菜单树内为 `item/group/divider`（`menu.js:282-293`） |
+| `type` | string | — | 是（渲染节点） | 渲染器类型（注册表 42 个；外壳用 `app-shell/menu/menunav/tabs`），菜单树内为 `item/group/divider`（`menu.js:282-293`） |
 | `id` | string | 自动生成 | 否 | 节点/菜单项标识；tab id、表单字段 id、菜单激活 id 共用 |
 | `props` | object | `{}` | 否 | 组件属性包；**外壳三节点只读它**（`app-shell.js:76-85`） |
 | `label` | string | — | 否 | 菜单项/分组/表单项显示文字（`menu.js:300,326`） |
@@ -107,11 +168,11 @@ KurumiUI 的“节点”没有强类型 schema，字段由渲染器按需读取�
 
 | 字段 | 类型 | 默认值 | 必填 | 作用与取值 |
 | --- | --- | --- | --- | --- |
-| `name` | string | `"KurumiUI"` | 否 | 应用名。启动层标题（`bootstrap.js:791-800`）、品牌区兜底（`app-shell.js:240-244`）、`app.info`（`app-shell.handlers.js:126-128`） |
+| `name` | string | `"KurumiUI"` | 否 | 应用名。启动层标题（`bootstrap.js:897-933`）、品牌区兜底（`app-shell.js:240-244`）、`app.info`（`app-shell.handlers.js:126-128`） |
 | `title` | string | `"刻刻帝终端"` | 否 | 应用标题。品牌/顶部导航标题默认（`:268-269`）；渲染后**改写 `document.title`**（`:535-537`），优先于 `documentTitle`；启动层标题实际取 `name` |
-| `subtitle` | string | `"灵装回路 · 时间结界控制台"` | 否 | 启动层副标题（`bootstrap.js:791-800`）、品牌/导航副标题默认（`:242,269`）；缺省回退 `text.app.subtitle` |
-| `version` | string | `"1.3.9"` | 否 | 应用版本（演示应用版本，随发布更新）。v1.3.8 起注入 `menu.props.footer.version`（配置未写时补 `'v'+version`）；显式写 `menu.props.footer.version` 仍优先 |
-| `documentTitle` | string | `"刻刻帝终端 · KurumiUI"` | 否 | 浏览器标题兜底：仅 `title` 缺失时生效（`bootstrap.js:786-789`），实际被 `title` 覆盖 |
+| `subtitle` | string | `"灵装回路 · 时间结界控制台"` | 否 | 启动层副标题（`bootstrap.js:897-933`）、品牌/导航副标题默认（`:242,269`）；缺省回退 `text.app.subtitle` |
+| `version` | string | `"1.4.0"` | 否 | 应用版本（演示应用版本，随发布更新）。v1.3.8 起注入 `menu.props.footer.version`（配置未写时补 `'v'+version`）；显式写 `menu.props.footer.version` 仍优先 |
+| `documentTitle` | string | `"刻刻帝终端 · KurumiUI"` | 否 | 浏览器标题兜底：仅 `title` 缺失时生效（`bootstrap.js:897-933`），实际被 `title` 覆盖 |
 | `logoIcon` | string | `"clock"` | 否 | 仅 `menu` 节点**没有** `props.brand` 时兜底品牌区图标（`app-shell.js:239-244`）；也作头像 `fallbackIcon` 兜底（`menu.js:180`） |
 | `logoText` | string | `"KUI"` | 否 | 品牌区图标旁徽记文字。v1.3.8 起：`menu.props.brand.logoText` 未写时回落到本字段，由 `menu.js` 渲染 `.kui-menu__logo-text`（有 `avatar` 时不显示） |
 | `home` | string | `"pages/home.html"` | 否 | 首页地址。**注意**：`app.home` 动作读取点写成 `get('app.home')`（`app-shell.handlers.js:96-98`），因 §1.4 前缀规则永远取兜底值，改本字段不影响该动作；业务代码请读 `get('app.app.home')` |
@@ -124,7 +185,7 @@ KurumiUI 的“节点”没有强类型 schema，字段由渲染器按需读取�
 
 ## 4. ui.*：组件级默认值
 
-`bootstrap.js:821-838` 在创建外壳**之前**把 `ui.tooltip/toast/dialog` 分别传给 `KUI.tooltip.configure`、`KUI.toast.config`、`KUI.dialog.config`，改的是“全局默认值”（启动时生效），单个组件仍可覆盖；配置抛错只 `warnOnce`。
+`bootstrap.js:935-953` 在创建外壳**之前**把 `ui.tooltip/toast/dialog` 分别传给 `KUI.tooltip.configure`、`KUI.toast.config`、`KUI.dialog.config`，改的是“全局默认值”（启动时生效），单个组件仍可覆盖；配置抛错只 `warnOnce`。
 
 | 字段 | 类型 | 默认值 | 必填 | 作用与取值 |
 | --- | --- | --- | --- | --- |
@@ -150,15 +211,15 @@ KurumiUI 的“节点”没有强类型 schema，字段由渲染器按需读取�
 | `layout.header.height` | number(px) | `56` | 否 | 顶栏高度 → `--kui-header-height`（`base.css:815`、`components.css:189`） |
 | `layout.tabbarHeight` | number(px) | `38` | 否 | 标签栏高度 → `--kui-tabbar-height`（`components.css:1386,1463`） |
 
-易错点：值可写数字（自动补 `px`）或带单位字符串（`app-shell.js:43-47`）；`menu.props.width/collapsedWidth` 自 **v1.3.9** 起真正生效（写入 `--kui-menu-width(-collapsed)`，`menu.js:723-726`），且优先级高于 `layout.menu.*`；旧写法 `layout.menu.width` 仍兼容。
+易错点：值可写数字（自动补 `px`）或带单位字符串（`app-shell.js:43-47`）；`menu.props.width/collapsedWidth` 自 **v1.3.9** 起真正生效（写入 `--kui-menu-width(-collapsed)`，`menu.js:720-727`；旧别名 `--kui-menu-w(-collapsed)` 仍同步写入），且优先级高于 `layout.menu.*`；旧写法 `layout.menu.width` 仍兼容。
 
 ## 6. theme.*：主题入口
 
 | 字段 | 类型 | 默认值 | 必填 | 作用与取值 |
 | --- | --- | --- | --- | --- |
-| `theme.default` | string | `"kurumi"` | 否 | 兜底主题 id（`bootstrap.js:882-895`）。生效优先级（`theme.js:402-415`）：`__KUI_EARLY_THEME__` > URL `?kuiTheme=` > localStorage[`storageKey`] > 本字段 > `themes.json` 的 default > 第一套 |
-| `theme.storageKey` | string | `"kui-theme"` | 否 | 持久化键（`theme.js:20`、`bootstrap.js:889`）；换键 = 换一份记忆 |
-| `theme.persist` | boolean | `true`（源码判断 `persist !== false`） | 否 | 是否写 localStorage（`bootstrap.js:890`）；关掉后每次刷新从 `default` 开始 |
+| `theme.default` | string | `"kurumi"` | 否 | 兜底主题 id（`bootstrap.js:996-1009`）。生效优先级（`theme.js:402-415`）：`__KUI_EARLY_THEME__` > URL `?kuiTheme=` > localStorage[`storageKey`] > 本字段 > `themes.json` 的 default > 第一套 |
+| `theme.storageKey` | string | `"kui-theme"` | 否 | 持久化键（`theme.js:20`、`bootstrap.js:1001-1006`）；换键 = 换一份记忆 |
+| `theme.persist` | boolean | `true`（源码判断 `persist !== false`） | 否 | 是否写 localStorage（`bootstrap.js:1001-1006`）；关掉后每次刷新从 `default` 开始 |
 | `theme.visible` | array | 6 个主题 id | 否 | 可见主题白名单（v1.3.8 起生效）：主题选择器卡片、`app.themeRandom`、`theme.cycle` 都按它过滤（`filterVisibleThemes`，`bootstrap.js:319-331`）；设置弹窗与 `?kuiTheme=` 不受此限 |
 | `theme.picker` | object | `{title,desc,columns:3,width:680,showPreview:true,showScheme:true,maskClosable:true}` | 否 | 选择器外观（v1.3.8 起全部生效）：`openThemePicker` 消费 `title/desc/width/maskClosable`，`buildThemePickerNodes` 消费 `columns/showPreview/showScheme`；`showPreview:true` 时卡片用主题 token 绘制渐变块（非真实截图） |
 
@@ -166,7 +227,7 @@ KurumiUI 的“节点”没有强类型 schema，字段由渲染器按需读取�
 
 ## 7. text.*：对 text.json 的增量覆盖
 
-`bootstrap.js:861-863` 先 `KUI.i18n.set(res.text)`（整份 `text.json`）再 `KUI.i18n.set(appCfg.text)`；`i18n.set` 只有第二参 `deep===false` 才浅合并，缺省走 `deepMerge`（`kui.js:416-425`），所以 `app.json.text` 只写要改的叶子键即可。
+`bootstrap.js:975-977` 先 `KUI.i18n.set(res.text)`（整份 `text.json`）再 `KUI.i18n.set(appCfg.text)`；`i18n.set` 只有第二参 `deep===false` 才浅合并，缺省走 `deepMerge`（`kui.js:416-425`），所以 `app.json.text` 只写要改的叶子键即可。
 
 | 字段 | 类型 | 默认值 | 必填 | 作用与取值 |
 | --- | --- | --- | --- | --- |
@@ -204,6 +265,8 @@ KurumiUI 的“节点”没有强类型 schema，字段由渲染器按需读取�
 | `picker.mode` / `accept` / `maxSizeMB` | string / string / number | `"url"` / `"image/*"` / `2` | 否 | `mode:"file"` 才显示本地选图（`:359-364,431+`）；`accept` 过滤；超限用 `fileErrorSize`（`{n}`） |
 | `picker.presets` | array \| null | `null` | 否 | 未写；`null`=内置 4 个、`[]`=不显示、数组=自定义 `{label,url}`（`:370-377`） |
 | `picker.fileLabel` / `fileTip` | string | `"选择本地图片"` / … | 否 | 未写；`file` 模式按钮/提示文案 |
+
+> **头像保存去向（重要）**：`avatar.persist:true`（本仓库默认）时，运行期通过头像弹窗换的图会写入 `localStorage['kui-avatar']`（`storageKey` 可改），**不会写回 `config/app.json`**；启动渲染时该值优先于 `avatar.url`。想恢复成配置文件里的图，删除该键（F12 → Application → Local Storage，或 `localStorage.removeItem('kui-avatar')`）再刷新；把 `persist` 设为 `false` 则运行期选择不再保存。完整持久化表见 §1.3.2。
 
 ---
 
@@ -266,21 +329,32 @@ KUI.bootLayer.instance().error("配置损坏");   // 失败态卡片
 | `data` | object | 5 键初值 | 否 | 表单初值，按节点 id 取；随 `dialog.form` 的 `data` 传入 |
 | `nodes` | array | 5 个节点 | 否 | 表单节点数组（结构见 07）；空/缺省回退内置节点 |
 
-> 诚实提示：现有 5 个节点 id（`shellName/defaultTheme/startTab/remember/density`）提交后**不改任何状态**，只弹“设置已应用”——演示数据。要生效，节点 id 须用 `theme`/`collapsed`/`motion`，或自写 handler（[10-actions-handlers.md](10-actions-handlers.md)）。
+**v1.3.9 起 5 个内置节点的保存去向**（提交后立即应用，并写入当前浏览器）：
+
+| 节点 id | 提交时调用的应用逻辑 | 界面效果 | 持久化键 |
+| --- | --- | --- | --- |
+| `shellName` | `applyShellName`（设置内 `KUI.boot.applySettings`） | 改终端名称：`document.title`、顶部标题、菜单品牌标题同步变 | `kui-shell-name` |
+| `defaultTheme` | `KUI.theme.apply(id)` | 立即换肤（等价主题弹窗选择） | `kui-theme` |
+| `startTab` | 写偏好 | 下次启动默认打开/激活该标签 | `kui-start-tab` |
+| `remember` | 写偏好 | 关闭后不记忆上次标签 | `kui-remember-tab`（关闭时清 `kui-last-tab`） |
+| `density` | `applyDensity` | 界面密度：`normal`/`compact`/`loose` | `kui-density` |
+
+**这些保存都不写 `config/app.json`**：只存在当前浏览器的 localStorage（完整清单、优先级、清除方法见 §1.3.2 与 §1.3.3）；换浏览器、清缓存、无痕窗口都会回到 JSON 默认值。要改“默认值”本身，请改 `config/app.json` 的 `dialogs.settings.data` 与对应字段，并按 §1.3.1 判断是否需要重建。旧的 3 节点 id（`theme`/`collapsed`/`motion`）仍兼容，提交时分别映射到换肤、菜单折叠、界面动效。
 
 最小可运行设置面板（替换 `app.json` 的 `dialogs.settings`）：
 
 ```json
 {
   "dialogs": { "settings": {
-    "title": "界面设置", "width": 520, "okText": "应用",
+    "title": "界面设置", "desc": "改完立即生效，保存在本浏览器", "width": 520, "okText": "应用",
     "nodes": [
-      { "id": "theme", "type": "select", "label": "主题",
+      { "id": "shellName", "type": "input", "label": "终端名称", "required": true },
+      { "id": "defaultTheme", "type": "select", "label": "默认主题",
         "options": [ { "label": "绯红刻刻帝", "value": "kurumi" }, { "label": "白羽灵装", "value": "kurumi-angel" } ] },
-      { "id": "collapsed", "type": "switch", "label": "折叠左侧菜单" },
-      { "id": "motion", "type": "switch", "label": "界面动效", "props": { "activeText": "开", "inactiveText": "关" } }
+      { "id": "density", "type": "radio-group", "label": "界面密度",
+        "options": [ { "label": "标准", "value": "normal" }, { "label": "紧凑", "value": "compact" } ] }
     ],
-    "data": { "theme": "kurumi", "collapsed": false, "motion": true }
+    "data": { "shellName": "刻刻帝终端", "defaultTheme": "kurumi", "density": "normal" }
   } }
 }
 ```
@@ -337,7 +411,7 @@ KUI.bootLayer.instance().error("配置损坏");   // 失败态卡片
 
 ## 11. 改配置看效果（7 组前后对比）
 
-> 通用步骤：改 `config/app.json` → `npm run build:config`（或 `npm start`）→ 硬刷新。下文的“改前”即仓库当前值。
+> 通用步骤：改 `config/app.json` → http(s) 模式下**刷新即生效**；用 `file://` 双击或离线分发的，先 `npm run build:config`（`npm start` 启动时会自动重建）→ 再硬刷新。是否需要重建的完整判定见 §1.3.1。下文的“改前”即仓库当前值。
 
 ### 11.1 改应用标题
 
@@ -392,7 +466,7 @@ KUI.bootLayer.instance().error("配置损坏");   // 失败态卡片
 
 ### 11.6 自定义设置弹窗
 
-把 §9 示例粘到 `dialogs.settings`，点顶栏“设置”；标题/宽度/节点按配置渲染，选主题保存会真正换肤（`values.theme`），`desc` 作为副标题显示、`draggable` 可拖拽、`layout` 控制字段布局（v1.3.9 起全部生效）。
+把 §9 示例粘到 `dialogs.settings`，点顶栏“设置”；标题/宽度/节点按配置渲染，输入终端名并保存会改 `document.title` 与菜单品牌标题（`shellName`），选主题保存会真正换肤（`defaultTheme` → `KUI.theme.apply`），`desc` 作为副标题显示、`draggable` 可拖拽、`layout` 控制字段布局（v1.3.9 起全部生效）；保存结果写入 localStorage（§1.3.2），不改配置文件。
 
 ### 11.7 换头像
 
@@ -416,11 +490,14 @@ KUI.bootLayer.instance().error("配置损坏");   // 失败态卡片
 | 启动报“未找到 config/app.json” | `BASE` 推导与页面层级不符 | 入口放仓库根（`BASE=''`）或 `pages/`（`BASE='../'`），见 `config.js:37-58` |
 | 字段写了完全没效果 | 该字段无源码消费点 | 跑 `npm run audit:config` 看读取点，或 `grep -rn "字段名" src/` |
 | `ui.dialog.escClosable` 无效 | v1.3.8 前内部字段名是 `closeOnEsc` | v1.3.8 起两种写法等价；旧版本请写 `ui.dialog.closeOnEsc` 或单弹窗 `props.closeOnEsc` |
-| 面包屑不折叠 | 写成了 `breadcrumb.max` | 改 `menunav.props.maxBreadcrumb`（§10.2） |
-| 改 `menu.props.width` 没变宽 | 只写内部变量，无 CSS 消费 | 改 `layout.menu.width`（§5） |
+| 面包屑不折叠 | `breadcrumb.max` 与 `maxBreadcrumb` 同时写且以 `maxBreadcrumb` 为准，或写了 0 | v1.3.9 起两种写法等价；检查是否被 `maxBreadcrumb` 覆盖，`0` 表示不裁剪（§10.2） |
+| 改 `menu.props.width` 没变宽 | v1.3.7 及更早只写内部变量；v1.3.9 起 props 真正生效、优先级高于 `layout.menu.*` | 确认 `KUI.version` ≥ 1.3.9；两处都写时以 `menu.props.width/collapsedWidth` 为准，改完刷新（§5、§10.1） |
+| 设置弹窗保存后好像没变 | 保存的是 localStorage；换浏览器/清缓存就回到 JSON 默认值；旧版本（<1.3.9）只弹提示不应用 | v1.3.9 起 5 个内置节点真正应用（§9）；验证用同一浏览器，或看 Application → Local Storage（§1.3.2） |
+| 想让所有访问者看到新标题/新主题 | 只改了自己浏览器的 localStorage，或改了 JSON 但没重建 | 改 `config/app.json`/`src/themes.json` 默认值，按 §1.3.1 决定是否 `npm run build:config`；再清自己的 localStorage 验证 |
 | 初始标签不对 | `home` 先开、`initial` 后补开 | 调 `tabs.props.initial` 顺序或改 `home`（§10.3） |
 | 改 `pages/*.html` 内联数据没反应 | 页面优先读 `config/demos/*.json` | 改 `config/demos/xxx.json`（`pages/form.html:195-197`） |
-| 主题默认值不生效 | localStorage 有上次选择 / URL 带 `?kuiTheme=` | 清 `localStorage['kui-theme']` 再刷新（§6）；`theme.visible/picker` v1.3.8 起已生效 |
+| 主题默认值不生效 | localStorage 有上次选择 / URL 带 `?kuiTheme=` | 清 `localStorage['kui-theme']` 再刷新（§6、§1.3.2）；只想改“首次进入的默认值”就改 `theme.default`/`themes.json.default`（§1.3.3） |
+| 改了 JSON 刷新还是旧内容 | 用 `file://` 打开但没 `npm run build:config`；或静态部署没上传/没更新 `config/*.json` | 按 §1.3.1 矩阵判断：http 刷新即生效；file:// 与 bundle-only 部署必须重建；服务端/CDN 还要刷缓存 |
 | `KUI.config.get('app.title')` 返回 undefined | 前缀后路径相对文件根 | 写 `get('app.app.title')`（§1.4） |
 
 ---
@@ -466,7 +543,7 @@ KurumiUI 配置打包完成
   themes.json: ✔
   demos      : 11 个
 [build-all] 已生成 src/core/kui-all.js (… 字节)
-[build-all] profiles: app=29, standalone=28
+[build-all] profiles: app=30, standalone=29
 ```
 
 **④ 浏览器控制台抽查**
@@ -483,7 +560,7 @@ KUI.theme.currentId();                  // "kurumi"（或你上次选的）
 ## 参考源码
 
 - `config/app.json`（755 行，行号唯一依据）；`config/text.json`、`src/themes.json`、`config/kui-modules.json`。
-- `src/core/config.js:25-31,73-77,82-96,148-212,252-271` —— 路径表/读取管线/`get` 语义；`src/app/bootstrap.js:783-838`（元信息/UI 默认值）、`:841-935`（主流程）、`:668-731`（设置弹窗）、`:333-431`（主题选择器）。
+- `src/core/config.js:25-31,73-77,82-96,148-212,252-271` —— 路径表/读取管线/`get` 语义；`src/app/bootstrap.js:875-953`（元信息/UI 默认值）、`:955-1054`（主流程）、`:668-849`（设置弹窗）、`:333-445`（主题选择器）。
 - `src/components/app-shell.js:25-32,76-85,141-193,237-291,535-550,565-589` —— 布局、装配、标题与初始标签；`menu.js:118-153,211-260,276-383,504-574,716-717,733-782`、`menunav.js:121-159,341-423,444-488`、`tabs.js:143-181,406,538-539,1342-1361` —— 三节点消费。
 - `src/core/theme.js:20,201-223,297,402-425`、`tooltip.js:36-46,64-86`、`toast.js:123-142`、`dialog.js:137,427,986-1014,1055,1087-1150`、`avatar.js:91-133,238-353,359-429,545-554,615`、`kui.js:413-464` —— 各字段默认值与读取；`tools/build-config.js:23-131`、`tools/build-all.js`。
 

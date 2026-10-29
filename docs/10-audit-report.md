@@ -249,4 +249,33 @@ npm test               # 测试
 
 回归：`test/run.js` 33/0/0（双 Node）；`smoke` 108/0；`audit-config` 0；`check-manual` 0/0；`check-assets` 21/0/0；`audit-components` 19/0；`audit-all-pages` 19/19。
 
+## 12. v1.4.0 数据表格组件（datatable）审计
 
+**方法**：同 §3——源码为准、测试与文档为对照。对新增组件逐项核对：注册清单、模块清单、样式加载、初始化链路、测试覆盖、文档口径、拆装与降级路径。
+
+**结论：0 处需修复的缺陷，1 处已修的自查项**。
+
+### 12.1 一致性矩阵
+
+| 维度 | 源码 | 测试/工具 | 文档 | 结果 |
+| --- | --- | --- | --- | --- |
+| 注册 | `datatable.js:1540` `registry.register('datatable', …)`，`category:'data'` | smoke `[30.1]`；`test/render.test.js` 契约清单（`data` 类不参与 19 控件比对） | 契约 §22、配置参考 §11、手册 08 §6.6 | ✅ |
+| 模块清单 | `src/components/datatable.js` 进 `profiles.app.files`(30) / `profiles.standalone.files`(29) | `audit-consistency` A1–A3、`verify-build` | README/手册计数 | ✅ |
+| 样式 | `src/styles/datatable.css`，`base.css` 起 `@import` | `check-assets` 22 HTML 0 错 0 警 | 手册 08 §6.6 | ✅ |
+| 一体化 props | `DEFAULTS`（columns/data/search/filter/sort/selection/pagination/toolbar/…） | smoke `[30.2]` JSON 渲染 | 配置参考 §11 字段表 | ✅ |
+| 实例 API | `createDatatable` 返回 30+ 方法；`KUI.datatable` 静态委托 | smoke `[30.3]`；`test/render.test.js` | 契约 §22、手册 08 §6.6.4 | ✅ |
+| 事件 | `fire(name)` → `api.on` + `KUI.bus.emit('datatable:'+name)` | 手册/契约事件表 | ✅ |
+| 列格式 | 12 种 `format`（text/number/date/boolean/tags/badge/dict/link/progress/code/ellipsis/actions） | `standalone/datatable.html` 面板 ① | README/手册 | ✅ |
+| 拆装降级 | 移除 `datatable.js` 后 type 渲染为未注册占位 | `audit-components` 拆解矩阵 | 手册 08 §6.6.5 | ✅ |
+| 测试页 | `standalone/datatable.html`（6 面板） | `audit-all-pages` 20/20（曾因页面文案含「未注册的元素类型」被探针误判，已把文案改为「未知类型占位块」） | 手册 08 §6.6 | ✅ 已修 |
+
+### 12.2 自查中修复的项
+
+- **页面文案触发审计探针**：`standalone/datatable.html` 原写「…该类型显示『未注册的元素类型』占位…」，被 `tools/audit-all-pages.js` 当作真实未知类型渲染。改为「未知类型占位块」，语义不变、探针恢复。
+- **注册类别选择**：初版注册为 `category:'control'`，会破坏 `test/config.test.js` 对「19 个表单控件」的权威比对；改为 `'data'`（与 `table`/`pagination` 一致），表单控件数量保持 19。
+- **原生 select 标记**：主题下拉最初缺 `data-kui-native`，被控件升级器接管后与页面脚本互相打架；已补标记（与其余 12 个 standalone 页一致）。
+
+### 12.3 残余与说明
+
+- 分页控件中的「更多页」按钮仍沿用基础 `table` 的 `more-horizontal` 图标名笔误（历史遗留，GitHub 图标集里只有 `more-h`），已在手册 06 记录；datatable 走同一 `kui-datatable__pager` 渲染，显示为占位问号的风险仍存在，列入下次图标别名修复项。
+- 大数据量（>1 万行）仍建议服务端分页：当前 `data` 全量进内存，排序/筛选在客户端完成。

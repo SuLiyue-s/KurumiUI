@@ -347,4 +347,18 @@ node tools/check-assets.js                # HTML 引用完整性
 
 回归：`test/run.js` **33/0/0**（Node 24 + Node 13.14）；`smoke` **108/0**；`check-assets` 21/0/0；`audit-consistency` 17/0；`audit-components` 19/0；`audit-all-pages` 19/19；`audit-config` 0 缺口；`check-manual` 0/0。
 
+### v1.4.0：可拆卸数据表格（datatable）
 
+| # | 需求（用户原话摘要） | 落点 | 验证 |
+| --- | --- | --- | --- |
+| 1 | 可拆卸的表格组件 | 单文件 `src/components/datatable.js` + 独立 `datatable.css`；拆掉后仅该 type 降级占位 | `tools/audit-components.js` 拆解矩阵；页面里删脚本后其余组件不受影响 |
+| 2 | 一体化配置的组合功能 | 一个 `props` 收齐搜索/筛选/排序/选择/工具栏/列设置/密度/导出/分页 | `standalone/datatable.html` 面板 ①；smoke `[30.2]` |
+| 3 | 筛选 | 全局 `search` + 列级 `filter`（text/select/range） | 面板 ①③；`test/render.test.js` datatable 用例 |
+| 4 | 单选行 / 复选行 / 全选行 | `selection.mode = single / multi`，表头全选、`selectAllScope: page/all`、跨页保持 | `test/render.test.js`：选择跨页保持；smoke `[30.3]` |
+| 5 | 排序 | 列 `sortable` + 表头点击（single/multi 模式、默认排序） | 面板 ①；smoke `[30.2]` 默认 desc 首行断言 |
+| 6 | 每页多少行 / 分页 | `pagination.pageSize / pageSizes / showTotal / showSizer / showJumper` | 面板 ①③；`test/render.test.js` 分页与 pageCount |
+| 7 | 行点击高亮 | `rowHighlight`（默认 true）+ `rowClickAction` | 面板 ①；真实浏览器点击验证 |
+| 8 | 进阶功能（未点名） | 键盘操作（↑↓/空格/Enter）、列显隐、密度、刷新、CSV 导出、行动作列、空态/加载态、固定表头 | 面板 ①⑤；真实浏览器 |
+| 9 | 现有框架不回归 | 注册类别 `data`，不占 19 个表单控件；样式全 token 化 | 六套主题下截图；闸门全绿 |
+
+**回归数字**：`test/run.js` 34/0/0（Node24 & Node13.14）；`smoke.js` 111/0；`audit-consistency` 17/0；`audit-components` 19/0；`audit-all-pages` 20/20；`audit-config` 0 缺口；`check-assets` 22 HTML 0/0；`check-manual` 0/0；`check-beginner-manual` 0/0；`verify-build` 6/0。

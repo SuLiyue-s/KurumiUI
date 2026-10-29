@@ -1,3 +1,32 @@
+## v1.4.0（2026-10-29）— 可拆卸数据表格组件 datatable
+
+### 新增组件
+- `src/components/datatable.js`（1586 行）+ `src/styles/datatable.css`：注册 `type='datatable'`、`category='data'`，`KUI.datatable.version='1.0.0'`。
+- 一体化 props：`columns / data / search / filter / sort / selection / pagination / toolbar / columnsToggle / densityToggle / refresh / export / rowHighlight / rowClickAction / keyboard / text`。
+- 能力：全局搜索、按列筛选（文本/下拉/区间）、单列/多列排序、单选/复选/全选（跨页保持、全选范围 page/all）、行点击高亮与行动作、工具栏动作、列显隐、密度切换、刷新、CSV 导出、分页（总数/每页条数/跳页）、键盘操作（↑↓/空格/Enter）。
+- 列格式：`text/number/date/boolean/tags/badge/dict/link/progress/code/ellipsis/actions`；样式全部走 `--kui-*` token，六套主题自动适配。
+- 实例 API 30+ 个（`setKeyword/setFilter/setSort/setPage/selectAll/getSelectedRows/exportCsv/refresh/destroy` 等），事件 `ready/refresh/sort/filter/page/action/destroy`（含 `KUI.bus` 的 `datatable:*` 转发）。
+- 拆装：从 `config/kui-modules.json` 移除 `src/components/datatable.js` 并重建即整体下架；单独页面可只引 core + datatable.css + datatable.js 手动 `KUI.datatable.create()` 挂载。
+
+### 演示与测试
+- 新增独立测试页 `standalone/datatable.html`（13 个独立页），含一体化配置、单选行+行动作、200 行跨页多选、轻量模式、实例 API 操作台、配置速查六个面板。
+- 12 个既有 standalone 页导航加入 `datatable` 入口。
+- 新增 smoke `[30]` 三组（注册/JSON 渲染/实例 API）；`test/render.test.js` 增加 datatable 渲染与交互用例（表头/单元格文本、默认排序、分页、关键字、选择跨页、列显隐、销毁）。
+
+### 配置与接线
+- `config/kui-modules.json`：`profiles.app.files` 30 项、`profiles.standalone.files` 29 项（各 +1 datatable.js）。
+- `config/text.json` 新增 `datatable` 文案组；`src/styles/base.css` 增加 `datatable.css` 的 `@import`（与 controls.css/components.css 一致）。
+- `config/app.json` 的 `app.version` 由 `1.0.5` 同步为 `1.3.9`（菜单页脚展示版本随发布更新，本次再随版本升至 `1.4.0`）。
+
+### 文档
+- `docs/00-contract.md` §22、`docs/02-config-reference.md` §11、手册 08 §6.6、README 与手册计数口径（42 类型 / 19 表单控件 / 22 HTML / 13 独立页 / 模块 30+29 / 冒烟 111 / 测试 34）。
+- `docs/08-acceptance.md` v1.4.0 验收表、`docs/10-audit-report.md` §12。
+
+### 验证
+- `node test/run.js` 34 通过 / 0 失败（Node 24 与 Node 13.14 双版本）；`node tools/smoke.js` 111 通过 / 0 失败。
+- `tools/audit-consistency.js` 17/0、`tools/audit-components.js` 19/0、`tools/audit-all-pages.js` 20/20、`tools/audit-config.js` 0 缺口、`tools/check-assets.js` 22 HTML 0 错 0 警、`tools/check-manual.js` 0 错 0 警、`tools/check-beginner-manual.js` 0/0、`tools/verify-build.js` 6/0。
+- 真实浏览器：`standalone/datatable.html` 六面板渲染正常，表头/单元格文本、排序、筛选、分页、复选、行高亮、导出按钮均可见可点。
+
 ## v1.3.9 — 配置接线补强（菜单宽度 / 面包屑 / 设置弹窗 / autofocus）
 
 > 需求（用户）：「menu.props.width/collapsedWidth 样式未消费（改宽度用 layout.menu.*）、menunav.props.breadcrumb.max 无读取点、dialogs.settings 的 desc/draggable/layout 未透传、boot.ready 无读取点、select/multiselect 的 autofocus 恒 false（源码缺陷，需手动 el.focus()）。默认配置下设置弹窗「保存」确实不改变界面（settings.nodes 的 id 与 openSettings 应用值不匹配）修复一下这些问题，同时检查是否存在类似问题。」

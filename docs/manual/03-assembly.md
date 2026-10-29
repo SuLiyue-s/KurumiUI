@@ -1,6 +1,6 @@
 # 03 · 组装
 
-> 适用版本：KurumiUI v1.3.9 ｜ 前置章节：02-build.md ｜ 阅读时长：约 16 分钟
+> 适用版本：KurumiUI v1.4.0 ｜ 前置章节：02-build.md ｜ 阅读时长：约 16 分钟
 
 一个 KurumiUI 页面 = 几个 `<link>` + 一个 `<script>` + 一到两个挂载点。本章拆开 `index.html`，讲清单入口 `kui-all.js` 如何注入模块、`bootstrap.js` 如何四步起界面，并给 5 种装配配方。
 
@@ -49,7 +49,7 @@
 
 | 行号 | 内容 | 作用 |
 | --- | --- | --- |
-| 2 | `data-kui-boot="loading"` | 启动状态钩子，完成后改为 `done`（`bootstrap.js:909`） |
+| 2 | `data-kui-boot="loading"` | 启动状态钩子，完成后改为 `done`（`bootstrap.js:1028`） |
 | 4-5 | `theme-boot.js` | head 第一个元素、所有样式之前，防 FOUC |
 | 6-11 | meta/title/icon | viewport 带 `viewport-fit=cover`；`theme-color` 同 `--kui-bg-0` |
 | 14-17 | 4 个基础样式表 | 顺序固定 `base → controls → components → tooltip` |
@@ -79,9 +79,9 @@
 
 ### 2.3 启动层与挂载点
 
-v1.3.8 起启动层样式在 `src/styles/boot.css`（`index.html:20` 引入，约 10 KB），不再内联在 HTML 里。`index.html:28-36` 只保留一份**静态降级骨架**：`#kui-boot`（`logo` 齿轮 + 标题 + 副标题 + 进度条 + `[data-boot-text]` 文案）；`boot.js` 随 `kui-all.js` 加载后，`bootstrap.js` 调 `KUI.bootLayer.attach()` 接管该节点并重建内部（logo 换成时钟表盘，见 [16-boot.md](16-boot.md) §4.2）。显隐开关：`.kui-boot.is-done{opacity:0;visibility:hidden;pointer-events:none}`（`boot.css:41-53`）；`hideBoot()`（`bootstrap.js:111-123`，在 `:912` 被调用）加该类并在延迟后移除节点。
+v1.3.8 起启动层样式在 `src/styles/boot.css`（`index.html:20` 引入，约 10 KB），不再内联在 HTML 里。`index.html:28-36` 只保留一份**静态降级骨架**：`#kui-boot`（`logo` 齿轮 + 标题 + 副标题 + 进度条 + `[data-boot-text]` 文案）；`boot.js` 随 `kui-all.js` 加载后，`bootstrap.js` 调 `KUI.bootLayer.attach()` 接管该节点并重建内部（logo 换成时钟表盘，见 [16-boot.md](16-boot.md) §4.2）。显隐开关：`.kui-boot.is-done{opacity:0;visibility:hidden;pointer-events:none}`（`boot.css:41-53`）；`hideBoot()`（`bootstrap.js:111-123`，在 `:1031` 被调用）加该类并在延迟后移除节点。
 
-挂载点 `autoBoot()` 两种写法都认（`bootstrap.js:941-950`）：`<div id="kui-app" data-kui-app="true"></div>`。`app-shell.create()` 会先清空 host 再放骨架（`app-shell.js:530-533`、`:167-180`）：左侧 `aside`（menu）、右侧 `main`（header 放 menunav、center 放 tabs）。别把手写页头页脚塞进 `#kui-app`，启动时会被清掉。
+挂载点 `autoBoot()` 两种写法都认（`bootstrap.js:1060-1069`）：`<div id="kui-app" data-kui-app="true"></div>`。`app-shell.create()` 会先清空 host 再放骨架（`app-shell.js:530-533`、`:167-180`）：左侧 `aside`（menu）、右侧 `main`（header 放 menunav、center 放 tabs）。别把手写页头页脚塞进 `#kui-app`，启动时会被清掉。
 
 ### 2.4 最小可运行主应用
 
@@ -124,19 +124,19 @@ v1.3.8 起启动层样式在 `src/styles/boot.css`（`index.html:20` 引入，�
 
 | 步骤 | 位置 | 发生什么 | 可观察结果 |
 | --- | --- | --- | --- |
-| 0 判定 | `bootstrap.js:941-950` | `body[data-kui-auto="false"]`、`KUI.boot.disabled`、找不到挂载点时退出 | 页面不自动接管 |
-| 1 配置 | `bootstrap.js:853-870` | `attachBootLayer(null)` 接管启动层；`config.loadMany(['text','themes','app'])`；注入 i18n；缺 `app.json` 抛错；`applyAppMeta` | 阶段 1（8%）→ 标题/副标题生效；缺配置见错误块 |
-| 2 主题 | `bootstrap.js:882-895` | `theme.init(themes,{fallbackId,storageKey:'kui-theme',persist})` | 阶段 2（46%），`html[data-kui-theme]` 生效 |
-| 3 外壳 | `bootstrap.js:898-903` | `KUI.app.create(host,appCfg,{initialTabs})`；注册 `app.*` 动作 | 阶段 3（78%），menu/menunav/tabs 出现 |
-| 4 收尾 | `bootstrap.js:906-934` | `setStep(4)`、`body.kui-ready`、`data-kui-boot="done"`、`hideBoot()`、`boot:done` | 阶段 4（100%）→ 启动层淡出；`KUI.boot.ready()` 为 true |
+| 0 判定 | `bootstrap.js:1060-1069` | `body[data-kui-auto="false"]`、`KUI.boot.disabled`、找不到挂载点时退出 | 页面不自动接管 |
+| 1 配置 | `bootstrap.js:967-994` | `attachBootLayer(null)` 接管启动层；`config.loadMany(['text','themes','app'])`；注入 i18n；缺 `app.json` 抛错；`applyAppMeta`、`applyBootConfig`（v1.3.8 接线）、`applyUiConfig`、`applyAppMetaToConfig` | 阶段 1（8%）→ 标题/副标题/启动层配置生效；缺配置见错误块 |
+| 2 主题 | `bootstrap.js:996-1009` | `setBootStep(2)`；`theme.init(themes,{fallbackId,storageKey:'kui-theme',persist})` | 阶段 2（46%），`html[data-kui-theme]` 生效 |
+| 3 外壳 | `bootstrap.js:1010-1021` | `setBootStep(3)`；`KUI.app.create(host,appCfg,{initialTabs})`；`applyStoredPrefs`（v1.3.9：终端名/密度/启动页/记住上次标签）；注册 `app.*` 动作 | 阶段 3（78%），menu/menunav/tabs 出现 |
+| 4 收尾 | `bootstrap.js:1022-1051` | `setBootStep(4)`、`boot.ready` 文案、`body.kui-ready`、`data-kui-boot="done"`、`hideBoot()`、`boot:done`、错误时 `boot:error` | 阶段 4（100%）→ 启动层淡出；`KUI.boot.ready()` 为 true |
 
 初始标签取值：`opts.initialTabs` → `tabs.props.initial`/`tabs.props.tabs` → 都无则开 `tabs.props.home`（`app-shell.js:539-550`）；`app.json` 的 `tabs.props.home.url` 是 `pages/home.html`（`config/app.json:11`）。
 
 ### 3.1 三种「就绪」信号
 
-动态插入时才有 `kui:all-ready`（`kui-all.js:34-49`）；`KUI.bus` 的 `boot:done` 在四步完成后触发，参数 `{app,cost}`（`bootstrap.js:924`）；`KUI.boot()` 返回 Promise，resolve 为 app（`bootstrap.js:952-963`），业务脚本用它等外壳就绪。
+动态插入时才有 `kui:all-ready`（`kui-all.js:34-49`）；`KUI.bus` 的 `boot:done` 在四步完成后触发，参数 `{app,cost}`（`bootstrap.js:1043`）；`KUI.boot()` 返回 Promise，resolve 为 app（`bootstrap.js:1071-1085`），业务脚本用它等外壳就绪。
 
-启动失败时 `showBootError(msg, stack)` 在启动层渲染原因、建议与「重新加载」按钮，并发 `boot:error`（`bootstrap.js:929-934`）。
+启动失败时 `showBootError(msg, stack)`（`bootstrap.js:125-154`）在启动层渲染原因、建议与「重新加载」按钮，并发 `boot:error`（`bootstrap.js:1051`）。
 
 ## 4. 五种装配配方
 
@@ -278,7 +278,7 @@ sandbox 去掉 `allow-same-origin` 会让 `localStorage` 抛异常，主题与�
 </body></html>
 ```
 
-要点：`theme-boot` 必须在样式表前；未嵌入时 `ready()` 退化为 `DOMContentLoaded`、`navigate()` 回退 `location.href`，所以不必自己写兜底；业务页无需 `data-kui-auto="false"`——没有 `#kui-app` 时 `autoBoot()` 自动跳过（`bootstrap.js:941-950`）。
+要点：`theme-boot` 必须在样式表前；未嵌入时 `ready()` 退化为 `DOMContentLoaded`、`navigate()` 回退 `location.href`，所以不必自己写兜底；业务页无需 `data-kui-auto="false"`——没有 `#kui-app` 时 `autoBoot()` 自动跳过（`bootstrap.js:1060-1069`）。
 
 ### 5.3 dialog-frame.html / dialog-frame.js
 
@@ -295,7 +295,7 @@ sandbox 去掉 `allow-same-origin` 会让 `localStorage` 抛异常，主题与�
 ```
 index.html       # 唯一主应用入口（profile=app）
 pages/           # 7 个业务页，跑在标签 iframe 内
-standalone/      # 12 个独立页 + embedded.js
+standalone/      # 13 个独立页 + embedded.js
 config/app.json  # 菜单/导航/标签，url 一律相对项目根
 ```
 
@@ -336,6 +336,6 @@ same true
 
 - `index.html:1-163` 与 `src/core/theme-boot.js:1-89` —— 主应用装配范本（启动状态、CSS 顺序、启动层、挂载点、唯一入口）；首帧主题预置（父级/本地读取、内联 token、`__KUI_EARLY_THEME__`）。
 - `src/core/kui-all.js:1-50` —— 单一入口：清单、profile 选择、`document.write` 注入、`kui:all-ready`。
-- `src/app/bootstrap.js:841-935`、`:941-963` —— 四步启动、错误处理、自动启动条件与 `KUI.boot` API；配置加载见 `src/core/config.js:25-80`、`:147-212`。
+- `src/app/bootstrap.js:955-1054`、`:1060-1085` —— 四步启动、错误处理、自动启动条件与 `KUI.boot` API；配置加载见 `src/core/config.js:25-80`、`:147-212`。
 - `src/components/app-shell.js:136-209`、`:530-561`；`src/components/tabs.js:396-444`、`:1095-1131` —— DOM 骨架、初始标签、iframe 保活与 `tab:init` 载荷。
 - `src/frame/kui-frame.js:1-120`、`:762-817` —— 消息约定、`postMessage` 封装、完整 API。

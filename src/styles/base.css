@@ -1,5 +1,7 @@
 /* 头像组件样式（v1.2.0 起由 base.css 统一引入，页面无需再改 HTML） */
 @import url("avatar.css");
+/* 数据表格组件样式（v1.4.0 起由 base.css 统一引入） */
+@import url("datatable.css");
 
 /* ==========================================================================
    KurumiUI base.css —— 视觉地基（reset / token 兜底 / 排版 / 滚动条 / 动画 /

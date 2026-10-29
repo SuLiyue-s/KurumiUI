@@ -1,0 +1,565 @@
+/*!
+ * KurumiUI · styles · datatable.css
+ * 数据表格（datatable）样式 —— 契约 §22
+ * 全部颜色/尺寸走 --kui-* token；分页复用 .kui-pagination 既有样式。
+ */
+
+/* ==========================================================================
+   1. 容器与尺寸
+   ========================================================================== */
+.kui-datatable {
+  --kui-dt-header-bg: var(--kui-bg-2, #130d17);
+  --kui-dt-header-fg: var(--kui-text-2, #bfaebd);
+  --kui-dt-row-h: 42px;
+  --kui-dt-cell-px: 12px;
+  --kui-dt-border: var(--kui-border, rgba(244, 238, 240, 0.12));
+  --kui-dt-hover: var(--kui-control-bg-hover, rgba(255, 255, 255, 0.05));
+  --kui-dt-active: var(--kui-accent-soft, rgba(200, 16, 46, 0.16));
+  --kui-dt-selected: var(--kui-selection-bg, rgba(200, 16, 46, 0.1));
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid var(--kui-dt-border);
+  border-radius: var(--kui-radius-lg, 10px);
+  background: var(--kui-bg-1, #0d080f);
+  color: var(--kui-text-1, #f4eef0);
+  font-size: 13px;
+  overflow: hidden;
+  position: relative;
+}
+
+.kui-datatable--sm { --kui-dt-row-h: 34px; --kui-dt-cell-px: 9px; font-size: 12px; }
+.kui-datatable--lg { --kui-dt-row-h: 50px; --kui-dt-cell-px: 16px; font-size: 14px; }
+.kui-datatable.is-compact { --kui-dt-row-h: 34px; --kui-dt-cell-px: 9px; }
+.kui-datatable.is-bordered { border-color: var(--kui-border-strong, rgba(244, 238, 240, 0.22)); }
+
+/* ==========================================================================
+   2. 工具栏
+   ========================================================================== */
+.kui-datatable__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--kui-dt-border);
+  background: linear-gradient(180deg, var(--kui-bg-2, #130d17), transparent);
+}
+.kui-datatable__toolbar-left,
+.kui-datatable__toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.kui-datatable__toolbar-right { margin-left: auto; }
+.kui-datatable__title { font-size: 14px; letter-spacing: 0.04em; color: var(--kui-text-1); }
+.kui-datatable__subtitle { font-size: 12px; color: var(--kui-text-3, #8d7f8c); }
+
+.kui-datatable__search {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 240px;
+  max-width: 100%;
+}
+.kui-datatable__search-icon {
+  position: absolute;
+  left: 9px;
+  color: var(--kui-text-3, #8d7f8c);
+  pointer-events: none;
+}
+.kui-datatable__search-input {
+  width: 100%;
+  height: 30px;
+  padding: 0 10px 0 28px;
+  border: 1px solid var(--kui-control-border, rgba(244, 238, 240, 0.16));
+  border-radius: var(--kui-radius-md, 6px);
+  background: var(--kui-control-bg, #1b141c);
+  color: var(--kui-control-text, #f4eef0);
+  font-size: 12px;
+  outline: none;
+}
+.kui-datatable__search-input::placeholder { color: var(--kui-control-text-placeholder, #8d7f8c); }
+.kui-datatable__search-input:focus {
+  border-color: var(--kui-control-border-focus, #c8102e);
+  box-shadow: var(--kui-highlight, inset 0 0 0 1px rgba(200, 16, 46, 0.35));
+}
+
+.kui-datatable__selected-info {
+  font-size: 12px;
+  color: var(--kui-accent-2, #d4af37);
+  padding: 2px 8px;
+  border: 1px solid var(--kui-border, rgba(244, 238, 240, 0.12));
+  border-radius: 999px;
+}
+
+.kui-datatable__tool-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--kui-control-border, rgba(244, 238, 240, 0.16));
+  border-radius: var(--kui-radius-md, 6px);
+  background: var(--kui-control-bg, #1b141c);
+  color: var(--kui-control-text, #f4eef0);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.kui-datatable__tool-btn:hover {
+  background: var(--kui-control-bg-hover, rgba(255, 255, 255, 0.06));
+  border-color: var(--kui-control-border-hover, rgba(244, 238, 240, 0.28));
+}
+.kui-datatable__tool-btn:focus-visible {
+  outline: none;
+  border-color: var(--kui-control-border-focus, #c8102e);
+  box-shadow: inset 0 0 0 1px var(--kui-control-border-focus, #c8102e);
+}
+.kui-datatable__tool-btn.is-primary {
+  background: var(--kui-accent, #c8102e);
+  border-color: var(--kui-accent, #c8102e);
+  color: var(--kui-on-accent, #fdfaf6);
+}
+.kui-datatable__tool-btn.is-primary:hover { background: var(--kui-accent-hover, #a00c24); }
+.kui-datatable__tool-btn.is-danger {
+  border-color: var(--kui-danger, #e6354e);
+  color: var(--kui-danger, #e6354e);
+}
+.kui-datatable__tool-icon { flex: none; }
+
+/* ==========================================================================
+   3. 筛选栏
+   ========================================================================== */
+.kui-datatable__filters {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--kui-dt-border);
+  background: var(--kui-bg-2, #130d17);
+}
+.kui-datatable__filters-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--kui-text-3, #8d7f8c);
+}
+.kui-datatable__filters.is-active .kui-datatable__filters-label { color: var(--kui-accent-2, #d4af37); }
+.kui-datatable__filters-icon { flex: none; }
+.kui-datatable__filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.kui-datatable__filter-label {
+  font-size: 12px;
+  color: var(--kui-text-2, #bfaebd);
+  white-space: nowrap;
+}
+.kui-datatable__filter-input,
+.kui-datatable__filter-select {
+  height: 28px;
+  min-width: 96px;
+  max-width: 168px;
+  padding: 0 8px;
+  border: 1px solid var(--kui-control-border, rgba(244, 238, 240, 0.16));
+  border-radius: var(--kui-radius-sm, 4px);
+  background: var(--kui-control-bg, #1b141c);
+  color: var(--kui-control-text, #f4eef0);
+  font-size: 12px;
+  outline: none;
+}
+.kui-datatable__filter-input::placeholder { color: var(--kui-control-text-placeholder, #8d7f8c); }
+.kui-datatable__filter-input:focus,
+.kui-datatable__filter-select:focus {
+  border-color: var(--kui-control-border-focus, #c8102e);
+}
+.kui-datatable__filter-input--num { min-width: 66px; max-width: 84px; }
+.kui-datatable__filter-range { display: inline-flex; align-items: center; gap: 4px; }
+.kui-datatable__filter-sep { color: var(--kui-text-3, #8d7f8c); font-size: 12px; }
+.kui-datatable__filter-active {
+  font-size: 12px;
+  color: var(--kui-accent-2, #d4af37);
+  margin-left: auto;
+}
+.kui-datatable__filter-reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 9px;
+  border: 1px dashed var(--kui-control-border, rgba(244, 238, 240, 0.16));
+  border-radius: var(--kui-radius-sm, 4px);
+  background: transparent;
+  color: var(--kui-text-2, #bfaebd);
+  font-size: 12px;
+  cursor: pointer;
+}
+.kui-datatable__filter-reset:hover {
+  color: var(--kui-danger, #e6354e);
+  border-color: var(--kui-danger, #e6354e);
+}
+.kui-datatable__filter-icon { flex: none; }
+
+/* 列设置浮层 */
+.kui-datatable__col-menu {
+  position: absolute;
+  top: 48px;
+  right: 12px;
+  z-index: 30;
+  min-width: 160px;
+  max-height: 300px;
+  overflow: auto;
+  padding: 8px;
+  border: 1px solid var(--kui-popup-border, rgba(244, 238, 240, 0.16));
+  border-radius: var(--kui-radius-md, 6px);
+  background: var(--kui-popup-bg, rgba(16, 12, 20, 0.98));
+  box-shadow: 0 18px 32px rgba(0, 0, 0, 0.45);
+}
+.kui-datatable__col-menu-title {
+  font-size: 12px;
+  color: var(--kui-text-3, #8d7f8c);
+  padding: 2px 4px 6px;
+  border-bottom: 1px solid var(--kui-divider, rgba(244, 238, 240, 0.08));
+  margin-bottom: 4px;
+}
+.kui-datatable__col-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 6px;
+  border-radius: var(--kui-radius-sm, 4px);
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--kui-text-2, #bfaebd);
+}
+.kui-datatable__col-menu-item:hover { background: var(--kui-dt-hover); color: var(--kui-text-1); }
+.kui-datatable__col-menu-input { accent-color: var(--kui-accent, #c8102e); }
+
+/* ==========================================================================
+   4. 表格本体
+   ========================================================================== */
+.kui-datatable__scroll {
+  overflow: auto;
+  min-height: 0;
+  scrollbar-width: thin;
+}
+.kui-datatable__table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: auto;
+}
+.kui-datatable__head { background: var(--kui-dt-header-bg); }
+.kui-datatable__th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  height: 38px;
+  padding: 0 var(--kui-dt-cell-px);
+  background: var(--kui-dt-header-bg);
+  color: var(--kui-dt-header-fg);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--kui-dt-border);
+  user-select: none;
+}
+.kui-datatable__th.is-sortable { cursor: pointer; }
+.kui-datatable__th.is-sortable:hover { color: var(--kui-text-1); }
+.kui-datatable__th.is-sorted { color: var(--kui-accent-2, #d4af37); }
+.kui-datatable__th.is-left { text-align: left; }
+.kui-datatable__th.is-center { text-align: center; }
+.kui-datatable__th.is-right { text-align: right; }
+.kui-datatable__th--selection,
+.kui-datatable__th--index { width: 40px; text-align: center; }
+.kui-datatable__th-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  vertical-align: middle;
+}
+.kui-datatable__sort-icon { display: inline-flex; opacity: 0.6; }
+.kui-datatable__th.is-sorted .kui-datatable__sort-icon { opacity: 1; }
+.kui-datatable__sort-glyph { flex: none; }
+
+.kui-datatable__td {
+  height: var(--kui-dt-row-h);
+  padding: 0 var(--kui-dt-cell-px);
+  border-bottom: 1px solid var(--kui-divider, rgba(244, 238, 240, 0.08));
+  color: var(--kui-text-1, #f4eef0);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.kui-datatable__td.is-left { text-align: left; }
+.kui-datatable__td.is-center { text-align: center; }
+.kui-datatable__td.is-right { text-align: right; }
+.kui-datatable__td--selection,
+.kui-datatable__td--index { width: 40px; text-align: center; }
+.kui-datatable__row {
+  transition: background 0.12s ease;
+  cursor: default;
+}
+.kui-datatable.is-hoverable .kui-datatable__row:hover { background: var(--kui-dt-hover); }
+.kui-datatable.is-striped .kui-datatable__body .kui-datatable__row:nth-child(even) {
+  background: var(--kui-bg-2, #130d17);
+}
+.kui-datatable.is-striped .kui-datatable.is-hoverable .kui-datatable__row:nth-child(even):hover,
+.kui-datatable.is-striped.kui-datatable.is-hoverable .kui-datatable__row:nth-child(even):hover {
+  background: var(--kui-dt-hover);
+}
+.kui-datatable__row.is-selected { background: var(--kui-dt-selected); }
+.kui-datatable__row.is-active {
+  background: var(--kui-dt-active);
+  box-shadow: inset 3px 0 0 var(--kui-accent, #c8102e);
+}
+.kui-datatable__row.is-active > .kui-datatable__td { color: var(--kui-text-1); }
+.kui-datatable__row:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 1px var(--kui-control-border-focus, #c8102e);
+}
+.kui-datatable__row:last-child > .kui-datatable__td { border-bottom: 0; }
+
+/* 边框模式 */
+.kui-datatable.is-bordered .kui-datatable__th,
+.kui-datatable.is-bordered .kui-datatable__td {
+  border-right: 1px solid var(--kui-dt-border);
+}
+.kui-datatable.is-bordered .kui-datatable__th:last-child,
+.kui-datatable.is-bordered .kui-datatable__td:last-child { border-right: 0; }
+
+/* ==========================================================================
+   5. 单元格内容
+   ========================================================================== */
+.kui-datatable__text { color: inherit; }
+.kui-datatable__num { font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+.kui-datatable__date { font-variant-numeric: tabular-nums; color: var(--kui-text-2, #bfaebd); }
+.kui-datatable__bool {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.kui-datatable__bool.is-true { color: var(--kui-success, #57b98c); }
+.kui-datatable__bool.is-false { color: var(--kui-text-3, #8d7f8c); }
+.kui-datatable__bool-icon { flex: none; }
+.kui-datatable__tags { display: inline-flex; gap: 4px; flex-wrap: wrap; }
+.kui-datatable__tags .kui-tag { font-size: 11px; padding: 1px 6px; }
+.kui-datatable__muted { color: var(--kui-text-3, #8d7f8c); }
+.kui-datatable__badge { display: inline-flex; align-items: center; gap: 6px; }
+.kui-datatable__badge-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--kui-accent-2, #d4af37);
+  flex: none;
+  box-shadow: 0 0 6px color-mix(in srgb, var(--kui-accent-2, #d4af37) 55%, transparent);
+}
+.kui-datatable__td.has-dict-dot { display: table-cell; }
+.kui-datatable__td.has-dict-dot .kui-datatable__badge-dot { margin-right: 6px; vertical-align: middle; }
+.kui-datatable__link {
+  color: var(--kui-accent-3, #58fc7c);
+  text-decoration: none;
+  border-bottom: 1px dashed transparent;
+}
+.kui-datatable__link:hover { border-bottom-color: currentColor; }
+.kui-datatable__progress {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 120px;
+}
+.kui-datatable__progress-bar {
+  display: block;
+  height: 6px;
+  flex: 1;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--kui-accent, #c8102e), var(--kui-accent-2, #d4af37));
+  box-shadow: 0 0 8px var(--kui-accent-soft, rgba(200, 16, 46, 0.16));
+}
+.kui-datatable__progress-text { font-size: 11px; color: var(--kui-text-3, #8d7f8c); }
+.kui-datatable__code {
+  font-family: var(--kui-font-mono, "Consolas", "Menlo", monospace);
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: var(--kui-radius-sm, 4px);
+  background: var(--kui-bg-3, #1a1220);
+  color: var(--kui-accent-2, #d4af37);
+}
+.kui-datatable__ellipsis {
+  display: inline-block;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.kui-datatable__index-num { color: var(--kui-text-3, #8d7f8c); font-variant-numeric: tabular-nums; }
+
+/* 行内动作 */
+.kui-datatable__row-actions { display: inline-flex; gap: 6px; align-items: center; }
+.kui-datatable__cell-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 8px;
+  border: 1px solid var(--kui-control-border, rgba(244, 238, 240, 0.16));
+  border-radius: var(--kui-radius-sm, 4px);
+  background: transparent;
+  color: var(--kui-text-2, #bfaebd);
+  font-size: 11px;
+  cursor: pointer;
+  transition: color 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+}
+.kui-datatable__cell-btn:hover {
+  color: var(--kui-text-1);
+  border-color: var(--kui-accent, #c8102e);
+  background: var(--kui-accent-soft, rgba(200, 16, 46, 0.16));
+}
+.kui-datatable__cell-btn.is-danger { color: var(--kui-danger, #e6354e); }
+.kui-datatable__cell-btn.is-danger:hover { background: var(--kui-danger-soft, rgba(230, 53, 78, 0.16)); border-color: var(--kui-danger, #e6354e); }
+.kui-datatable__cell-btn.is-primary { color: var(--kui-accent-2, #d4af37); }
+.kui-datatable__cell-icon { flex: none; }
+
+/* ==========================================================================
+   6. 选择框
+   ========================================================================== */
+.kui-datatable__check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  position: relative;
+  cursor: pointer;
+  vertical-align: middle;
+}
+.kui-datatable__check-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  margin: 0;
+  cursor: pointer;
+}
+.kui-datatable__check-box {
+  width: 15px;
+  height: 15px;
+  border: 1px solid var(--kui-control-border, rgba(244, 238, 240, 0.24));
+  border-radius: var(--kui-radius-sm, 4px);
+  background: var(--kui-control-bg, #1b141c);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+.kui-datatable__check.is-radio .kui-datatable__check-box { border-radius: 50%; }
+.kui-datatable__check-input:checked + .kui-datatable__check-box,
+.kui-datatable__check-input:indeterminate + .kui-datatable__check-box {
+  background: var(--kui-accent, #c8102e);
+  border-color: var(--kui-accent, #c8102e);
+}
+.kui-datatable__check-input:checked + .kui-datatable__check-box::after,
+.kui-datatable__check-input:indeterminate + .kui-datatable__check-box::after {
+  content: "";
+  width: 8px;
+  height: 4px;
+  border-left: 2px solid var(--kui-on-accent, #fff);
+  border-bottom: 2px solid var(--kui-on-accent, #fff);
+  transform: rotate(-45deg) translateY(-1px);
+}
+.kui-datatable__check.is-radio .kui-datatable__check-input:checked + .kui-datatable__check-box::after {
+  width: 5px;
+  height: 5px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--kui-on-accent, #fff);
+  transform: none;
+}
+.kui-datatable__check-input:indeterminate + .kui-datatable__check-box::after {
+  width: 8px;
+  height: 0;
+  border-left: 0;
+  border-bottom: 2px solid var(--kui-on-accent, #fff);
+  transform: none;
+}
+.kui-datatable__check-input:focus-visible + .kui-datatable__check-box {
+  border-color: var(--kui-control-border-focus, #c8102e);
+  box-shadow: 0 0 0 2px var(--kui-accent-soft, rgba(200, 16, 46, 0.16));
+}
+
+/* ==========================================================================
+   7. 空态 / 加载
+   ========================================================================== */
+.kui-datatable__empty-row > .kui-datatable__empty {
+  padding: 40px 16px;
+  border-bottom: 0;
+  text-align: center;
+}
+.kui-datatable__empty-box {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.kui-datatable__empty-icon { color: var(--kui-text-3, #8d7f8c); opacity: 0.7; }
+.kui-datatable__empty-title { font-size: 13px; color: var(--kui-text-2, #bfaebd); }
+.kui-datatable__empty-desc { font-size: 12px; color: var(--kui-text-3, #8d7f8c); }
+
+.kui-datatable__loading {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 10px;
+  background: color-mix(in srgb, var(--kui-bg-0, #08050a) 72%, transparent);
+  backdrop-filter: blur(2px);
+  z-index: 20;
+  color: var(--kui-text-2, #bfaebd);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+.kui-datatable.is-loading .kui-datatable__loading { display: flex; }
+.kui-datatable__spinner { animation: kui-dt-spin 1s linear infinite; }
+@keyframes kui-dt-spin { to { transform: rotate(360deg); } }
+.kui-datatable__loading-text { color: var(--kui-text-3, #8d7f8c); }
+
+/* ==========================================================================
+   8. 页脚（复用 .kui-pagination）
+   ========================================================================== */
+.kui-datatable__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--kui-dt-border);
+  background: var(--kui-bg-2, #130d17);
+  flex-wrap: wrap;
+}
+.kui-datatable__pager { margin: 0; }
+
+/* ==========================================================================
+   9. 小屏适配
+   ========================================================================== */
+@media (max-width: 720px) {
+  .kui-datatable__toolbar { align-items: flex-start; }
+  .kui-datatable__toolbar-right { width: 100%; }
+  .kui-datatable__search { width: 100%; }
+  .kui-datatable__filter { flex: 1 1 140px; }
+  .kui-datatable__filter-input,
+  .kui-datatable__filter-select { max-width: none; width: 100%; }
+  .kui-datatable__footer { justify-content: center; }
+}

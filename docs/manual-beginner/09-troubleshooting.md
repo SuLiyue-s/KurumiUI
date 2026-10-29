@@ -1,6 +1,6 @@
 # 09 · 常见问题急救包
 
-> 适用版本：KurumiUI v1.3.9 ｜ 难度：⭐ 入门 ｜ 前置章节：[02-first-run.md](02-first-run.md) ｜ 阅读时长：约 25 分钟
+> 适用版本：KurumiUI v1.4.0 ｜ 难度：⭐ 入门 ｜ 前置章节：[02-first-run.md](02-first-run.md) ｜ 阅读时长：约 25 分钟
 
 ## 本章目标
 
@@ -73,6 +73,8 @@
 | 配置里的中文变成乱码或问号 | 文件被保存成了 GBK 等非 UTF-8 编码 | ① 看编辑器右下角的文件编码；② 文件开头有没有 BOM；③ 用 VS Code 的「通过编码保存」选 UTF-8 | 以 UTF-8（无 BOM）重新保存文件 |
 | 改了 `config/text.json`，界面文案却不变 | `app.json` 里的 `text` 段覆盖了 `text.json` | ① 搜 `config/app.json` 有没有 `"text": {`；② 是不是两处都改了；③ 改完刷新了吗 | 二选一：删掉 `app.json` 里的 `text` 覆盖，或直接改 `app.json` 里的值 |
 | 新加的菜单项或标签页不出现 | 结构写错：对象写成数组、缺 `type`、括号不配对 | ① 用第 8 节的命令校验 `app.json`；② 对照已有条目的结构；③ Console 有没有渲染报错 | 照已有条目复制再改；改前先备份 |
+| 改了 `config/kui-modules.json`（脚本清单）后页面没变化 | 它不会进 `bundle.js`，而是生成 `src/core/kui-all.js`，必须重建 | ① 有没有跑 `npm run build:all`；② 看 `src/core/kui-all.js` 的修改时间；③ Console 有没有脚本加载错误 | 跑 `npm run build:all`（或 `npm run build`）后刷新 |
+| 在设置里改的终端名称/主题，换台电脑或换浏览器就没了 | 界面保存的偏好写在本机浏览器 localStorage，不写配置文件 | ① F12 → Application → Local Storage 看有没有 `kui-shell-name`、`kui-theme`；② 换无痕窗口复现；③ 对比 `config/app.json` 的默认值 | 这是正常现象；想让所有人都看到新默认，请改 `config/app.json` 并按下表决定是否重建 |
 
 ## 5. 主题类：颜色不对、换主题没反应
 
@@ -94,6 +96,8 @@
 | 线上还是旧版本，改的内容看不到 | 浏览器或 CDN 缓存了旧文件 | ① `Ctrl + F5` 强制刷新；② 无痕窗口打开；③ Network 里看是 200 还是 from cache | 强刷、等 CDN 刷新，或在地址后加 `?kui_v=2` 临时验证 |
 | 把整个文件夹传到网盘，双击 `index.html` 还是白屏 | `file://` 模式只能从 `config/bundle.js` 读配置，网盘里可能没有它 | ① 同目录有没有 `config/bundle.js`；② Console 是不是「配置读取失败」；③ 换本地服务器打开试试 | 把 `bundle.js` 一起上传；更推荐按 [08-deploy.md](08-deploy.md) 用静态托管 |
 | 嵌入自己网站时 iframe 空白或被拒绝 | 父子页协议/域名不一致，或对方服务器设置了禁止嵌入 | ① 两个地址是不是都是 `https`；② Console 有没有 `X-Frame-Options` 报错；③ 直接打开 iframe 里的地址能访问吗 | 统一用 HTTPS；改响应头，或把页面部署到允许嵌入的地方 |
+| 部署后直接改了服务器上的 `config/*.json`，页面没变化 | 部署包里没上传原始 JSON（只有 `bundle.js`），或浏览器/CDN 缓存 | ① 访问 `你的站点/config/app.json` 看是不是 200；② Network 看页面加载的是 JSON 还是 bundle；③ `Ctrl + F5` 强刷 | 上传 `config/*.json` 后 http 下刷新即生效；只传 bundle 就必须本地 `npm run build:config` 再重传；`kui-modules.json` 永远要 `build:all` |
+| 想让所有访问者看到的默认标题/皮肤变了，但自己本机没变 | 本机 localStorage 还记着你以前的偏好，优先级高于配置默认值 | ① F12 → Application 清 `kui-shell-name`/`kui-theme`；② 无痕窗口验证；③ 确认改的是 `config/app.json` 而不是只在界面上保存 | 清本机偏好后用无痕窗口验收；部署包按上一条决定是否重建 |
 
 ## 7. 用 F12 看现场：三个面板就够
 

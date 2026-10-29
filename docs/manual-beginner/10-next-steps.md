@@ -1,6 +1,6 @@
 # 10 · 下一步：把 KurumiUI 真正用起来
 
-> 适用版本：KurumiUI v1.3.9 ｜ 难度：⭐⭐ 入门进阶 ｜ 前置章节：[08-deploy.md](08-deploy.md) ｜ 阅读时长：约 20 分钟
+> 适用版本：KurumiUI v1.4.0 ｜ 难度：⭐⭐ 入门进阶 ｜ 前置章节：[08-deploy.md](08-deploy.md) ｜ 阅读时长：约 20 分钟
 
 ## 本章目标
 

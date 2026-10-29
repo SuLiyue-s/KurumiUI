@@ -1500,3 +1500,57 @@ v1.0.8 起由 `src/core/dom-enhance.js` 就地升级，**不改变原有 HTML �
 ```
 
 运行时也可以强制指定方式：`KUI.avatar.create(...).pickFile({ mode: "file" })`。
+
+## 11. 数据表格 datatable（v1.4.0）
+
+`datatable` 是「一体化配置」的数据表格控件（注册类别 `data`，与 `table`/`pagination` 同级），把搜索、列筛选、排序、单选/复选/全选、行高亮、工具栏动作、列设置、密度、导出、分页全部收进一个 `type` 的 `props` 里。
+
+**最小配置**：
+
+```json
+{
+  "type": "datatable",
+  "props": {
+    "rowKey": "id",
+    "columns": [
+      { "key": "name", "title": "名称", "sortable": true, "filter": { "type": "text" } },
+      { "key": "score", "title": "评分", "format": "number", "formatOptions": { "digits": 1 } }
+    ],
+    "data": [ { "id": 1, "name": "一之弹", "score": 88 } ],
+    "selection": { "mode": "multi", "showSelectAll": true, "keepAcrossPages": true },
+    "pagination": { "enabled": true, "pageSize": 10 }
+  }
+}
+```
+
+**字段表**（全部可省略，默认值见源码 `DEFAULTS`）：
+
+| 字段 | 类型 | 默认 | 说明 |
+| --- | --- | --- | --- |
+| `columns` | array | `[]` | 列定义（见下） |
+| `data` / `rows` | array | `[]` | 行数据，`rows` 为兼容别名 |
+| `rowKey` | string | `'id'` | 行唯一键 |
+| `size` | string | `'md'` | `sm` / `md` / `lg` |
+| `bordered` / `striped` / `hoverable` / `compact` | bool | `false/true/true/false` | 外观 |
+| `height` / `maxHeight` | number | `0` | 固定表体高度（表头吸附），0 = 自动 |
+| `showIndex` | bool | `false` | 序号列 |
+| `search` | object | `{enabled:true,placeholder:'',width:240,keys:[]}` | 全局搜索，`keys` 为空时搜全部列 |
+| `filter` | object | `{enabled:true,columns:true,clearable:true}` | 列筛选行 |
+| `sort` | object | `{enabled:true,mode:'single',default:[]}` | `mode: single \| multi`，`default: [{key,order}]` |
+| `selection` | object | `{mode:'none',showSelectAll:true,selectOnRowClick:true,keepAcrossPages:true,selectAllScope:'page'}` | `mode: none \| single \| multi`；`selectAllScope: page \| all` |
+| `pagination` | object | `{enabled:true,pageSize:10,pageSizes:[10,20,50,100],showTotal:true,showSizer:true,showJumper:true,maxButtons:7}` | 分页 |
+| `rowHighlight` | bool | `true` | 行点击高亮 |
+| `rowClickAction` | object | `null` | 行点击动作 `{action:...}` |
+| `toolbar` | object | `{enabled:true,title:'',subtitle:'',actions:[],actionsAlign:'right'}` | 工具栏 |
+| `columnsToggle` / `densityToggle` / `refresh` / `export` | bool | `true/true/false/false` | 列设置 / 密度 / 刷新 / 导出 CSV |
+| `exportFileName` | string | `'datatable.csv'` | 导出文件名 |
+| `selectionInfo` / `keyboard` | bool | `true/true` | 选中计数 / 键盘操作 |
+| `text` | object | `{}` | 文案覆盖 |
+
+**列定义**：`key`（支持点路径）、`title`、`width`、`minWidth`、`align`（`left/center/right`）、`sortable`、`filter`（`true` 或 `{type:'text'|'select'|'range', options, placeholder}`）、`format`（`text/number/date/boolean/tags/badge/dict/link/progress/code/ellipsis/actions`）、`formatOptions`（如 `{digits, prefix, suffix, pattern, thousandSeparator}`）、`dict`、`hidden`、`headerTip`、`className`。
+
+**事件**（`api.on(name, fn)`，同时 `KUI.bus` 转发 `datatable:<name>`）：`ready`、`refresh`、`sort`、`filter`、`page`、`action`、`destroy`。
+
+**实例 API**：见契约 §22 与手册 08 §6.6。常用：`setData`、`setColumns`、`setColumnVisible`、`setKeyword`、`setFilter`、`setSort`、`setPage`、`setPageSize`、`selectAll`、`clearSelection`、`getSelectedRows`、`exportCsv`、`refresh`、`destroy`。
+
+**拆装**：从 `config/kui-modules.json` 的 `profiles.app.files` / `profiles.standalone.files` 移除 `src/components/datatable.js` → `npm run build:config`；此时 `{type:'datatable'}` 渲染为未注册占位块，其他组件正常。单独页面用法见 `standalone/datatable.html`。

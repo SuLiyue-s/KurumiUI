@@ -1,6 +1,6 @@
 # 02 · 构建与产物
 
-> 适用版本：KurumiUI v1.3.9 ｜ 前置章节：01 · 安装与首次运行 ｜ 阅读时长：约 20 分钟
+> 适用版本：KurumiUI v1.4.0 ｜ 前置章节：01 · 安装与首次运行 ｜ 阅读时长：约 20 分钟
 
 ## 本章目标
 
@@ -93,11 +93,11 @@ KurumiUI 配置打包完成
 
 1. `build()` 组装 `payload = { schema, note, profiles: { 名称: { desc, files } } }`（`tools/build-all.js:39-47`）；
 2. 生成 banner + 一段 IIFE，写入 `src/core/kui-all.js`（覆盖写，`tools/build-all.js:49-106`）；
-3. 返回值：`{ out, bytes, profiles, counts }`，其中 `counts` 形如 `app=29, standalone=28`；CLI 打印两行（`tools/build-all.js:115-119`）：
+3. 返回值：`{ out, bytes, profiles, counts }`，其中 `counts` 形如 `app=30, standalone=29`；CLI 打印两行（`tools/build-all.js:115-119`）：
 
 ```text
 [build-all] 已生成 src\core\kui-all.js (3982 字节)
-[build-all] profiles: app=29, standalone=28
+[build-all] profiles: app=30, standalone=29
 ```
 
 ### 产物运行时逻辑（最重要的一段）
@@ -123,7 +123,7 @@ KurumiUI 配置打包完成
 | `out` | string | — | 是 | 产物相对路径 `src\core\kui-all.js` |
 | `bytes` | number | — | 是 | 产物字节数，约 4 KB |
 | `profiles` | string[] | — | 是 | `['app', 'standalone']` |
-| `counts` | string | — | 是 | 如 `app=29, standalone=28` |
+| `counts` | string | — | 是 | 如 `app=30, standalone=29` |
 
 ## 2.4 产物结构
 
@@ -176,13 +176,15 @@ node -e "var m = require('./src/core/kui-all.js'); console.log(m.schema, Object.
 | 改动内容 | 重建？ | 命令 |
 | --- | --- | --- |
 | 改 `src/**` 已有文件（不增删） | 不需要 | —（浏览器直接加载） |
-| 改 `config/*.json` 与 `demos/*.json` | http 不需要，file:// 需要 | `npm run build:config` |
+| 改 `config/app.json`、`config/text.json`、`src/themes.json`、`config/demos/*.json` | http 不需要，file:// 需要 | `npm run build:config` |
+| 改 `config/kui-modules.json` 任何字段（文件列表、顺序、profile） | **任何运行方式都需要**（它生成 `src/core/kui-all.js` 清单，不进 bundle） | `npm run build`（或 `npm run build:all`） |
 | 增删模块文件、调整模块顺序 | 需要 | `npm run build`（先改清单 `files`） |
 | 新增 profile | 需要 | `npm run build`（清单加 `profiles.<名字>`） |
 | 只改 HTML / CSS | 不需要 | — |
 | 改构建脚本本身 | 需要 | `npm run build` |
 | 本地启动服务 | 自动一次 | `npm start`（启动前静默构建，非 watch） |
 | 静态部署 / 离线分发 | 需要 | `npm run build`（产物不入库） |
+| 静态部署后想直接改服务器上的 JSON | 分情况 | 若已上传 `config/*.json`，http 下 `fetch` 可读到，改完刷新即生效；只上传了 `bundle.js` 则必须在本地重建后重传 |
 
 关于 watch：`package.json` **没有** watch 脚本，`npm start` 只在启动时构建一次；需要边改边看时手动重跑 `npm run build`，或用外部循环（PowerShell `while ($true) { node tools/build-config.js; Start-Sleep 2 }`）触发。
 
@@ -207,12 +209,12 @@ node -e "var m = require('./src/core/kui-all.js'); console.log(m.schema, Object.
 | 命令 | 校验对象 | 通过判据（当前仓库实测） | 退出码 |
 | --- | --- | --- | --- |
 | `npm test` | compat / config / server / render 四套件共 33 条用例 | 末行 `=> PASS`；缺 `.tools/` 时 Node 13 用例 SKIP | 0 / 1 |
-| `npm run verify` | 冒烟 108 项 + handlers 演示页 + 弹窗动作桥 + 产物一致性 | `108 通过 / 0 失败` 与三个 ✔ / PASS | 0 / 1（&&） |
+| `npm run verify` | 冒烟 111 项 + handlers 演示页 + 弹窗动作桥 + 产物一致性 | `111 通过 / 0 失败` 与三个 ✔ / PASS | 0 / 1（&&） |
 | `npm run audit` | 一致性审计 17 项 + 组件拆装审计 19 项 | `通过 17 项 / 失败 0 项 / 警告 0 项` 与 `通过 19 项 / 失败 0 项` | 0 / 1（&&） |
 | `node tools/check-compat.js` | 全项目 JS 与 HTML 内联脚本的禁用语法 / API，并用 Node 13.14 做语法校验 | `[PASS] 未发现禁用语法 / API`；`.tools/` 缺失时降级为当前运行时并打印 `[INFO]` | 0 / 1 |
-| `node tools/check-assets.js` | 21 个 HTML 的 `link` / `script` 引用：存在、非空、外链、重复、ESM | 末行 `汇总: 21 个 HTML，错误 0 个，警告 0 个` | 0 / 1 |
+| `node tools/check-assets.js` | 22 个 HTML 的 `link` / `script` 引用：存在、非空、外链、重复、ESM | 末行 `汇总: 22 个 HTML，错误 0 个，警告 0 个` | 0 / 1 |
 | `node tools/audit-config.js` | 配置读取点审计：逐个 JSON 叶子字段检查源码是否存在读取点（`--strict` 时有缺口即失败） | 无 npm script，直接运行；v1.3.8 新增，当前 `468 个叶子 / 431 个受检字段 / 0 个缺口`、退出码 0 | 0 / 1 |
-| `node tools/audit-all-pages.js` | 19 个页面的注册表装配与 console.error | `19 / 19 页面通过，失败 0 项` | 0 / 1 |
+| `node tools/audit-all-pages.js` | 19 个页面的注册表装配与 console.error | `20 / 20 页面通过，失败 0 项` | 0 / 1 |
 
 `kui-all.js` 不在生成文件白名单（`tools/check-compat.js:42`），构建后应再跑一次兼容扫描；`bundle.js` 被跳过。产物不入库（`.gitignore:5-6`），部署时随源码带上即可。
 
@@ -272,14 +274,14 @@ npm test
 预期输出（节选，数值以实际输出为准）：
 
 ```text
-1.3.8
+1.3.9
 [build-all] 已生成 src\core\kui-all.js (3982 字节)
-[build-all] profiles: app=29, standalone=28
+[build-all] profiles: app=30, standalone=29
 kui-modules/1 [ 'app', 'standalone' ] 29 28
 app,text,themes,demos,meta 11
 [PASS] 未发现禁用语法 / API
-汇总: 21 个 HTML，错误 0 个，警告 0 个
-汇总: 33 通过 / 0 失败 / 0 跳过   总计 33   耗时 ...ms   => PASS
+汇总: 22 个 HTML，错误 0 个，警告 0 个
+汇总: 34 通过 / 0 失败 / 0 跳过   总计 34   耗时 ...ms   => PASS
 ```
 
 ## 参考源码

@@ -1,6 +1,6 @@
 # 15 · 排错手册、FAQ 与上线验收清单
 
-> 适用版本：KurumiUI v1.3.9 ｜ 前置章节：[03-assembly.md](03-assembly.md)、[11-api-messaging.md](11-api-messaging.md) ｜ 阅读时长：约 20 分钟
+> 适用版本：KurumiUI v1.4.0 ｜ 前置章节：[03-assembly.md](03-assembly.md)、[11-api-messaging.md](11-api-messaging.md) ｜ 阅读时长：约 20 分钟
 
 ## 本章目标
 
@@ -45,7 +45,7 @@
 
 ```js
 KUI.info()
-// => { name: "KurumiUI", version: "1.3.8", controls: 41, themes: 6, env: {...} }
+// => { name: "KurumiUI", version: "1.3.9", controls: 41, themes: 6, env: {...} }
 ```
 
 | 返回字段 | 含义 | 异常时的含义 |
@@ -56,7 +56,7 @@ KUI.info()
 | `themes` | `KUI.theme.list().length` | 为 0 → `themes.json` 没加载或 `theme.load()` 未执行 |
 | `env` | `isBrowser / isNode / nodeVersion` | 在浏览器里 `isBrowser` 应为 true |
 
-严格来说 `controls` 统计的是**所有注册类型**（含组件），v1.3.8 是 41 个，不是 19 个表单控件。实现见 [src/core/kui.js:1322-1330](../../src/core/kui.js#L1322-L1330)。
+严格来说 `controls` 统计的是**所有注册类型**（含组件），v1.3.9 是 41 个，不是 19 个表单控件。实现见 [src/core/kui.js:1322-1330](../../src/core/kui.js#L1322-L1330)。
 
 ### 1.2 `?kui_debug=1` 诊断面板（推荐第一时间打开）
 
@@ -87,7 +87,7 @@ http://127.0.0.1:8080/?kui_debug=1
 
 面板也可以不通过 URL 启用——在控制台执行 `localStorage.setItem('kui-debug', '1')` 后刷新；清除用 `localStorage.removeItem('kui-debug')`（判断逻辑见 [src/core/diag.js:235-241](../../src/core/diag.js#L235-L241)）。
 
-> 面板自身有独立版本号（历史值为 `1.1.0`，与框架 1.3.8 无关），不要混淆。
+> 面板自身有独立版本号（历史值为 `1.1.0`，与框架 1.3.9 无关），不要混淆。
 
 ### 1.3 控制台错误关键词对照表（源码原话 → 处理）
 
@@ -119,7 +119,7 @@ KurumiUI 的告警都带明确前缀，直接按关键词搜：
 
 | 命令 | 检查什么 | 预期 | 失败通常意味着 |
 | --- | --- | --- | --- |
-| `npm test` | 兼容 / 配置 / 服务器 / 渲染等套件 33 项 | `33 通过 / 0 失败` | 运行时被改动、配置不合法 |
+| `npm test` | 兼容 / 配置 / 服务器 / 渲染等套件 34 项 | `34 通过 / 0 失败` | 运行时被改动、配置不合法 |
 | `npm run verify` | 冒烟 + 两个运行时装配验证 | 全 PASS | 装配链路坏了 |
 | `npm run audit` | 一致性 + 组件拆装 | 全 PASS | 文档/契约与源码不一致 |
 | `node tools/check-compat.js` | Node 13.14 禁用语法 | `[PASS] 未发现禁用语法` | 用了 `?.`、`??`、`replaceAll` 等 |
@@ -149,7 +149,7 @@ KurumiUI 的告警都带明确前缀，直接按关键词搜：
 node -e "var fs=require('fs');['config/bundle.js','src/core/kui-all.js'].forEach(function(f){try{var s=fs.statSync(f);console.log(f,s.size+'B',s.mtime.toISOString())}catch(e){console.log(f,'MISSING')}})"
 ```
 
-判断标准（v1.3.8 参考值）：
+判断标准（v1.3.9 参考值）：
 
 | 文件 | 参考大小 | 内容特征 |
 | --- | --- | --- |
@@ -176,7 +176,7 @@ node -e "var fs=require('fs');['config/bundle.js','src/core/kui-all.js'].forEach
 | 杀毒软件拦截 `node server.js` | 监听本地端口被拦 | 放行 node，或换静态服务器 |
 | 删除 `node_modules` 后项目照常运行 | 正常——零依赖 | 无需恢复 |
 
-> 判断「是否需要安装依赖」只看一件事：`package.json` 里有没有 `dependencies`。v1.3.8 **一个都没有**，[package.json](../../package.json) 里只有 `engines.node >= 13.14.0` 这条环境声明。
+> 判断「是否需要安装依赖」只看一件事：`package.json` 里有没有 `dependencies`。v1.3.9 **一个都没有**，[package.json](../../package.json) 里只有 `engines.node >= 13.14.0` 这条环境声明。
 
 ---
 
@@ -205,6 +205,9 @@ node tools/build-config.js && node tools/build-all.js
 | `build:config` 输出 `[warn] 缺少 xxx` 但退出码 0 | 缺配置文件不阻断 | 确认是有意省略（如无 demos）还是路径写错 |
 | 构建成功，浏览器里配置却没变 | 浏览器缓存了旧的 `bundle.js` / JSON | 强刷（Ctrl+F5）；`npm start` 已带 `no-store`；或 URL 加 `?kui_v=1` |
 | 改 `app.json` 后 `file://` 打开没变化 | `file://` 读的是 `bundle.js` 里的旧快照 | 重新 `npm run build:config` |
+| 改 `app.json` 后 http 打开没变化 | 浏览器缓存；或本机 localStorage 覆盖了该项（主题/终端名/启动页/密度/头像/菜单折叠） | 强刷；清对应 localStorage 键（见 [04-config-app.md](04-config-app.md) §1.3.2～§1.3.3） |
+| 部署后改服务器上的 `config/*.json`，线上没变化 | 只上传了 `bundle.js`（fetch 不到 JSON 走兜底）；或 CDN/浏览器缓存；或没上传这些 JSON | 按 [04-config-app.md](04-config-app.md) §1.3.1 判定：要么上传 JSON 并刷 CDN，要么本地重建后重传产物 |
+| 改 `config/kui-modules.json` 后页面少脚本/多报错 | 只刷新没重建，`kui-all.js` 里还是旧清单 | `npm run build:config`（或 `npm run build:all`）后强刷（见 [02-build.md](02-build.md) §2.5） |
 | 构建后 `kui-all.js` 还是旧模块清单 | 改的是 profile，但没跑 `build:all` | `npm run build:all` 或 `npm run build` |
 | Windows 下中文输出乱码 | 终端编码不是 UTF-8 | `chcp 65001` 或改用 Windows Terminal |
 | 构建脚本语法报错 | Node < 13.14 | 升级 Node；CI 上锁定 14+ |
@@ -279,7 +282,7 @@ npm start
 
 先确认三件事：
 
-1. **type 拼写**：41 个已注册类型见 README 附录 A，19 个表单控件见 [05-controls-input.md](05-controls-input.md)；
+1. **type 拼写**：42 个已注册类型见 README 附录 A，19 个表单控件见 [05-controls-input.md](05-controls-input.md)；
 2. **脚本是否加载**：`KUI.registry.has('input')` 返回 `true` 才算加载；`false` 说明 profile 里漏了对应文件，或 `kui-all.js` 是旧的；
 3. **是否被 `visible:false` / `deps` 隐藏**：控制台执行 `KUI.registry.get('input')` 看 defaults 是否被覆盖。
 
@@ -324,7 +327,7 @@ npm start
 | 菜单折叠后图标错位 | 未设置 `collapsedWidth` | 配 `layout.menu.collapsedWidth`，见 [04-config-app.md](04-config-app.md) |
 | 启动层不出现或一直不消失 | `boot.js` 未加载、配置缺失或启动失败 | 看控制台 `boot:error` 与 `KUI.boot.ready()`；见 [16-boot.md](16-boot.md) §6、§13 |
 
-### 6.1 加载层 boot 专项（v1.3.8）
+### 6.1 加载层 boot 专项（v1.3.9）
 
 | 现象 | 原因 | 处理 |
 | --- | --- | --- |
@@ -500,7 +503,10 @@ curl -I https://your.site/src/themes.json
    A：先 `npm run build:config`（或 `npm start`）生成 `config/bundle.js`。
 
 8. **Q：改了 `app.json` 为什么不生效？**
-   A：没重建 bundle、或浏览器缓存；`npm run build:config` + 强刷。
+   A：分三层排查。① **运行方式**：`npm start`/http(s) 下改完刷新即生效；`file://` 双击或静态部署只传了 bundle 时必须 `npm run build:config`（判定表见 [04-config-app.md](04-config-app.md) §1.3.1）。② **运行态覆盖**：本机 localStorage 可能存了主题/终端名/启动页/密度/头像/菜单折叠等旧选择，优先级高于 JSON 默认值（键表见 [04-config-app.md](04-config-app.md) §1.3.2）——清对应键或开无痕窗口验证。③ **缓存**：`Ctrl + F5`；部署环境再刷 CDN（[04-config-app.md](04-config-app.md) §1.3.3 讲清除与“让所有访问者看到新默认”）。
+   
+   **补充：界面里保存的标题名称、皮肤存在哪？会写 `config/*.json` 吗？**
+   A：**不会写配置文件**。浏览器页面没有写本地文件的权限；设置弹窗、主题弹窗、头像、菜单折叠保存的状态全部写入**当前浏览器的 localStorage**（如 `kui-shell-name`、`kui-theme`、`kui-avatar`、`kui-menu-collapsed`），`config/app.json`/`src/themes.json` 只是默认值。换浏览器、清缓存、无痕窗口都会回到配置默认值；想让所有访问者看到新的默认标题/皮肤，要改 `config/app.json`（或 `src/themes.json`）并按上面第①层决定是否重建。完整键表见 [04-config-app.md](04-config-app.md) §1.3.2。
 
 9. **Q：如何换默认主题？**
    A：改 `app.json` 的 `theme.default`（6 套内置 id 见 [09-theme.md](09-theme.md)）。
@@ -560,10 +566,10 @@ curl -I https://your.site/src/themes.json
     A：`npm test` 约 2 秒（30 项）；`npm run verify` 与 `npm run audit` 各约数秒到十几秒。
 
 28. **Q：测试失败会不会是环境问题？**
-    A：沙箱里 server 套件可能降级同进程；以「33 通过/0 失败」为准，失败先看具体断言。
+    A：沙箱里 server 套件可能降级同进程；以「34 通过/0 失败」为准，失败先看具体断言。
 
 29. **Q：如何确认当前页面加载的是哪个版本？**
-    A：控制台 `KUI.info().version`，应为 `1.3.8`。
+    A：控制台 `KUI.info().version`，应为 `1.3.9`。
 
 30. **Q：出问题该提供什么信息？**
     A：`KUI.info()` 输出 + `?kui_debug=1` 面板全文 + 控制台截图 + 复现步骤。
@@ -574,7 +580,7 @@ curl -I https://your.site/src/themes.json
 
 逐项打勾，全绿再发布：
 
-- [ ] 1. `npm test` → 33 通过 / 0 失败
+- [ ] 1. `npm test` → 34 通过 / 0 失败
 - [ ] 2. `npm run verify` 全 PASS
 - [ ] 3. `npm run audit` 全 PASS
 - [ ] 4. `node tools/check-compat.js` → 未发现禁用语法
@@ -582,7 +588,7 @@ curl -I https://your.site/src/themes.json
 - [ ] 6. `config/bundle.js` 存在且非空、时间戳是本次构建
 - [ ] 7. `src/core/kui-all.js` 存在且 profile 数量正确（app 29 / standalone 28）
 - [ ] 8. 首页 200、无控制台红色错误
-- [ ] 9. 控制台 `KUI.info()` → version `1.3.8`、controls 41、themes 6
+- [ ] 9. 控制台 `KUI.info()` → version `1.3.9`、controls 41、themes 6
 - [ ] 10. 6 套主题逐一切换无闪烁、无样式丢失
 - [ ] 11. 菜单每一项都能打开对应 tab，子页无 404
 - [ ] 12. tab 关闭/刷新/保活行为符合预期
@@ -611,10 +617,10 @@ node tools/check-compat.js
 # 3) 浏览器里打开诊断面板，确认面板出现
 #    访问 http://127.0.0.1:8080/?kui_debug=1
 # 4) 控制台确认版本与加载量
-#    KUI.info()  // version 1.3.8, controls 41, themes 6
+#    KUI.info()  // version 1.3.9, controls 41, themes 6
 ```
 
-预期：自检脚本退出码 0；`npm test` 33 通过；面板右下角出现且 `env` 行版本为 1.3.8。
+预期：自检脚本退出码 0；`npm test` 33 通过；面板右下角出现且 `env` 行版本为 1.3.9。
 
 ## 参考源码
 

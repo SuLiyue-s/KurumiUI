@@ -1,6 +1,6 @@
 # 07 · 配色与主题
 
-> 适用版本：KurumiUI v1.3.9 ｜ 难度：⭐ 入门 ｜ 前置章节：[06-form-basics.md](06-form-basics.md) ｜ 阅读时长：约 30 分钟
+> 适用版本：KurumiUI v1.4.0 ｜ 难度：⭐ 入门 ｜ 前置章节：[06-form-basics.md](06-form-basics.md) ｜ 阅读时长：约 30 分钟
 
 ## 本章目标
 
@@ -205,6 +205,8 @@ npm run build:config
 ```
 
 **为什么改了 JSON 还要跑这个命令？** 因为直接双击 `index.html` 打开时，浏览器出于安全限制读不了本地 JSON，只能读一份提前打包好的配置包 `config/bundle.js`；而用 `npm start` 时页面读的是最新的 JSON 文件。`npm run build:config` 就是重新打包配置包，所以改完跑一次再刷新，两种打开方式都不会出现「明明改了却没生效」。
+
+> 换句话说：**用 `npm start` 时，改完 `themes.json` 直接刷新就生效**；只有 `file://` 双击、或把站点部署成“只上传 `config/bundle.js`”时，才**必须**跑 `npm run build:config`。判断规则见 [04-config-ui.md](04-config-ui.md) 第 9 节。
 
 ### 第 4 步：你会看到
 

@@ -646,4 +646,88 @@ module.exports = function register(suite, ctx) {
       teardown(rt);
     }
   });
+  /* ==========================================================
+   * 11. datatable：一体化配置渲染 + 实例 API（v1.4.0）
+   * ========================================================== */
+
+  suite.test('datatable：表头/单元格文本 + 排序 + 筛选 + 分页 + 选择（v1.4.0）', function () {
+    var rt = boot();
+    try {
+      var K = rt.KUI;
+      var doc = rt.doc;
+      var def = K.registry.get('datatable');
+      ctx.assert.ok(def, 'datatable 未注册');
+      ctx.assert.strictEqual(def.category, 'data', 'datatable category 应为 data');
+      ctx.assert.strictEqual(K.datatable.version, '1.0.0', 'KUI.datatable.version 应为 1.0.0');
+
+      var host = doc.createElement('div');
+      doc.body.appendChild(host);
+      var data = [];
+      for (var i = 1; i <= 8; i++) {
+        data.push({ id: i, name: '结界' + i, owner: i % 2 ? '甲' : '乙', score: i * 10 });
+      }
+      var inst = K.datatable.create(host, {
+        rowKey: 'id',
+        columns: [
+          { key: 'id', title: '编号', width: 70 },
+          { key: 'name', title: '名称', filter: { type: 'text' } },
+          { key: 'owner', title: '归属', filter: { type: 'select' } },
+          { key: 'score', title: '评分', sortable: true, format: 'number' }
+        ],
+        data: data,
+        selection: { mode: 'multi', keepAcrossPages: true },
+        sort: { enabled: true, default: [{ key: 'score', order: 'desc' }] },
+        pagination: { enabled: true, pageSize: 3, pageSizes: [3, 5] },
+        toolbar: { enabled: true, title: '测试表' }
+      });
+
+      var headers = host.querySelectorAll('.kui-datatable__th-text');
+      var headText = [];
+      for (var h = 0; h < headers.length; h++) { headText.push(headers[h].textContent); }
+      ctx.assert.ok(headText.join(',').indexOf('编号') !== -1, '表头文本应渲染，实际: ' + headText.join(','));
+
+      var cells = host.querySelectorAll('.kui-datatable__text');
+      var cellText = [];
+      for (var c = 0; c < cells.length; c++) { cellText.push(cells[c].textContent); }
+      ctx.assert.ok(cellText.join(',').indexOf('结界') !== -1, '单元格文本应渲染，实际: ' + cellText.slice(0, 6).join(','));
+
+      // 默认排序：score desc 首行应为 80
+      var firstScore = (host.querySelector('.kui-datatable__row .kui-datatable__num') || {}).textContent;
+      ctx.assert.strictEqual(String(firstScore), '80', '默认排序 score desc 首行应为 80，实际 ' + firstScore);
+
+      // 分页：总 8 行、每页 3 → 3 页、当前页 3 行
+      ctx.assert.strictEqual(host.querySelectorAll('.kui-datatable__row').length, 3, '分页后当前页应有 3 行');
+      var state = inst.getState();
+      ctx.assert.strictEqual(state.total, 8, 'total 应为 8');
+      ctx.assert.strictEqual(state.pageCount, 3, 'pageCount 应为 3');
+
+      // 关键字筛选
+      inst.setKeyword('结界3');
+      ctx.assert.strictEqual(inst.getState().total, 1, '关键字筛选后应剩 1 行');
+      inst.setKeyword('');
+
+      // 排序 API
+      inst.setSort([{ key: 'score', order: 'asc' }]);
+      var ascFirst = (host.querySelector('.kui-datatable__row .kui-datatable__num') || {}).textContent;
+      ctx.assert.strictEqual(String(ascFirst), '10', 'setSort asc 首行应为 10，实际 ' + ascFirst);
+
+      // 选择：跨页保持
+      inst.selectAll();
+      ctx.assert.strictEqual(inst.getState().selected.length, 3, '当前页全选应选中 3 行');
+      inst.setPage(2);
+      ctx.assert.strictEqual(inst.getState().selected.length, 3, '跨页保持：翻页后已选仍为 3');
+      inst.clearSelection();
+      ctx.assert.strictEqual(inst.getState().selected.length, 0, 'clearSelection 后应为 0');
+
+      // 列显隐 + 销毁
+      inst.setColumnVisible('owner', false);
+      var st2 = inst.getState();
+      ctx.assert.ok(st2, 'getState 应返回状态对象');
+      inst.destroy();
+      ctx.assert.ok(!host.querySelector('.kui-datatable'), 'destroy 后 DOM 应移除');
+    } finally {
+      teardown(rt);
+    }
+  });
+
 };

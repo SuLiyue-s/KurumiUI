@@ -15,7 +15,7 @@
  *   1. 目录存在、章节文件齐全且编号连续（01..10）
  *   2. README 索引每一章，且链接到高级手册
  *   3. 每章 H1（# NN · 标题）编号与文件名一致
- *   4. 每章元信息行：> 适用版本：KurumiUI v1.3.9 ｜ 难度 ｜ 前置章节 ｜ 阅读时长
+ *   4. 每章元信息行：> 适用版本：KurumiUI v1.4.0 ｜ 难度 ｜ 前置章节 ｜ 阅读时长
  *   5. 必备小节：## 本章目标 / ## 本章小结 / ## 延伸阅读
  *   6. 所有 ```json 代码块可被 JSON.parse
  *   7. json 里的节点 type ∈ 运行时 41 个注册类型（action 同理）
@@ -46,7 +46,7 @@ var EXPECTED = [
   '10-next-steps'
 ];
 
-var VER = '1.3.9';
+var VER = '1.4.0';
 var MIN_CHAPTER_CHARS = 6000;
 var MIN_README_CHARS = 4000;
 

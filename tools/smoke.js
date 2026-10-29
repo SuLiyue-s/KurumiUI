@@ -1626,6 +1626,73 @@ currentSection = 29;  console.log('\n[29] 配置接线：v1.3.9 五类缺陷修�
     return 'activeElement=' + (active.className || active.tagName);
   });
 
+
+currentSection = 30;  console.log('\n[30] 数据表格 datatable（v1.4.0 新组件）');
+
+  check('[30.1] datatable 已注册（control 类）且 API 版本 1.0.0', function () {
+    var def = KUI.registry.get('datatable');
+    assert(def, 'datatable 未注册');
+    assert(def.category === 'data', 'category 应为 data，实际 ' + def.category);
+    assert(KUI.datatable && KUI.datatable.version === '1.0.0', 'KUI.datatable.version 应为 1.0.0');
+    return 'control / v' + KUI.datatable.version;
+  });
+
+  check('[30.2] JSON 渲染：表头/单元格文本、排序、分页、工具栏', function () {
+    var data = [];
+    for (var i = 1; i <= 5; i++) { data.push({ id: i, name: 'N' + i, score: i }); }
+    var node = KUI.renderNode({
+      type: 'datatable',
+      props: {
+        columns: [{ key: 'id', title: '编号' }, { key: 'name', title: '名称' }, { key: 'score', title: '评分', sortable: true, format: 'number' }],
+        data: data,
+        toolbar: { enabled: true, title: '冒烟表' },
+        sort: { enabled: true, default: [{ key: 'score', order: 'desc' }] },
+        pagination: { enabled: true, pageSize: 2 }
+      }
+    });
+    var host = node.el || node;
+    assert(host, 'renderNode 未返回节点');
+    var head = host.querySelectorAll('.kui-datatable__th-text');
+    assert(head.length === 3, '表头应有 3 列，实际 ' + head.length);
+    assert(head[0].textContent === '编号', '表头文本应渲染，实际 ' + head[0].textContent);
+    var txt = host.querySelector('.kui-datatable__text');
+    assert(txt && txt.textContent !== '', '单元格文本应渲染');
+    var rows = host.querySelectorAll('.kui-datatable__row');
+    assert(rows.length === 2, '每页 2 行，实际 ' + rows.length);
+    var firstNum = host.querySelector('.kui-datatable__num');
+    assert(firstNum && String(firstNum.textContent) === '5', '默认 score desc 首行应为 5，实际 ' + (firstNum && firstNum.textContent));
+    return '3 列表头 / 2 行/页 / 默认排序生效';
+  });
+
+  check('[30.3] 实例 API：筛选 / 排序 / 分页 / 选择 / 销毁', function () {
+    var host = env.document.createElement('div');
+    env.document.body.appendChild(host);
+    var data = [];
+    for (var i = 1; i <= 6; i++) { data.push({ id: i, name: i % 2 ? '甲' + i : '乙' + i, score: i * 10 }); }
+    var inst = KUI.datatable.create(host, {
+      rowKey: 'id',
+      columns: [{ key: 'name', title: '名称', filter: { type: 'text' } }, { key: 'score', title: '评分', sortable: true, format: 'number' }],
+      data: data,
+      selection: { mode: 'multi' },
+      pagination: { enabled: true, pageSize: 2 }
+    });
+    assert(inst && typeof inst.getState === 'function', 'create 未返回实例');
+    inst.setKeyword('甲');
+    assert(inst.getState().total === 3, '关键字筛选应剩 3 行，实际 ' + inst.getState().total);
+    inst.setKeyword('');
+    inst.setSort([{ key: 'score', order: 'asc' }]);
+    var firstNum = host.querySelector('.kui-datatable__num');
+    assert(firstNum && String(firstNum.textContent) === '10', 'setSort asc 首行应为 10');
+    inst.setPageSize(3);
+    assert(inst.getState().pageSize === 3, 'setPageSize(3) 应生效');
+    inst.selectAll();
+    assert(inst.getState().selected.length === 3, '全选当前页应为 3，实际 ' + inst.getState().selected.length);
+    inst.clearSelection();
+    inst.destroy();
+    assert(!host.querySelector('.kui-datatable'), 'destroy 后 DOM 应移除');
+    return '筛选/排序/分页/全选/销毁';
+  });
+
 currentSection = 6;   console.log('\n[6] 控制台与错误汇总');
       check('加载与启动期无 console.error', function () {
         assert(consoleErrors.length === 0, consoleErrors.slice(0, 3).join(' | '));

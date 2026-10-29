@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <script src="../src/core/theme-boot.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>datatable · 数据表格（筛选/选择/排序/分页） | KurumiUI</title>
+<link rel="stylesheet" href="../src/styles/base.css">
+<link rel="stylesheet" href="../src/styles/controls.css">
+<link rel="stylesheet" href="../src/styles/components.css">
+<link rel="stylesheet" href="../src/styles/tooltip.css">
+<style>
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--kui-bg-0, #08050a); color: var(--kui-text-1, #f5e9ee); font-family: var(--kui-font-family, "Microsoft YaHei", "PingFang SC", sans-serif); }
+  .demo-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 18px; border-bottom: 1px solid var(--kui-border, #2a1f26); background: var(--kui-bg-1, #141018); flex-wrap: wrap; }
+  .demo-bar__title { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+  .demo-bar__title strong { font-size: 16px; letter-spacing: .04em; }
+  .demo-tag { padding: 2px 8px; border-radius: 999px; font-size: 11px; color: var(--kui-accent-2, #d4af37); border: 1px solid var(--kui-accent-2, #d4af37); }
+  .demo-bar__ops { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .demo-bar select { background: var(--kui-control-bg, #1b141c); color: var(--kui-text-1, #f5e9ee); border: 1px solid var(--kui-control-border, #3a2b33); border-radius: 6px; height: 30px; padding: 0 8px; outline: none; }
+  .demo-nav { display: flex; gap: 6px; flex-wrap: wrap; }
+  .demo-nav a { color: var(--kui-text-2, #cbb8c0); text-decoration: none; font-size: 12px; padding: 4px 9px; border-radius: 999px; border: 1px solid transparent; }
+  .demo-nav a:hover { color: var(--kui-text-1); border-color: var(--kui-accent); }
+  .demo-nav a.is-current { color: var(--kui-text-1); border-color: var(--kui-accent); background: var(--kui-accent-soft); font-weight: 600; }
+  .demo-main { padding: 18px; display: grid; gap: 14px; max-width: 1500px; margin: 0 auto; }
+  .demo-panel { background: var(--kui-bg-1, #141018); border: 1px solid var(--kui-border, #2a1f26); border-radius: var(--kui-radius-lg, 10px); padding: 14px; }
+  .demo-panel__head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+  .demo-panel__title { font-size: 13px; color: var(--kui-accent-2, #d4af37); margin: 0; letter-spacing: .08em; }
+  .demo-panel__desc { margin: 0 0 12px; font-size: 12px; line-height: 1.8; color: var(--kui-text-2, #cbb8c0); }
+  .demo-code { margin: 0; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--kui-border, #2a1f26); background: var(--kui-bg-2, #0d0810); color: var(--kui-text-2, #cbb8c0); font-size: 11px; line-height: 1.7; overflow: auto; max-height: 220px; white-space: pre-wrap; word-break: break-word; }
+  .demo-main > * { min-width: 0; }
+  .demo-ops { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .demo-btn { height: 30px; padding: 0 12px; border-radius: 6px; border: 1px solid var(--kui-control-border, #3a2b33); background: var(--kui-control-bg, #1b141c); color: var(--kui-text-1, #f5e9ee); font-size: 12px; cursor: pointer; }
+  .demo-btn:hover { border-color: var(--kui-accent); color: var(--kui-text-1); }
+  .demo-btn.is-primary { background: var(--kui-accent); border-color: var(--kui-accent); color: var(--kui-on-accent, #fff); }
+  .demo-log { margin-top: 10px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--kui-border, #2a1f26); background: var(--kui-bg-2, #0d0810); max-height: 180px; overflow: auto; font-family: var(--kui-font-mono, Consolas, monospace); font-size: 11px; line-height: 1.8; color: var(--kui-text-2, #cbb8c0); }
+  .demo-log .is-err { color: var(--kui-danger, #e6354e); }
+  .demo-log .is-ok { color: var(--kui-success, #57b98c); }
+  .demo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
+  .demo-kv { display: grid; grid-template-columns: 120px 1fr; gap: 6px 10px; font-size: 12px; color: var(--kui-text-2, #cbb8c0); }
+  .demo-kv b { color: var(--kui-text-1, #f5e9ee); font-weight: 600; }
+  code { font-family: var(--kui-font-mono, Consolas, monospace); color: var(--kui-accent-2, #d4af37); }
+</style>
+</head>
+<body>
+<div class="demo-bar">
+  <div class="demo-bar__title">
+    <strong>datatable 数据表格</strong>
+    <span class="demo-tag">v1.4.0 新组件</span>
+    <span style="font-size:12px;color:var(--kui-text-3,#8d7f8c)">筛选 / 单选行 / 复选行 / 全选 / 排序 / 每页条数 / 分页 / 行高亮 / 导出 / 列设置</span>
+  </div>
+  <div class="demo-bar__ops">
+    <nav class="demo-nav" id="demoNav"></nav>
+    <select id="kuiThemeSwitch" data-kui-native aria-label="切换主题"></select>
+  </div>
+</div>
+
+<main class="demo-main">
+
+  <!-- ① 一体化综合演示 -->
+  <section class="demo-panel">
+    <div class="demo-panel__head">
+      <h3 class="demo-panel__title">① 一体化配置：搜索 + 列筛选 + 多选行 + 排序 + 分页 + 工具栏动作</h3>
+      <span style="font-size:12px;color:var(--kui-text-3,#8d7f8c)">整个表格由下面这段 JSON 渲染（KUI.renderNode）</span>
+    </div>
+    <p class="demo-panel__desc">
+      所有能力都由 <code>config JSON</code> 决定：<code>search</code> / <code>filter</code> / <code>selection</code> / <code>sort</code> /
+      <code>pagination</code> / <code>toolbar.actions</code> / <code>export</code> / <code>columnsToggle</code> / <code>densityToggle</code>。
+      行点击高亮、↑↓ 移动、空格选择、Enter 触发 <code>rowClickAction</code>。
+    </p>
+    <pre class="demo-code" id="jsonPreview"></pre>
+    <div id="demoTableMain" style="margin-top:12px"></div>
+    <div class="demo-ops">
+      <button class="demo-btn" id="btnReload">重新读取 JSON</button>
+      <button class="demo-btn" id="btnState">读取状态 getState()</button>
+      <button class="demo-btn" id="btnSelectFirst">选中前 3 行</button>
+      <button class="demo-btn" id="btnClearSel">清空选择</button>
+      <button class="demo-btn" id="btnFilterGold">筛选：金</button>
+    </div>
+  </section>
+
+  <!-- ② 单选行 + 行内动作 + 行高亮 -->
+  <section class="demo-panel">
+    <div class="demo-panel__head">
+      <h3 class="demo-panel__title">② 单选行（radio）+ 行内动作列 + 行点击高亮</h3>
+    </div>
+    <p class="demo-panel__desc">
+      <code>selection.mode = "single"</code>：单选行；<code>columns[{ type:"actions", buttons:[...] }]</code>：行内动作列，
+      按钮的 <code>action</code> 走同一套动作系统（这里用 toast）；<code>rowHighlight</code> 控制行点击高亮。
+    </p>
+    <div id="demoTableSingle"></div>
+    <div class="demo-ops">
+      <button class="demo-btn" id="btnSingleState">读取选中行</button>
+      <button class="demo-btn" id="btnSinglePick">选中第 2 行</button>
+    </div>
+  </section>
+
+  <!-- ③ 多选 + 跨页保留 + 每页条数 -->
+  <section class="demo-panel">
+    <div class="demo-panel__head">
+      <h3 class="demo-panel__title">③ 多选 + 跨页保留 + 每页条数 / 跳页（200 行数据）</h3>
+    </div>
+    <p class="demo-panel__desc">
+      表头复选框支持全选当前页（<code>selectAllScope</code> 可改 <code>all</code>）；<code>selection.keepAcrossPages</code> 控制切页是否保留选择；
+      分页区可切换每页条数、输入页码跳页。
+    </p>
+    <div id="demoTableMulti"></div>
+  </section>
+
+  <!-- ④ 轻量模式 / 拆装说明 -->
+  <section class="demo-panel">
+    <div class="demo-panel__head">
+      <h3 class="demo-panel__title">④ 轻量模式：关闭筛选/工具栏，仅保留排序与分页</h3>
+    </div>
+    <p class="demo-panel__desc">
+      表格是独立组件，可单独挂载：<code>KUI.datatable.create(host, props)</code>，也可用 <code>KUI.renderNode({ type:'datatable', props })</code>。
+      不加载 <code>src/components/datatable.js</code> 时，该类型会渲染成「未知类型占位块」，其余组件完全不受影响（可拆卸）。
+    </p>
+    <div id="demoTableLite"></div>
+  </section>
+
+  <!-- ⑤ API 操作台 + 日志 -->
+  <section class="demo-panel">
+    <div class="demo-panel__head">
+      <h3 class="demo-panel__title">⑤ 实例 API 操作台</h3>
+    </div>
+    <div class="demo-ops" style="margin:0 0 10px">
+      <button class="demo-btn" id="apiSetPage">setPage(2)</button>
+      <button class="demo-btn" id="apiSetPageSize">setPageSize(20)</button>
+      <button class="demo-btn" id="apiSetSort">setSort(评分 desc)</button>
+      <button class="demo-btn" id="apiSetFilter">setFilter(名称 含 之)</button>
+      <button class="demo-btn" id="apiClearFilter">clearFilters()</button>
+      <button class="demo-btn" id="apiSelectAll">selectAll()</button>
+      <button class="demo-btn" id="apiClearSel">clearSelection()</button>
+      <button class="demo-btn" id="apiExport">exportCsv()</button>
+      <button class="demo-btn" id="apiSetLoading">setLoading(true)</button>
+      <button class="demo-btn" id="apiStopLoading">setLoading(false)</button>
+    </div>
+    <div class="demo-log" id="demoLog"></div>
+  </section>
+
+  <!-- ⑥ 配置速查 -->
+  <section class="demo-panel">
+    <div class="demo-panel__head">
+      <h3 class="demo-panel__title">⑥ 配置速查（props）</h3>
+    </div>
+    <div class="demo-grid">
+      <div class="demo-kv">
+        <b>columns</b><span>列定义：key/title/width/align/sortable/filter/format/dict/hidden</span>
+        <b>data / rows</b><span>数据源（数组）</span>
+        <b>rowKey</b><span>行标识字段，默认 id</span>
+        <b>search</b><span>{ enabled, placeholder, width, keys }</span>
+        <b>filter</b><span>{ enabled, columns, clearable }；列级 filter.type = text|select|range</span>
+      </div>
+      <div class="demo-kv">
+        <b>selection</b><span>{ mode:none|single|multi, showSelectAll, selectOnRowClick, keepAcrossPages, selectAllScope }</span>
+        <b>sort</b><span>{ enabled, mode:single|multi, default:[{key,order}] }</span>
+        <b>pagination</b><span>{ enabled, pageSize, pageSizes, showTotal, showSizer, showJumper }</span>
+        <b>toolbar</b><span>{ enabled, title, subtitle, actions:[{label,icon,action,variant}] }</span>
+        <b>其它</b><span>bordered / striped / hoverable / compact / height / rowHighlight / rowClickAction / columnsToggle / densityToggle / refresh / export / text / on</span>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script src="../src/core/kui-all.js" data-kui-profile="standalone"></script>
+<script>
+(function () {
+  'use strict';
+  var KUI = window.KUI;
+  var logEl = document.getElementById('demoLog');
+  var PAGES = ['menu', 'menunav', 'tabs', 'dialog', 'toast', 'form', 'controls', 'theme', 'no-shell', 'handlers', 'avatar', 'boot', 'datatable'];
+
+  function log(text, kind) {
+    var line = document.createElement('div');
+    if (kind) { line.className = 'is-' + kind; }
+    line.textContent = '[' + new Date().toLocaleTimeString() + '] ' + text;
+    logEl.appendChild(line);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function nav() {
+    var box = document.getElementById('demoNav');
+    for (var i = 0; i < PAGES.length; i++) {
+      var a = document.createElement('a');
+      a.href = PAGES[i] + '.html';
+      a.textContent = PAGES[i];
+      if (PAGES[i] === 'datatable') { a.className = 'is-current'; }
+      box.appendChild(a);
+    }
+  }
+
+  function fillThemeSelect() {
+    var sel = document.getElementById('kuiThemeSwitch');
+    var list = (KUI.theme && KUI.theme.list) ? KUI.theme.list() : [];
+    if (!list.length) { return; }
+    sel.innerHTML = '';
+    for (var i = 0; i < list.length; i++) {
+      var opt = document.createElement('option');
+      opt.value = list[i].id;
+      opt.textContent = (list[i].name || list[i].id) + (list[i].scheme === 'light' ? ' · light' : '');
+      sel.appendChild(opt);
+    }
+    if (KUI.theme.get) { sel.value = KUI.theme.get(); }
+    sel.onchange = function () {
+      if (KUI.theme && KUI.theme.apply) {
+        KUI.theme.apply(sel.value, { persist: true });
+        log('切换主题：' + sel.value, 'ok');
+      }
+    };
+  }
+
+  /* ---------------- 演示数据 ---------------- */
+  var TITLES = ['一之弹', '二之弹', '三之弹', '四之弹', '五之弹', '六之弹', '七之弹', '八之弹', '九之弹', '十之弹', '十一之弹', '十二之弹'];
+  var OWNERS = ['刻刻帝', '时崎狂三', '白之女王', '星宫观测', '灵装回路'];
+  var STATES = { active: '进行中', paused: '已暂停', done: '已完成', failed: '已失败' };
+  var STATE_COLORS = { active: '#57b98c', paused: '#d4af37', done: '#58fc7c', failed: '#e6354e' };
+
+  function makeRows(count) {
+    var list = [];
+    for (var i = 1; i <= count; i++) {
+      list.push({
+        id: i,
+        name: TITLES[i % TITLES.length] + ' · 第 ' + i + ' 号结界',
+        owner: OWNERS[i % OWNERS.length],
+        status: ['active', 'paused', 'done', 'failed'][i % 4],
+        score: Math.round((40 + (i * 37 % 60)) * 10) / 10,
+        progress: (i * 13) % 101,
+        tags: [['金'], ['绯红'], ['观测'], ['灵装'], ['星辉']][i % 5].concat(i % 3 === 0 ? ['常驻'] : []),
+        online: i % 3 !== 0,
+        createdAt: Date.now() - i * 3600 * 1000,
+        note: '观测记录 #' + i + '：时间结界稳定度 ' + (60 + i % 40) + '%'
+      });
+    }
+    return list;
+  }
+
+  var MAIN_CONFIG = {
+    type: 'datatable',
+    props: {
+      rowKey: 'id',
+      data: makeRows(36),
+      size: 'md',
+      bordered: false,
+      striped: true,
+      hoverable: true,
+      height: 420,
+      search: { enabled: true, placeholder: '搜索名称 / 所有者 / 备注', width: 260 },
+      filter: { enabled: true, columns: true, clearable: true },
+      sort: { enabled: true, mode: 'single', default: [{ key: 'score', order: 'desc' }] },
+      selection: { mode: 'multi', showSelectAll: true, selectOnRowClick: true, keepAcrossPages: true, selectAllScope: 'page' },
+      pagination: { enabled: true, pageSize: 6, pageSizes: [6, 12, 24], showTotal: true, showSizer: true, showJumper: true },
+      rowHighlight: true,
+      columnsToggle: true,
+      densityToggle: true,
+      export: true,
+      exportFileName: 'kuri-boot-sheet.csv',
+      selectionInfo: true,
+      toolbar: {
+        enabled: true,
+        title: '刻刻帝 · 结界观测表',
+        subtitle: 'v1.4.0 datatable（一体化配置）',
+        actions: [
+          { id: 'new', label: '新增结界', icon: 'plus', variant: 'primary', action: { toast: { text: '演示：打开新建结界弹窗', type: 'info' } } },
+          { id: 'batch', label: '批量删除', icon: 'close', variant: 'danger', action: { toast: { text: '演示：批量删除已选行', type: 'warning' } } }
+        ]
+      },
+      columns: [
+        { key: 'id', title: 'ID', width: 70, align: 'center', sortable: true },
+        { key: 'name', title: '结界名称', minWidth: 220, sortable: true, filter: { type: 'text', placeholder: '名称包含…' }, format: 'ellipsis' },
+        { key: 'owner', title: '归属', width: 120, sortable: true, filter: { type: 'select', options: OWNERS } },
+        {
+          key: 'status', title: '状态', width: 110, sortable: true,
+          filter: { type: 'select', options: [{ value: 'active', label: '进行中' }, { value: 'paused', label: '已暂停' }, { value: 'done', label: '已完成' }, { value: 'failed', label: '已失败' }] },
+          format: 'dict',
+          dict: {
+            active: { label: '进行中', color: STATE_COLORS.active },
+            paused: { label: '已暂停', color: STATE_COLORS.paused },
+            done: { label: '已完成', color: STATE_COLORS.done },
+            failed: { label: '已失败', color: STATE_COLORS.failed }
+          }
+        },
+        { key: 'score', title: '评分', width: 110, align: 'right', sortable: true, filter: { type: 'range', placeholderMin: '最低', placeholderMax: '最高' }, format: 'number', formatOptions: { digits: 1 } },
+        { key: 'progress', title: '完成度', width: 160, sortable: true, format: 'progress' },
+        { key: 'tags', title: '标签', width: 160, format: 'tags' },
+        { key: 'online', title: '在线', width: 80, align: 'center', format: 'boolean', formatOptions: { trueText: '在线', falseText: '离线' } },
+        { key: 'createdAt', title: '创建时间', width: 150, sortable: true, format: 'date', formatOptions: { pattern: 'MM-DD HH:mm' } },
+        { key: 'note', title: '备注', minWidth: 200, format: 'ellipsis', hidden: true },
+        {
+          type: 'actions', title: '操作', width: 150, align: 'center',
+          buttons: [
+            { id: 'view', label: '查看', icon: 'eye', action: { toast: { text: '演示：查看行详情', type: 'info' } } },
+            { id: 'del', label: '删除', icon: 'close', variant: 'danger', action: { toast: { text: '演示：删除该行（未真正删除）', type: 'warning' } } }
+          ]
+        }
+      ],
+      rowClickAction: { toast: { text: '演示：rowClickAction 触发（行点击）', type: 'info' } },
+      on: {
+        selection: { fn: 'toast.info', args: { text: 'selection:change（演示页用页面内日志更清楚）' } }
+      }
+    }
+  };
+
+  var tableMain = null;
+  var tableSingle = null;
+  var tableMulti = null;
+  var tableLite = null;
+
+  function mountMain() {
+    var host = document.getElementById('demoTableMain');
+    host.innerHTML = '';
+    var node = KUI.renderNode(MAIN_CONFIG);
+    host.appendChild(node.el || node);
+    tableMain = (node.el || node).__kuiDatatable || null;
+    document.getElementById('jsonPreview').textContent =
+      '// 关键片段（完整配置见页面源码 MAIN_CONFIG）\n' +
+      '"selection": { "mode": "multi", "showSelectAll": true, "keepAcrossPages": true },\n' +
+      '"sort": { "enabled": true, "mode": "single", "default": [{ "key": "score", "order": "desc" }] },\n' +
+      '"pagination": { "enabled": true, "pageSize": 6, "pageSizes": [6, 12, 24], "showSizer": true, "showJumper": true },\n' +
+      '"columns": [ { "key": "score", "title": "评分", "format": "number", "filter": { "type": "range" }, "sortable": true } ]';
+    if (tableMain) {
+      tableMain.on('selection:change', function (p) {
+        log('selection:change → ' + (p.keys || []).length + ' 行（' + (p.reason || '') + '）');
+      });
+      tableMain.on('sort', function (p) { log('sort:change → ' + (p.key || '-') + ' ' + (p.order || '-')); });
+      tableMain.on('filter', function (p) { log('filter:change → ' + JSON.stringify(p.keyword || '') + ' ' + (p.reason || '')); });
+      tableMain.on('page', function (p) { log('page:change → 第 ' + p.page + ' 页 / 每页 ' + p.pageSize + ' 条'); });
+      tableMain.on('row:click', function (p) { log('row:click → ' + p.key); });
+    }
+    log('一体化表格已渲染', 'ok');
+  }
+
+  function mountSingle() {
+    var host = document.getElementById('demoTableSingle');
+    host.innerHTML = '';
+    var node = KUI.renderNode({
+      type: 'datatable',
+      props: {
+        rowKey: 'id',
+        data: makeRows(12),
+        size: 'sm',
+        height: 300,
+        search: { enabled: false },
+        filter: { enabled: false },
+        sort: { enabled: true, default: [{ key: 'id', order: 'asc' }] },
+        selection: { mode: 'single', selectOnRowClick: true },
+        pagination: { enabled: false },
+        rowHighlight: true,
+        columnsToggle: false,
+        densityToggle: false,
+        toolbar: { enabled: true, title: '单选行 + 行内动作', subtitle: 'selection.mode = single' },
+        columns: [
+          { key: 'id', title: 'ID', width: 70, align: 'center', sortable: true },
+          { key: 'name', title: '结界名称', format: 'ellipsis' },
+          { key: 'owner', title: '归属', width: 120 },
+          { key: 'status', title: '状态', width: 100, format: 'dict', dict: { active: { label: '进行中', color: STATE_COLORS.active }, paused: { label: '已暂停', color: STATE_COLORS.paused }, done: { label: '已完成', color: STATE_COLORS.done }, failed: { label: '已失败', color: STATE_COLORS.failed } } },
+          {
+            type: 'actions', title: '操作', width: 140, align: 'center',
+            buttons: [
+              { id: 'edit', label: '编辑', icon: 'gear', action: { toast: { text: '演示：编辑行', type: 'info' } } },
+              { id: 'del', label: '删除', icon: 'close', variant: 'danger', action: { toast: { text: '演示：删除行', type: 'warning' } } }
+            ]
+          }
+        ]
+      }
+    });
+    host.appendChild(node.el || node);
+    tableSingle = (node.el || node).__kuiDatatable || null;
+    log('单选行表格已渲染', 'ok');
+  }
+
+  function mountMulti() {
+    var host = document.getElementById('demoTableMulti');
+    host.innerHTML = '';
+    var node = KUI.renderNode({
+      type: 'datatable',
+      props: {
+        rowKey: 'id',
+        data: makeRows(200),
+        size: 'md',
+        height: 360,
+        search: { enabled: false },
+        filter: { enabled: false },
+        sort: { enabled: true, default: [] },
+        selection: { mode: 'multi', showSelectAll: true, keepAcrossPages: true, selectAllScope: 'page' },
+        pagination: { enabled: true, pageSize: 10, pageSizes: [10, 20, 50], showTotal: true, showSizer: true, showJumper: true },
+        columnsToggle: false,
+        densityToggle: false,
+        toolbar: { enabled: true, title: '200 行数据 · 跨页多选', subtitle: 'keepAcrossPages = true' },
+        columns: [
+          { key: 'id', title: 'ID', width: 70, align: 'center', sortable: true },
+          { key: 'name', title: '结界名称', format: 'ellipsis' },
+          { key: 'owner', title: '归属', width: 120 },
+          { key: 'score', title: '评分', width: 100, align: 'right', sortable: true, format: 'number' },
+          { key: 'online', title: '在线', width: 90, align: 'center', format: 'boolean' }
+        ]
+      }
+    });
+    host.appendChild(node.el || node);
+    tableMulti = (node.el || node).__kuiDatatable || null;
+    log('多选分页表格已渲染', 'ok');
+  }
+
+  function mountLite() {
+    var host = document.getElementById('demoTableLite');
+    host.innerHTML = '';
+    var inst = KUI.datatable.create(host, {
+      rowKey: 'id',
+      data: makeRows(20),
+      size: 'sm',
+      search: { enabled: false },
+      filter: { enabled: false },
+      toolbar: { enabled: false },
+      selection: { mode: 'none' },
+      sort: { enabled: true },
+      pagination: { enabled: true, pageSize: 5, pageSizes: [5, 10] },
+      columnsToggle: false,
+      densityToggle: false,
+      columns: [
+        { key: 'id', title: 'ID', width: 80, align: 'center', sortable: true },
+        { key: 'name', title: '结界名称', sortable: true, format: 'ellipsis' },
+        { key: 'progress', title: '完成度', width: 160, format: 'progress' },
+        { key: 'createdAt', title: '创建时间', width: 150, format: 'date' }
+      ]
+    });
+    tableLite = inst;
+    log('轻量表格已通过 KUI.datatable.create 独立挂载', 'ok');
+  }
+
+  /* ---------------- 事件绑定 ---------------- */
+  function bindEvents() {
+    document.getElementById('btnReload').onclick = function () { mountMain(); mountSingle(); mountMulti(); mountLite(); };
+    document.getElementById('btnState').onclick = function () {
+      if (!tableMain) { return log('表格未就绪', 'err'); }
+      log('getState：' + JSON.stringify(tableMain.getState()));
+    };
+    document.getElementById('btnSelectFirst').onclick = function () {
+      if (!tableMain) { return; }
+      var rows = tableMain.getFilteredRows().slice(0, 3);
+      tableMain.setSelection(rows.map(function (r) { return r.id; }));
+      log('已选中前 3 行');
+    };
+    document.getElementById('btnClearSel').onclick = function () {
+      if (!tableMain) { return; }
+      tableMain.clearSelection();
+      log('已清空选择');
+    };
+    document.getElementById('btnFilterGold').onclick = function () {
+      if (!tableMain) { return; }
+      tableMain.setKeyword('金');
+      log('setKeyword("金")');
+    };
+    document.getElementById('btnSingleState').onclick = function () {
+      if (!tableSingle) { return; }
+      var sel = tableSingle.getSelection();
+      log('单选结果：' + JSON.stringify(sel.keys) + ' | ' + (sel.rows[0] ? sel.rows[0].name : '未选择'));
+    };
+    document.getElementById('btnSinglePick').onclick = function () {
+      if (!tableSingle) { return; }
+      var rows = tableSingle.getRows();
+      if (rows[1]) { tableSingle.setSelection([rows[1].id]); log('已选中第 2 行：' + rows[1].name); }
+    };
+
+    var api = function (id, fn) {
+      document.getElementById(id).onclick = function () {
+        if (!tableMain) { return log('表格未就绪', 'err'); }
+        try { fn(tableMain); } catch (e) { log('异常：' + e.message, 'err'); }
+      };
+    };
+    api('apiSetPage', function (t) { t.setPage(2); log('setPage(2)'); });
+    api('apiSetPageSize', function (t) { t.setPageSize(20); log('setPageSize(20)'); });
+    api('apiSetSort', function (t) { t.setSort([{ key: 'score', order: 'desc' }]); log('setSort(评分 desc)'); });
+    api('apiSetFilter', function (t) { t.setFilter('name', '之'); log('setFilter(name, 之)'); });
+    api('apiClearFilter', function (t) { t.clearFilters(); log('clearFilters()'); });
+    api('apiSelectAll', function (t) { t.selectAll(); log('selectAll() 当前页'); });
+    api('apiClearSel', function (t) { t.clearSelection(); log('clearSelection()'); });
+    api('apiExport', function (t) { t.exportCsv(); log('exportCsv() 触发下载'); });
+    api('apiSetLoading', function (t) { t.setLoading(true); log('setLoading(true)'); });
+    api('apiStopLoading', function (t) { t.setLoading(false); log('setLoading(false)'); });
+  }
+
+  /* ---------------- 启动 ---------------- */
+  nav();
+  fillThemeSelect();
+  if (!KUI.registry.get('datatable')) {
+    log('datatable 未注册：模块未加载（可拆卸演示会显示占位）', 'err');
+  }
+  mountMain();
+  mountSingle();
+  mountMulti();
+  mountLite();
+  bindEvents();
+  log('KurumiUI 版本 ' + (KUI.version || '?') + ' · datatable ' + (KUI.datatable ? KUI.datatable.version : '?'), 'ok');
+})();
+</script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 # 09 · 主题系统
 
-> 适用版本：KurumiUI v1.3.9 ｜ 前置章节：04 主题与皮肤、08 组件 ｜ 阅读时长：约 25 分钟
+> 适用版本：KurumiUI v1.4.0 ｜ 前置章节：04 主题与皮肤、08 组件 ｜ 阅读时长：约 25 分钟
 
 ## 本章目标
 
@@ -278,13 +278,15 @@
 ### 4.3 URL、存储与初始优先级
 
 - URL：`?kuiTheme=starry`（`readFromUrl()` 校验 id）。
-- 存储键默认 `kui-theme`；`app.json` 的 `theme.storageKey` 由 `theme.init()` 传入（`bootstrap.js:887-894`）。
+- 存储键默认 `kui-theme`；`app.json` 的 `theme.storageKey` 由 `theme.init()` 传入（`bootstrap.js:1001-1009`）。
 - `theme-boot.js` 支持 `<html data-kui-theme-key="my-key">` 自定义键（`theme-boot.js:45-49`）。
 - 初始优先级（`theme.js:401-414`）：
 
 ```
 __KUI_EARLY_THEME__ > ?kuiTheme= > localStorage > app.json default > themes.json default > 第一套
 ```
+
+> **主题是“配置默认值 + 浏览器记忆”两层**：`src/themes.json` 与 `app.json.theme.default` 只定义默认值；用户点过主题后，浏览器把选择写进 `localStorage['kui-theme']`，**优先级高于配置默认值**。所以“改了 `theme.default` 却不生效”通常不是配置错，而是本机存了旧选择——先清 `kui-theme`（或开无痕窗口）再看。要让所有访问者首次打开就是新主题，改配置里的默认值并按 §4.3 的“生效”规则处理构建；要恢复某个人的默认，删它浏览器里的这个键。存储键、清除方法与“界面保存都不写 config JSON”的完整说明见 [04-config-app.md](04-config-app.md) §1.3.2～§1.3.3。
 
 ### 4.4 iframe 同步
 
@@ -356,7 +358,7 @@ FALLBACK 缺省：`stars{count:60,size:2,speed:'6s'}`、`sakura{count:12,size:10
 
 ### 5.3 性能与可访问
 
-层数建议 ≤ 9（内置 6~9 层），动画层（`scanline`/`stars`/`sakura`/`feather`）控制在 2 层内；大尺寸渐变 + `blur` 叠加吃 GPU。窗口 resize 已由 `bootstrap.js:915-921` 防抖 160ms 调 `refreshArt()`，业务侧别频繁调。装饰层 `pointer-events:none` + `aria-hidden`，不进读屏与 Tab 序、打印时被隐藏（`base.css` 第 13 节）。
+层数建议 ≤ 9（内置 6~9 层），动画层（`scanline`/`stars`/`sakura`/`feather`）控制在 2 层内；大尺寸渐变 + `blur` 叠加吃 GPU。窗口 resize 已由 `bootstrap.js:1033-1040` 防抖 160ms 调 `refreshArt()`，业务侧别频繁调。装饰层 `pointer-events:none` + `aria-hidden`，不进读屏与 Tab 序、打印时被隐藏（`base.css` 第 13 节）。
 
 ## 6. 自定义主题完整步骤
 
@@ -457,7 +459,7 @@ FALLBACK 缺省：`stars{count:60,size:2,speed:'6s'}`、`sakura{count:12,size:10
 
 | 现象 | 原因 | 修复 |
 | --- | --- | --- |
-| 改了 `themes.json` 不生效 | 没跑 `npm run build`，`bundle.js` 是旧的 | 重新构建并强刷 |
+| 改了 `themes.json` 不生效 | 用 `file://` 打开却没跑 `npm run build:config`（bundle 是旧的）；或静态部署只上传了旧的 `bundle.js` | http 模式刷新即生效；file:// / bundle-only 部署重新构建并强刷（判定见 [04-config-app.md](04-config-app.md) §1.3.1） |
 | 只写部分 token，一半是绯红 | 缺失 token 落回 kurumi 默认值 | 补齐 64 个 |
 | 刷新后回到默认主题 | `apply` 传了 `silent`/`persist=false`，或存储被清 | 用默认 `apply(id)`，检查 `storageKey` |
 | iframe 里主题闪一下 | 没引 `theme-boot.js` 或排在样式表后 | 放到 `<head>` 首个样式表前 |

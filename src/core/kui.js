@@ -18,7 +18,7 @@
   KUI.name = 'KurumiUI';
   // 版本号同时用于 iframe 的缓存穿透（tabs 会拼到子页面 URL 的 kui_v 参数上），
   // 每次发布 UI 修复时递增，避免旧 iframe 文档被浏览器缓存后继续跑旧版代码。
-  KUI.version = '1.3.9';
+  KUI.version = '1.4.0';
   KUI.env = {
     isBrowser: typeof window !== 'undefined' && typeof document !== 'undefined',
     isNode: typeof process !== 'undefined' && !!(process.versions && process.versions.node),

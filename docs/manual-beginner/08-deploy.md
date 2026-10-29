@@ -1,6 +1,6 @@
 # 08 · 把界面部署到自己的网站或项目
 
-> 适用版本：KurumiUI v1.3.9 ｜ 难度：⭐ 入门 ｜ 前置章节：[02-first-run.md](02-first-run.md)、[05-new-page.md](05-new-page.md) ｜ 阅读时长：约 20 分钟
+> 适用版本：KurumiUI v1.4.0 ｜ 难度：⭐ 入门 ｜ 前置章节：[02-first-run.md](02-first-run.md)、[05-new-page.md](05-new-page.md) ｜ 阅读时长：约 20 分钟
 
 ## 本章目标
 
@@ -98,6 +98,8 @@
 - 上传前先跑 `npm run build:config`，确认两个文件都存在；
 - 漏传 `config/bundle.js`：控制台会报「配置读取失败……且未找到 config/bundle.js 兜底」；
 - 漏传 `src/core/kui-all.js`：页面加载不出框架，直接白屏。
+
+**要不要连 `config/*.json` 一起上传？** 建议一起传。用 `http(s)` 访问时页面会直接读取这些原始 JSON，**部署后想在线微调标题/文案/默认主题，改服务器上的 JSON、刷新页面就生效，不用重新构建**。如果只传 `config/bundle.js`（把原始 JSON 留在本地），以后任何配置改动都必须本地 `npm run build:config` 后重新上传。注意 `config/kui-modules.json` 是例外：它决定 `kui-all.js` 的脚本清单，改它无论哪种方式都必须 `npm run build:all` 重建。
 
 ## 3. 上传前，先在本地跑一遍
 

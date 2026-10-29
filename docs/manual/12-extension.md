@@ -1,6 +1,6 @@
 # 12 · 扩展开发全指南
 
-> 适用版本：KurumiUI v1.3.9 ｜ 前置章节：05 · 表单控件、07 · 表单引擎、08 · 复合组件、10 · 动作与业务函数、11 · iframe 通信 ｜ 阅读时长：约 40 分钟
+> 适用版本：KurumiUI v1.4.0 ｜ 前置章节：05 · 表单控件、07 · 表单引擎、08 · 复合组件、10 · 动作与业务函数、11 · iframe 通信 ｜ 阅读时长：约 40 分钟
 
 ## 本章目标
 
@@ -278,7 +278,7 @@ form.validate();                        // { valid, errors, data }；控件没�
 
 **如何验证**：控制台 `KUI.registry.has('scorebar') && KUI.registry.has('taginput')` 为 `true`；点轨道、加标签后 `form.subscribe(fn)` 被调用，回调收到单个事件对象 `{ type, id, value, data }`（`form.js:38392-38420`）；`npm run audit` 的组件拆装检查全过；`node tools/check-compat.js` 无报错。
 
-**注意事项**：type 用小写连字符、别撞内置 41 个类型名，业务控件建议加 `biz-` 前缀；根 class 必须是 `.kui-<type>`，状态用 `.is-focus/.is-disabled/.is-error`；`render` 里不发起请求（异步放 `mounted`）；每次值变化必须 `emitChange`；监听 `document/window` 要在 `impl.__after(api, returned)` 里 `base.addDestroyer(returned, off)`。
+**注意事项**：type 用小写连字符、别撞内置 42 个类型名，业务控件建议加 `biz-` 前缀；根 class 必须是 `.kui-<type>`，状态用 `.is-focus/.is-disabled/.is-error`；`render` 里不发起请求（异步放 `mounted`）；每次值变化必须 `emitChange`；监听 `document/window` 要在 `impl.__after(api, returned)` 里 `base.addDestroyer(returned, off)`。
 
 ## 12.3 新增一个复合组件（以 dialog / toast 为范本）
 
@@ -369,7 +369,7 @@ form.validate();                        // { valid, errors, data }；控件没�
   }
 
   var api = {
-    version: '1.0.0',        // 组件自身版本号（与框架 1.3.8 无关，不参与版本一致性校验）
+    version: '1.0.0',        // 组件自身版本号（与框架 1.3.9 无关，不参与版本一致性校验）
     defaults: DEFAULTS,
     open: open,
     close: function (id) { var inst = find(id); return inst ? inst.close('api') : false; },
@@ -413,7 +413,7 @@ form.validate();                        // { valid, errors, data }；控件没�
 
 ## 12.4 新增主题（简版）
 
-主题 token 表、`art` 装饰层、选择器机制见 [09-theme.md](09-theme.md)，这里只给最小步骤：① 在 `src/themes.json` 的 `themes` 数组追加 `{ "id", "name", "scheme", "tokens" }`，`tokens` 键统一 `--kui-*`；② `npm run build`（`themes.json` 打进 `config/bundle.js`，不重建不生效）；③ 验证 `?kuiTheme=<id>` 或 `KUI.theme.apply('<id>')`；运行期临时注册用 `KUI.theme.register({ id, name, scheme, tokens })`（`src/core/theme.js:227-236`），刷新即失效。
+主题 token 表、`art` 装饰层、选择器机制见 [09-theme.md](09-theme.md)，这里只给最小步骤：① 在 `src/themes.json` 的 `themes` 数组追加 `{ "id", "name", "scheme", "tokens" }`，`tokens` 键统一 `--kui-*`；② 生效方式取决于运行模式——http(s) 下刷新即读到新 JSON，`file://` 双击或离线分发必须 `npm run build:config`（`themes.json` 打进 `config/bundle.js` 才有兜底；判定见 [04-config-app.md](04-config-app.md) §1.3.1）；③ 验证 `?kuiTheme=<id>` 或 `KUI.theme.apply('<id>')`；运行期临时注册用 `KUI.theme.register({ id, name, scheme, tokens })`（`src/core/theme.js:227-236`），刷新即失效。
 
 ## 12.5 新增内置动作
 
@@ -599,7 +599,7 @@ var off = KUI.registry.onChange(function (type, kind) {   // kind: register / un
 });
 ```
 
-风险与建议：**契约**——form 依赖 `getValue/setValue/validate/setDisabled`，至少实现这四个，否则表单取值校验直接失效；**升级**——覆盖层单独成文件并注明「基于 v1.3.8」，升级时对照 changelog；**顺序**——放进 `kui-modules.json` 的明确位置，不要靠 HTML 临时 `<script>`；**清理**——覆盖实现显式 `destroy()`，并用 `onChange` 记录版本。
+风险与建议：**契约**——form 依赖 `getValue/setValue/validate/setDisabled`，至少实现这四个，否则表单取值校验直接失效；**升级**——覆盖层单独成文件并注明「基于 v1.3.9」，升级时对照 changelog；**顺序**——放进 `kui-modules.json` 的明确位置，不要靠 HTML 临时 `<script>`；**清理**——覆盖实现显式 `destroy()`，并用 `onChange` 记录版本。
 
 ## 12.10 扩展 dialog-frame（自定义弹窗页）
 
@@ -733,14 +733,14 @@ var off = KUI.registry.onChange(function (type, kind) {   // kind: register / un
 | 4 | 页面/样式/资源路径与 profile 深度一致 | 直接打开 `pages/xxx.html` 无 404 |
 | 5 | ES5 兼容 | `node tools/check-compat.js` |
 | 6 | 改动后一致性 | `npm run audit`、`npm run verify` |
-| 7 | 数量口径 | 截至 v1.3.8：41 个注册类型、19 个表单控件、28 个动作、61 个业务函数 |
+| 7 | 数量口径 | 截至 v1.3.9：41 个注册类型、19 个表单控件、28 个动作、61 个业务函数 |
 | 8 | 销毁路径 | 关页/关表单后无残留监听与节点 |
 | 9 | 主题跟随 | 颜色全部 `var(--kui-*, fallback)` |
 | 10 | 无控制台 error | `?kui_debug=1` 面板无异常栈 |
 
 **命名规范**：type 小写连字符（`scorebar`、`biz-timeline`）；动作 `域.动词`，不占 `dialog.*/toast.*/theme.*/tab.*`；业务函数 scope 用业务域、name 驼峰；CSS 只加 class 不加 ID，根 class 必须 `.kui-<type>`；事件 `组件:事件名`。
 
-**版本化**：扩展包自带 `version` 并在文件头注明「基于 KurumiUI v1.3.8」；覆盖内置时保留 `prev` 与 `onChange` 监听；升级前跑 `npm run audit`、`npm run verify`；排障见 [15-troubleshooting.md](15-troubleshooting.md)。
+**版本化**：扩展包自带 `version` 并在文件头注明「基于 KurumiUI v1.3.9」；覆盖内置时保留 `prev` 与 `onChange` 监听；升级前跑 `npm run audit`、`npm run verify`；排障见 [15-troubleshooting.md](15-troubleshooting.md)。
 
 **调试**：
 
@@ -775,7 +775,7 @@ KUI.diag.lines();              // ?kui_debug=1 后才可用
 ```powershell
 node tools/check-compat.js          # ES5 兼容性，无输出即通过
 npm run audit                       # 一致性 17 项 + 组件拆装 19 项
-npm run verify                      # 冒烟 108 项 + 2 个装配验证 + 产物一致性
+npm run verify                      # 冒烟 111 项 + 2 个装配验证 + 产物一致性
 
 # 运行时确认新类型/动作/业务函数都在表里
 node -e "var s=require('./test/dom-stub.js'),e=s.createEnvironment({root:process.cwd(),fileMode:true}),lk=require('./test/load-kui.js');lk.loadKui(e,{});var K=e.window.KUI;console.log('types',K.registry.count(),'actions',K.actions.list().length,'handlers',K.handlers.count());"
