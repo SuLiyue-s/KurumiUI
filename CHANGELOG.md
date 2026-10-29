@@ -1,3 +1,23 @@
+## v1.4.4（2026-10-30）
+
+> 修复 v1.4.3 的遗留：选中行的悬停叠色写死 accent 色值，切主题后不变。
+
+### 问题与根因
+
+- `--kui-dt-hover-selected` 在 `:root` 写死 `rgba(226, 32, 64, 0.16)`（暖红），不引用主题 token：切到星夜观测（蓝 accent）、深渊刻印（绿 accent）等主题时，选中行悬停仍是同一抹红。
+
+### 修复
+
+- 选中/高亮行悬停叠色改为 `--kui-dt-hover-selected: var(--kui-accent-soft, rgba(226, 32, 64, 0.16))`，定义在 `.kui-datatable` 作用域内，随每套主题的 `--kui-accent-soft` 变化（kurumi 红 / starry 蓝 / sakura 粉 / abyss 绿 / dawn 橙红…）；
+- `:root` 只保留与主题无关的 scheme 中性叠色 `--kui-dt-hover-overlay`（暗色提亮 / 亮色压暗），普通行悬停语义不变；
+- `smoke [32.10]` 改为断言「派生自 `--kui-accent-soft`」且「不得写死 accent 色值」；
+- 独立测试页 `standalone/datatable.html` 的主题下拉补齐：原静态 `<select data-kui-native>` 只硬编码一个选项、页面未加载主题数据，改为 `KUI.config.load('themes')` + `KUI.theme.init` + 主题化下拉（`KUI.dropdown` 不可用时回退原生 select），选择后端内实时切换并持久化。
+
+### 验证
+
+- 真实浏览器像素采样（同一表格、选中同一行、指针悬停）：kurumi 主题 R=116 G=39 B=56（红主导）；切到 starry 主题 R=85 G=98 B=138（蓝主导）——叠色随主题切换；
+- `test/run.js` 37/0/0（Node24 & Node13.14）、`smoke.js` 125/0、check-assets / audit 系列 / verify-build / 两份手册校验保持全绿。
+
 ## v1.4.3（2026-10-30）
 
 > 修复 v1.4.2 表格行状态样式的两处回归：偶数行悬停/选中失效、悬停叠色过淡。

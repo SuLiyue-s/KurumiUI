@@ -1,6 +1,6 @@
 {
   "name": "kurumi-ui",
-  "version": "1.4.3",
+  "version": "1.4.4",
   "private": true,
   "description": "KurumiUI —— 科技未来 + 动漫（时崎狂三）风格的配置驱动、可拆解 UI 框架",
   "main": "server.js",

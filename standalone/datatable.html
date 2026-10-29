@@ -51,9 +51,7 @@
   </div>
   <div class="demo-bar__ops">
     <nav class="demo-nav" id="demoNav"></nav>
-    <select id="kuiThemeSwitch" data-kui-native aria-label="切换主题">
-      <option value="kurumi">绯红刻刻帝</option>
-    </select>
+    <span id="kuiThemeSwitchHost"></span>
   </div>
 </div>
 
@@ -194,24 +192,56 @@
   }
 
   function fillThemeSelect() {
-    var sel = document.getElementById('kuiThemeSwitch');
-    var list = (KUI.theme && KUI.theme.list) ? KUI.theme.list() : [];
-    if (list.length) {
-      sel.innerHTML = '';
+    var host = document.getElementById('kuiThemeSwitchHost');
+    if (!host) { return; }
+    function build() {
+      var list = (KUI.theme && KUI.theme.list) ? KUI.theme.list() : [];
+      if (!list.length) { return; }
+      var options = [];
       for (var i = 0; i < list.length; i++) {
-        var opt = document.createElement('option');
-        opt.value = list[i].id;
-        opt.textContent = (list[i].name || list[i].id) + (list[i].scheme === 'light' ? ' · light' : '');
-        sel.appendChild(opt);
+        options.push({ value: list[i].id, label: (list[i].name || list[i].id) + (list[i].scheme === 'light' ? ' · light' : '') });
       }
+      host.innerHTML = '';
+      if (!KUI.dropdown) {
+        var sel = document.createElement('select');
+        sel.className = 'demo-select';
+        sel.setAttribute('aria-label', '切换主题');
+        for (var j = 0; j < options.length; j++) {
+          var opt = document.createElement('option');
+          opt.value = options[j].value;
+          opt.textContent = options[j].label;
+          sel.appendChild(opt);
+        }
+        sel.value = KUI.theme.get && KUI.theme.get() || options[0].value;
+        sel.onchange = function () { applyTheme(sel.value); };
+        host.appendChild(sel);
+        return;
+      }
+      var anchor = document.createElement('button');
+      anchor.type = 'button';
+      anchor.className = 'demo-btn';
+      anchor.setAttribute('aria-label', '切换主题');
+      host.appendChild(anchor);
+      KUI.dropdown(anchor, options, {
+        value: (KUI.theme.get && KUI.theme.get()) || options[0].value,
+        ariaLabel: '切换主题',
+        onSelect: function (val) { applyTheme(val); }
+      });
     }
-    if (KUI.theme.get && KUI.theme.get()) { sel.value = KUI.theme.get(); }
-    sel.onchange = function () {
-      if (KUI.theme && KUI.theme.apply) {
-        KUI.theme.apply(sel.value, { persist: true });
-        log('切换主题：' + sel.value, 'ok');
+    function applyTheme(id) {
+      if (!(KUI.theme && KUI.theme.apply)) { return; }
+      KUI.theme.apply(id, { persist: true });
+      log('切换主题：' + id, 'ok');
+    }
+    var have = (KUI.theme && KUI.theme.list) ? KUI.theme.list() : [];
+    if (have.length) { build(); return; }
+    if (!(KUI.config && KUI.config.load)) { return; }
+    KUI.config.load('themes').then(function (data) {
+      if (data && data.themes && KUI.theme && KUI.theme.init) {
+        KUI.theme.init(data, { fallbackId: 'kurumi', storageKey: 'kui-theme', persist: true, silent: true });
       }
-    };
+      build();
+    })['catch'](function () { build(); });
   }
 
   /* ---------------- 演示数据 ---------------- */

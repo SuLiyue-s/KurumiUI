@@ -46,7 +46,7 @@ var EXPECTED = [
   '10-next-steps'
 ];
 
-var VER = '1.4.3';
+var VER = '1.4.4';
 var MIN_CHAPTER_CHARS = 6000;
 var MIN_README_CHARS = 4000;
 

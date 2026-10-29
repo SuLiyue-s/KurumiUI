@@ -132,7 +132,7 @@ v1.0.9 起，页面**不再逐条引入框架脚本**，改由单一入口 `src/
 
 ```js
 window.KUI = {
-  version: '1.4.3',
+  version: '1.4.4',
   utils: {
     el(tag, attrs, children),          // 创建元素；attrs 支持 class/属性/onXxx/style/text/html
     qs(sel, root), qsa(sel, root),
@@ -813,6 +813,8 @@ dialog iframe→主框架：
 ### 24.3 表格行状态与悬停叠色（v1.4.3）
 
 行状态优先级：**选中（is-selected） > 点击高亮（is-active） > 条纹（nth-child(even)） > 普通行**；悬停（`:hover`）始终在最上层以 `background-image` 叠加。
+
+> v1.4.4：普通行悬停叠色 `--kui-dt-hover-overlay` 随 scheme（暗提亮 / 亮压暗）；选中/高亮行悬停叠色 `--kui-dt-hover-selected` 派生自主题 `--kui-accent-soft`，**随主题切换**。
 
 - 条纹规则必须带 `:not(.is-selected):not(.is-active)`，避免特异度竞争；
 - 行底色一律 `background-color`，悬浮叠色一律 `background-image`（禁止 `background` 简写）；

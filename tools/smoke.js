@@ -1833,11 +1833,13 @@ check('[32.9] 偶数行悬停回归防护：条纹规则排除选中/高亮，�
   return '条纹/悬停规则已防回归';
 });
 
-check('[32.10] 悬停叠色随主题 scheme 变化，选中/高亮行用 accent 叠色', function () {
+check('[32.10] 悬停叠色随主题 scheme/theme 变化，选中/高亮行叠色派生自主题 accent-soft', function () {
   var css = fs.readFileSync(path.join(ROOT, 'src/styles/datatable.css'), 'utf8');
   assert(css.indexOf('--kui-dt-hover-overlay: rgba(255, 255, 255, 0.14)') !== -1, '暗色 scheme 悬停叠色应提亮');
   assert(css.indexOf(':root[data-kui-scheme="light"]') !== -1, '应提供亮色 scheme 悬停叠色');
-  assert(css.indexOf('--kui-dt-hover-selected: rgba(226, 32, 64, 0.16)') !== -1, '选中行悬停应用 accent 叠色而非白色');
+  assert(css.indexOf('theme.visible') === -1, 'datatable 样式不应嵌入主题枚举逻辑（主题切换靠 token 覆盖）');
+  assert(css.indexOf('--kui-dt-hover-selected: var(--kui-accent-soft') !== -1, '选中行悬停叠色应派生自主题 --kui-accent-soft（随主题切换）');
+  assert(css.indexOf('--kui-dt-hover-selected: rgba(226') === -1, '选中行悬停叠色不应写死 accent 色值');
   var selHover = css.indexOf('.kui-datatable.is-hoverable .kui-datatable__row.is-selected:hover');
   assert(selHover !== -1, '缺少选中行悬停规则');
   return 'scheme 悬停叠色正确';

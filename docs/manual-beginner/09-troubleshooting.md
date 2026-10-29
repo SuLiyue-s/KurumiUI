@@ -1,6 +1,6 @@
 # 09 · 常见问题急救包
 
-> 适用版本：KurumiUI v1.4.3 ｜ 难度：⭐ 入门 ｜ 前置章节：[02-first-run.md](02-first-run.md) ｜ 阅读时长：约 25 分钟
+> 适用版本：KurumiUI v1.4.4 ｜ 难度：⭐ 入门 ｜ 前置章节：[02-first-run.md](02-first-run.md) ｜ 阅读时长：约 25 分钟
 
 ## 本章目标
 

@@ -388,3 +388,8 @@ v1.4.2 只用不透明深灰 `--kui-control-bg-hover`，在亮色皮肤上叠加
 - `audit-unused.js` 复跑：ERROR 0 / WARN 0 / INFO 87，新增 token 均被引用；
 - 回归防护：`smoke [32.9]/[32.10]` 与 `test/render.test.js` 覆盖「条纹排除状态行」「悬停使用 background-image」「scheme 叠色 token」。
 
+## 16. v1.4.4 审计：悬停叠色主题化（P1）
+
+- **P1 选中行悬停色未主题化**：`--kui-dt-hover-selected` 写死 `rgba(226,32,64,.16)`，与 `--kui-accent` 的六套主题色脱钩。修复：改由 `.kui-datatable` 从 `--kui-accent-soft` 派生；`:root` 仅保留 scheme 中性叠色。
+- **同类扫描**：全库检索 `--kui-` 变量中直接写死 `rgba(` 且语义为 accent 的位置——`--kui-dt-hover-selected` 为唯一一处；其余 accent 类颜色均引用 `--kui-accent*` / `--kui-selection-*` token，未发现同类缺陷。
+- 回归：`test/run.js` 37/0/0（Node24 & Node13.14）、`smoke.js` 126/0、`check-assets` 22/0/0、`audit-consistency` 17/0、`audit-components` 19/0、`audit-all-pages` 20/20、`audit-config` 0 缺口、`audit-unused` ERROR 0 / WARN 0、`verify-build` 6/0、`check-manual` 与 `check-beginner-manual` 0/0。

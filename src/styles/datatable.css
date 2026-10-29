@@ -8,8 +8,9 @@
    1. 容器与尺寸
    ========================================================================== */
 /* v1.4.3：悬停叠加色随主题 scheme 变化（暗色提亮、亮色压暗），保证任何底色上都可辨识 */
-:root { --kui-dt-hover-overlay: rgba(255, 255, 255, 0.14); --kui-dt-hover-selected: rgba(226, 32, 64, 0.16); }
-:root[data-kui-scheme="light"] { --kui-dt-hover-overlay: rgba(0, 0, 0, 0.10); --kui-dt-hover-selected: rgba(189, 33, 56, 0.10); }
+/* v1.4.4：普通行悬停叠色随 scheme 变化；选中/高亮行悬停叠色改由 .kui-datatable 从主题 --kui-accent-soft 派生（随主题切换） */
+:root { --kui-dt-hover-overlay: rgba(255, 255, 255, 0.14); }
+:root[data-kui-scheme="light"] { --kui-dt-hover-overlay: rgba(0, 0, 0, 0.10); }
 
 .kui-datatable {
   --kui-dt-header-bg: var(--kui-bg-2, #130d17);
@@ -18,6 +19,8 @@
   --kui-dt-cell-px: 12px;
   --kui-dt-border: var(--kui-border, rgba(244, 238, 240, 0.12));
   --kui-dt-hover: var(--kui-dt-hover-overlay, rgba(255, 255, 255, 0.12));
+  /* v1.4.4：选中/高亮行悬停叠色跟随主题（accent-soft 每套主题不同），不再写死 accent 色 */
+  --kui-dt-hover-selected: var(--kui-accent-soft, rgba(226, 32, 64, 0.16));
   --kui-dt-active: var(--kui-accent-soft, rgba(200, 16, 46, 0.16));
   --kui-dt-selected: var(--kui-selection-bg, rgba(200, 16, 46, 0.1));
   display: flex;

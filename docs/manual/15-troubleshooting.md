@@ -1,6 +1,6 @@
 # 15 · 排错手册、FAQ 与上线验收清单
 
-> 适用版本：KurumiUI v1.4.3 ｜ 前置章节：[03-assembly.md](03-assembly.md)、[11-api-messaging.md](11-api-messaging.md) ｜ 阅读时长：约 20 分钟
+> 适用版本：KurumiUI v1.4.4 ｜ 前置章节：[03-assembly.md](03-assembly.md)、[11-api-messaging.md](11-api-messaging.md) ｜ 阅读时长：约 20 分钟
 
 ## 本章目标
 
