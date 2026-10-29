@@ -167,7 +167,7 @@ npm run build:config   # 生成 config/bundle.js
 打开任意含 `boot.js` 的页面，在控制台执行：
 
 ```js
-KUI.version;                       // "1.3.8"
+KUI.version;                       // "1.4.4"
 KUI.bootLayer.version;             // `"1.0.0"` 组件自身版本号，与框架版本独立
 KUI.bootLayer.handsAt(50);         // {percent:50,totalMinutes:360,hourAngle:180,minuteAngle:0,hour12:6,clockText:"06:00"}
 ```
@@ -729,7 +729,7 @@ inst.done();
 
 | API | 签名 | 返回 | 行为与注意 |
 | --- | --- | --- | --- |
-| `KUI.bootLayer.version` | `"1.0.0"` | string | 组件自身版本，与框架版本（1.3.8）独立，升级判断别拿它比 |
+| `KUI.bootLayer.version` | `"1.0.0"` | string | 组件自身版本，与框架版本（1.4.4）独立，升级判断别拿它比 |
 | `KUI.bootLayer.DEFAULTS` | 对象 | `DEFAULTS` | 只读参考；**修改它不会影响已创建的实例**（实例各自 `normalizeConfig` 拷贝） |
 | `KUI.bootLayer.handsAt` | `(percent) → object` | 见 §3.3 | 纯函数，不依赖 DOM，Node 里也能调 |
 | `KUI.bootLayer.create` | `(host, props) → inst` | 实例 API | 非单例；`host` 可空；不写 id |
@@ -1093,7 +1093,7 @@ var h = KUI.bootLayer.handsAt(37.5);
 | 事项 | 建议 |
 | --- | --- |
 | MIME | `.js` 必须是 `text/javascript`（`server.js` 已内置白名单；Nginx/Apache 通常默认正确） |
-| 缓存 | `server.js` 返回 `Cache-Control: no-store, no-cache, must-revalidate`；生产静态托管若开了强缓存，升级后加 `?kui_v=1.3.8`（框架会把这个参数带到 iframe URL，见 11 章） |
+| 缓存 | `server.js` 返回 `Cache-Control: no-store, no-cache, must-revalidate`；生产静态托管若开了强缓存，升级后加 `?kui_v=1.4.4`（框架会把这个参数带到 iframe URL，见 11 章） |
 | `file://` | 需要 `config/bundle.js`（`npm run build:config`）；加载层本身不依赖配置可以不带 |
 | 路径大小写 | Linux 托管区分大小写，`src/` 与 `SRC/` 不能混 |
 | CSP | 若站点开了 CSP，需允许 `style-src 'unsafe-inline'`（组件会写内联 `--kui-boot-size` 等变量）与 `script-src` 自身 |
@@ -1236,7 +1236,7 @@ KUI.registry.get('boot');                                          // 注册描�
 1. `git pull` 拿到 v1.3.8 源码；
 2. `npm run build:config`（重生成 `config/bundle.js`；`file://` 必做）；
 3. `npm run build:all`（重生成 `src/core/kui-all.js`，把 `boot.js` 插进两个 profile）；
-4. 清浏览器缓存/强刷，确认 `KUI.version === '1.3.8'`、`typeof KUI.bootLayer === 'object'`；
+4. 清浏览器缓存/强刷，确认 `KUI.version === '1.4.4'`、`typeof KUI.bootLayer === 'object'`；
 5. 观察首屏：应看到时钟表盘 + 4 阶段 + 最终 `12:00`。
 
 ### 14.2 验收命令表
@@ -1246,7 +1246,7 @@ KUI.registry.get('boot');                                          // 注册描�
 | `npm start` | 起静态服务并自动构建 | 打印端口；`index.html` 正常 |
 | `npm run build:config` | 生成 `config/bundle.js` | 无异常；文件更新 |
 | `npm run build:all` | 生成 `src/core/kui-all.js` | Node 环境 `module.exports`；浏览器注入脚本 |
-| `npm test` | 配置/服务/渲染/兼容套件 | `36 通过 / 0 失败` |
+| `npm test` | 配置/服务/渲染/兼容套件 | `37 通过 / 0 失败` |
 | `npm run smoke` | 全链路冒烟（含 `[27]` 加载层 5 项） | 全部 PASS，0 失败 |
 | `npm run check:assets` | HTML 资源引用 | `22 个 HTML，错误 0，警告 0` |
 | `npm run audit:components` | 组件拆装审查（含 boot 独立渲染） | 全部通过 |

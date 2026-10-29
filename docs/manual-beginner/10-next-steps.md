@@ -97,12 +97,13 @@
 | --- | --- | --- |
 | `npm start` | 启动本地服务器，地址 `http://127.0.0.1:8080`（端口占用会自动 +1） | 日常开发第一件事 |
 | `npm run build:config` | 重建 `config/bundle.js`（配置包）和 `src/core/kui-all.js` | 改完 JSON 配置、要打包给别人时 |
-| `npm test` | 跑 35 项自动化测试 | 改完源码或想确认项目没坏 |
+| `npm test` | 跑 37 项自动化测试 | 改完源码或想确认项目没坏 |
 | `npm run smoke` | 跑冒烟测试，检查主要功能 | 大改后做一次快速体检 |
 | `npm run check:assets` | 检查 22 个 HTML 引用的文件是否齐全 | 移动/删除文件之后 |
 | `npm run verify:build` | 校验构建产物与源码是否一致 | 担心产物过期或改错产物 |
 | `node tools/audit-config.js` | 审计 `app.json` 的字段有没有实际读取点 | 想确认某个配置是否真的生效 |
-| `node tools/audit-unused.js` | 审计是否有「写了但没人读」的字段 / 样式 / 函数 / API（v1.4.2 新增） | 怀疑某个样式或配置没生效 |
+| `node tools/audit-unused.js` | 审计是否有「写了但没人读」的字段 / 样式 / 函数 / API（v1.4.1 新增） | 怀疑某个样式或配置没生效 |
+| `npm run coverage` | 生成 V8 代码覆盖率报告（`--all`，基线约 45.6%） | 想看哪些代码被自动化测试覆盖 |
 | `npm run verify` | 冒烟 + 动作演示 + 弹窗桥接 + 构建校验 | 发布前完整自检 |
 
 ## 7. 常用文件路径速查
@@ -123,14 +124,14 @@
 
 ## 8. 如何跟进新版本
 
-KurumiUI 的更新记录放在仓库根目录的 `CHANGELOG.md` 里：**最新版本在最上面**，当前是 `v1.3.8`；每个版本一段，写明「修了什么、加了什么、验证结果」。
+KurumiUI 的更新记录放在仓库根目录的 `CHANGELOG.md` 里：**最新版本在最上面**，当前是 `v1.4.4`；每个版本一段，写明「修了什么、加了什么、验证结果」。
 
 升级时按这个顺序做：
 
 1. **先备份**：把 `config/` 文件夹和 `src/themes.json` 复制一份（你的改动几乎都在这里）；
 2. **替换源码**：用新版本替换 `index.html`、`src/`、`config/`、`package.json` 等，注意保留你改过的配置；
 3. **重建产物**：在项目文件夹执行 `npm run build:config`；
-4. **确认版本**：打开页面，按 F12 在 Console 执行 `KUI.info()`，`version` 应为 `1.3.8`；`package.json` 里的 `version` 也应一致；
+4. **确认版本**：打开页面，按 F12 在 Console 执行 `KUI.info()`，`version` 应为 `1.4.4`；`package.json` 里的 `version` 也应一致；
 5. **回归检查**：菜单能点开、标签能切换、弹窗能打开关闭、6 套主题都能切换，就说明升级成功。
 
 看到 `CHANGELOG.md` 写「修复了某个配置不生效」时，说明这个字段以前可能不起作用，升级后值得再试。
@@ -153,6 +154,8 @@ KurumiUI 的更新记录放在仓库根目录的 `CHANGELOG.md` 里：**最新�
 | 给表格换数据 | `var dt = KUI.datatable.get(); dt && dt.setData(rows)` | v1.4.0 新增；完整见高级 08 §6.6 |
 | 页面里取表单对象 | `document.querySelector('[data-kui-type="form"]').__kuiControl.getValue()` | 包装 API 见高级 07 §7.2 |
 | 清掉本机记住的主题 | `localStorage.removeItem('kui-theme')` | 其它键见 [04-config-ui.md](04-config-ui.md) §9.2 |
+| 主题化下拉 | `var dd = KUI.dropdown(btn, [{value:'a',label:'A'}], {onSelect:function(v){}}); dd.open()` | v1.4.2 新增；替换原生 select，完整见高级 11 §2.5 |
+| 双花括号文案 | `KUI.fmt('共 {{n}} 条', {n:12})` | v1.4.2 起同时支持 `{n}` 与 `{{n}}` |
 
 ## 10. 结束语
 
@@ -161,7 +164,7 @@ KurumiUI 的更新记录放在仓库根目录的 `CHANGELOG.md` 里：**最新�
 ## 动手练习
 
 1. **写自己的计划。** 对照第 4 节的 7 天计划，按你的时间把 7 天改成 7 个具体日期，并把「动手做什么」换成你自己项目里真正想做的事。
-2. **跑三条命令。** 依次执行 `npm test`、`npm run check:assets`、`npm run verify:build`，把每条的末行输出记下来（例如「汇总: 35 通过 / 0 失败 / 0 跳过」）。
+2. **跑三条命令。** 依次执行 `npm test`、`npm run check:assets`、`npm run verify:build`，把每条的末行输出记下来（例如「汇总: 37 通过 / 0 失败 / 0 跳过」）。
 3. **查一个字段。** 从第 7 节选一个你感兴趣的字段（比如 `boot.stages`），去 `config/app.json` 里找到它，改一处文案，刷新看效果。
 4. **读一章高级手册。** 从第 3 节的路线里挑第 1 章（04-config-app）读 20 分钟，回来写一句「我以前不知道的是……」。
 

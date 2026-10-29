@@ -257,7 +257,7 @@ window.addEventListener('message', function (e) {
 
 ### 6.1 方式 A：整个框架复制
 
-适合把 KurumiUI 当自家后台的技术底座。复制清单（按 v1.4.1 实测）：
+适合把 KurumiUI 当自家后台的技术底座。复制清单（按 v1.4.4 实测）：
 
 | 路径 | 作用 | 必须 |
 | --- | --- | --- |
@@ -297,7 +297,7 @@ window.addEventListener('message', function (e) {
 1. 拉取新版，读 `CHANGELOG.md`（重大变更会写破坏性说明）。
 2. `npm run build` 重建两个产物。
 3. 比对 `config/kui-modules.json`（模块增删）、`src/themes.json`（token 改名）、`config/app.json` 的 schema（字段增删，见 `04-config-app.md`）。
-4. 回归：`npm test`（30 项）、`npm run verify`（冒烟 94 项）、`npm run audit`（一致性 17 + 组件拆装 17）、`node tools/check-compat.js`、`node tools/check-assets.js`。
+4. 回归：`npm test`（37 项）、`npm run verify`（冒烟 125 项）、`npm run audit`（一致性 17 + 组件拆装 19）、`node tools/check-compat.js`、`node tools/check-assets.js`。
 5. 替换前备份线上 `config/bundle.js` 与 `src/core/kui-all.js` 两个文件，回滚只需换回它们。
 
 ### 7.2 缓存穿透
@@ -309,7 +309,7 @@ window.addEventListener('message', function (e) {
 
 ### 7.3 回滚
 
-- 推荐发布包按版本目录保存：`/var/www/kurumi-v1.3.5`、`/var/www/kurumi-v1.4.1`，用软链 `/var/www/kurumi -> kurumi-v1.4.1`，回滚只改软链并 reload nginx。
+- 推荐发布包按版本目录保存：`/var/www/kurumi-v1.3.5`、`/var/www/kurumi-v1.4.4`，用软链 `/var/www/kurumi -> kurumi-v1.4.4`，回滚只改软链并 reload nginx。
 - 只换代码不换配置时，至少回滚两个产物；`config/app.json` 结构变化大的版本，回滚要连配置一起换。
 - 回滚后清 CDN 与浏览器强缓存路径（HTML 已 no-cache，一般无需强刷）。
 

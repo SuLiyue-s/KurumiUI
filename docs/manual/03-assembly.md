@@ -188,7 +188,7 @@ v1.3.8 起启动层样式在 `src/styles/boot.css`（`index.html:20` 引入，�
 }
 ```
 
-裁剪依据：`kui.js` 命名空间底座、`registry.js` 管 type→构造器、`config.js` 读 JSON、`theme.js` 才有 token、`controls/index.js` 一次装齐控件、dialog/toast 依赖 registry 与 dom-enhance。改完跑 `npm test`（30 项）与 `npm run audit:components`（17 项）。
+裁剪依据：`kui.js` 命名空间底座、`registry.js` 管 type→构造器、`config.js` 读 JSON、`theme.js` 才有 token、`controls/index.js` 一次装齐控件、dialog/toast 依赖 registry 与 dom-enhance。改完跑 `npm test`（37 项）与 `npm run audit:components`（19 项）。
 
 **路线 B：手写 script 顺序。** 真实范例是 `src/frame/dialog-frame.html:225-235`：`kui.js → tooltip → icons → registry → config → theme → theme-art → dom-enhance → controls/index → form → 自身脚本`。注册表之前调 `KUI.renderNode` 会得到「未注册的元素类型」。`standalone/no-shell.html` 演示不用外壳：把 `app.json` 的 `menu`/`menunav`/`tabs` 节点各自 render 后 append 到 Grid 槽位（`:166-197`），因页面在子目录，tabs 复制节点后补 `props.urlPrefix='../'`（`:189`）。
 

@@ -64,7 +64,7 @@ npm start            # 起本地服务（启动时也会自动构建；含端口
 
 ```bash
 node tools/build-config.js   # 1) config/app.json + config/text.json + src/themes.json + config/demos/*.json → config/bundle.js
-node tools/build-all.js      # 2) 按 config/kui-modules.json 的 app(28) / standalone(27) 清单 → src/core/kui-all.js
+node tools/build-all.js      # 2) 按 config/kui-modules.json 的 app(30) / standalone(29) 清单 → src/core/kui-all.js
 ```
 
 ### 4）开发模式与生产模式
@@ -79,9 +79,9 @@ node tools/build-all.js      # 2) 按 config/kui-modules.json 的 app(28) / stan
 发布前建议全绿再提交：
 
 ```bash
-npm test                       # 30 项单元/集成用例（自带 DOM stub，零依赖）
+npm test                       # 37 项单元/集成用例（自带 DOM stub，零依赖）
                                # 新克隆仓库没有 .tools/ 里的 Node13 时：29 通过 / 1 跳过（可选用例）
-npm run verify                 # 冒烟 94 项 + 业务函数演示页 + 弹窗动作桥
+npm run verify                 # 冒烟 125 项 + 业务函数演示页 + 弹窗动作桥
 npm run audit                  # 一致性审计 17 项 + 组件拆装审计 19 项
 node tools/check-compat.js     # Node 13.14 语法/API 兼容扫描
 node tools/check-assets.js     # HTML 引用 JS/CSS 齐全性
@@ -420,7 +420,7 @@ KUI.search.picker("表单", matches);   // 弹出候选列表
 冒烟分节执行（缩短反馈时间）：
 
 ```bash
-node tools/smoke.js --only=list        # 列出 23 个分节
+node tools/smoke.js --only=list        # 列出 28 个分节
 node tools/smoke.js --only=26          # 只跑「菜单搜索」断言（其余分节仍完成初始化）
 ```
 
@@ -501,7 +501,7 @@ MIT。主题名与灵感来自《Date A Live》时崎狂三，仅作风格致敬
 
 | 文件 | 作用 |
 | --- | --- |
-| `config/kui-modules.json` | 模块清单（`profiles.app` 28 个 / `profiles.standalone` 27 个），**加模块只改这里** |
+| `config/kui-modules.json` | 模块清单（`profiles.app` 30 个 / `profiles.standalone` 29 个），**加模块只改这里** |
 | `tools/build-all.js` | 由清单生成 `src/core/kui-all.js`，`npm run build:config` 自动执行 |
 | `src/core/kui-all.js` | 构建产物（浏览器 `document.write` 同步注入；Node 侧 `module.exports` 供测试/审计共用） |
 ## 诊断面板（v1.1.0 起）

@@ -104,7 +104,7 @@ npm start
 > 第一次启动时，项目会先自动检查并生成两个「初始化文件」（`config/bundle.js` 和 `src/core/kui-all.js`），所以会多等一两秒。你会看到类似这样的内容（版本号、路径以你的电脑为准）：
 >
 > ```text
-> > kurumi-ui@1.3.8 start
+> > kurumi-ui@1.4.4 start
 > > node server.js
 >
 >   KurumiUI · 刻刻帝终端

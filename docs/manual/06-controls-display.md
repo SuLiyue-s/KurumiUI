@@ -278,7 +278,7 @@ columns 全字段（唯一实现 `normColumns`，`misc.js:729-749`）：
 | `page` | number | `1` | 否 | 当前页（1 起） |
 | `pageSize` | number | `10` | 否 | 每页条数 |
 | `total` | number | `0` | 否 | 总条数；页数 `max(1, ceil(total/pageSize))`（`994-996`） |
-| `pageSizes` | array | `[10,20,50,100]` | 否 | 条数下拉选项 |
+| `pageSizes` | array | `[10,20,50,100]` | 否 | 条数下拉选项；v1.4.2 起由 `KUI.dropdown` 主题化渲染（内核缺失时回退原生 `select`） |
 | `simple` | boolean | `false` | 否 | 简洁模式：上一页/页码/下一页 |
 | `showTotal`/`showSizer`/`showJumper` | boolean | `true/false/false` | 否 | 总数 / 条数选择 / 跳页 |
 | `size` | string | `'md'` | 否 | `sm/md/lg` |

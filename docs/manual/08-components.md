@@ -140,7 +140,7 @@ var menu = el.__kuiMenu;               // 等价：el.__kuiInstance
 | `footer` | object \| null | `null` | 否 | 页脚配置；`null` 时不渲染页脚 |
 | `footer.title` | string | 无（`undefined`） | 否 | 页脚标题 |
 | `footer.subtitle` | string | 无（`undefined`） | 否 | 页脚副标题；v1.3.8 起渲染（`menu.js:742-743`），未配时可由 `app.footerSubtitle` 注入（`bootstrap.js:888`） |
-| `footer.version` | string | 无（`undefined`） | 否 | 版本文字（例：`v1.4.1`）；未配时由 `app.version` 自动注入 `v<version>`（`bootstrap.js:887`） |
+| `footer.version` | string | 无（`undefined`） | 否 | 版本文字（例：`v1.4.4`）；未配时由 `app.version` 自动注入 `v<version>`（`bootstrap.js:887`） |
 | `footer.copyright` | string | 无（`undefined`） | 否 | 版权行；v1.3.8 起渲染（`menu.js:748-749`），未配时可由 `app.copyright` 注入（`bootstrap.js:889`） |
 | `footer.actions` | array | 无（`undefined`） | 否 | 页脚动作：字符串（按钮文本）或节点对象（`button` 等，经 `KUI.renderNode`），对象也可写 `{text,icon,on:{click}}` |
 | `accordion` | boolean | `true` | 否 | 同级子菜单是否互斥展开（手风琴） |
@@ -1240,7 +1240,7 @@ KUI.toast.notify({
 {
   "type": "app-shell",
   "props": {
-    "app": { "title": "刻刻帝终端", "subtitle": "KurumiUI v1.4.1", "logoIcon": "clock", "home": "pages/home.html" },
+    "app": { "title": "刻刻帝终端", "subtitle": "KurumiUI v1.4.4", "logoIcon": "clock", "home": "pages/home.html" },
     "layout": {
       "gap": 10,
       "menu": { "width": 252, "collapsedWidth": 68, "collapsed": false },
@@ -1352,7 +1352,7 @@ console.log(app.isCollapsed(), app.getActiveTab());
 
 ```json
 {
-  "app": { "title": "刻刻帝终端", "subtitle": "KurumiUI v1.4.1", "logoIcon": "clock", "home": "pages/home.html" },
+  "app": { "title": "刻刻帝终端", "subtitle": "KurumiUI v1.4.4", "logoIcon": "clock", "home": "pages/home.html" },
   "layout": { "gap": 10, "menu": { "width": 252, "collapsedWidth": 68 }, "header": { "height": 56 }, "tabbarHeight": 38 },
   "menu": {
     "type": "menu",

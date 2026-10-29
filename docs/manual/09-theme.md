@@ -5,7 +5,7 @@
 ## 本章目标
 
 - 掌握「Token → themes.json → KUI.theme → 装饰层」链路，知道改哪一层最省事。
-- 用一张全表掌握 116 个 `--kui-*` 变量，能按区域定位该改哪个。
+- 用一张全表掌握 117 个 `--kui-*` 变量，能按区域定位该改哪个。
 - 会切换主题（API / 动作 / URL / 存储 / iframe），理解首帧防闪烁原理。
 - 能独立新增主题：写 JSON → 构建 → 验证 → 部署；掌握覆盖优先级。
 
@@ -16,13 +16,13 @@
 换肤只换变量、不换结构：组件 CSS 全部通过 `var(--kui-*)` 取值，主题只改写变量。
 
 ```
-① base.css :root      116 个 token 默认值（kurumi 兜底）
+① base.css :root      117 个 token 默认值（kurumi 兜底）
 ② theme.apply()       在 <html style> 内联写入当前主题的 64 个 token（优先）
 ③ data-kui-theme / data-kui-scheme   标记身份 + 驱动装饰层
 ```
 
-- **默认层**：`base.css:189-354` 定义全部 116 个；前 94 个是契约 token（`docs/04-theme.md` §4），后 22 个是扩展 token（图标、层级、装饰、玻璃）。
-- **主题层**：`src/themes.json` 每套只给 64 个，其余 52 个（字体、字号、圆角、动效、布局、层级）沿用默认值——各主题共享尺度，只换颜色质感。
+- **默认层**：`base.css:195-358` 定义全部 117 个；前 94 个是契约 token（`docs/04-theme.md` §4），后 23 个是扩展 token（图标、层级、装饰、玻璃）。
+- **主题层**：`src/themes.json` 每套只给 64 个，其余 53 个（字体、字号、圆角、动效、布局、层级）沿用默认值——各主题共享尺度，只换颜色质感。
 - **属性层**：`data-kui-theme` 供调试与主题微调；`data-kui-scheme` 驱动 `color-scheme`（`base.css:38-44` 只切浏览器原生控件明暗）。
 - 组件级变量（如 `--kui-line-clamp`，`base.css:720-727` 多行截断）不属于设计 token，用内联样式局部覆盖。
 
@@ -67,9 +67,9 @@
 
 `silent` 同时关掉持久化、iframe 广播与 DOM 事件；iframe 内静默跟随父级用它最稳。
 
-## 2. token 全表（116 个）
+## 2. token 全表（117 个）
 
-默认值取自 `src/styles/base.css:195-354`；标注「可覆盖」的 64 个会出现在 `themes.json`。
+默认值取自 `src/styles/base.css:195-358`；标注「可覆盖」的 64 个会出现在 `themes.json`。
 
 ### 2.1 背景 / 文字 / 品牌语义 / 边框（31 个，可覆盖）
 
@@ -185,7 +185,7 @@
 | `--kui-calendar-head-bg` | `rgba(200,16,46,.1)` | 表头底 | 日期面板 |
 | `--kui-calendar-today` | `#d4af37` | 今日高亮 | 日期面板 |
 
-### 2.5 布局 / 层级 / 装饰 / 玻璃（22 个，不可覆盖）
+### 2.5 布局 / 层级 / 装饰 / 玻璃（23 个，不可覆盖）
 
 | 变量 | 默认值 | 作用 | 影响区域 |
 | --- | --- | --- | --- |
@@ -204,6 +204,7 @@
 | `--kui-z-dialog` | `2000` | 弹窗层级 | 对话框 |
 | `--kui-z-toast` | `3000` | 提示层级 | toast |
 | `--kui-z-fullscreen` | `4000` | 全屏层级 | 全屏 |
+| `--kui-z-popup` | `1500` | 主题化下拉层级 | 表格列筛选、每页条数（v1.4.2） |
 | `--kui-corner-size` | `10px` | 切角尺寸 | `corner:"cut"` |
 | `--kui-noise-opacity` | `0.035` | 噪点强度 | art noise |
 | `--kui-vignette-opacity` | `0.55` | 暗角强度 | art vignette |
@@ -212,7 +213,26 @@
 | `--kui-glass-border` | `rgba(244,238,243,.08)` | 玻璃边 | 玻璃面板 |
 | `--kui-glass-blur` | `16px` | 玻璃模糊 | 玻璃面板 |
 
-> 主题只认这 64 个可覆盖 token；其余 52 个改 `base.css`（全局尺度）或在业务容器局部覆盖（§7）。
+> 主题只认这 64 个可覆盖 token；其余 53 个改 `base.css`（全局尺度）或在业务容器局部覆盖（§7）。
+
+### 2.6 数据表格专用 token（10 个，组件级）
+
+`datatable.css` 定义 10 个 `--kui-dt-*`，只作用于 `.kui-datatable` 组件树；它们不是 `:root` 设计 token（不占上面 117 个），主题切换通过 `var()` 引用设计 token 自动跟随（v1.4.2 起表格全面主题化）。
+
+| 变量 | 默认值/来源 | 作用 |
+| --- | --- | --- |
+| `--kui-dt-row-h` | `42px` | 行高（`sm` 34px / `lg` 50px；`.is-compact` 34px） |
+| `--kui-dt-cell-px` | `12px` | 单元格左右内边距 |
+| `--kui-dt-border` | `var(--kui-border, …)` | 单元格与表头分隔线 |
+| `--kui-dt-header-bg` | `var(--kui-bg-2, …)` | 表头底色 |
+| `--kui-dt-header-fg` | `var(--kui-text-2, …)` | 表头文字 |
+| `--kui-dt-hover` | `var(--kui-dt-hover-overlay, …)` | 普通行悬停叠色（v1.4.3） |
+| `--kui-dt-active` | `var(--kui-accent-soft, …)` | 活动列/行强调 |
+| `--kui-dt-selected` | `var(--kui-selection-bg, …)` | 选中行底色 |
+| `--kui-dt-hover-overlay` | 暗 `rgba(255,255,255,.14)` / 亮 `rgba(0,0,0,.10)` | 悬停叠色来源（v1.4.3；`:root` 唯一保留的 dt 变量） |
+| `--kui-dt-hover-selected` | `var(--kui-accent-soft, rgba(226,32,64,.16))` | 选中行悬停叠色（v1.4.4 起随主题变化） |
+
+> v1.4.3 起行状态统一用 `background-color`、悬停统一用 `background-image`，选中行悬停因此能随主题切换；斑马纹规则排除 `.is-selected/.is-active`。字段与选择联动见 [08-components.md](08-components.md) §6.6。
 
 ## 3. 六套内置主题
 
@@ -483,7 +503,7 @@ grep -c "my-frost" config/bundle.js
 
 ## 参考源码
 
-- `src/styles/base.css:189-354`（116 token）、`:720-727`（`--kui-line-clamp`）、`:1387-1398`（过渡）、`:915-1280`（装饰层）
+- `src/styles/base.css:195-358`（117 token）、`:720-727`（`--kui-line-clamp`）、`:1387-1398`（过渡）、`:915-1280`（装饰层）
 - `src/themes.json`（6 套主题、64 token/套、art）；`src/core/theme.js`（`apply`/`resolveInitial`/`init`/`broadcast`）
 - `src/core/theme-art.js`（11 种装饰层）、`src/core/theme-boot.js`（防闪烁）、`src/frame/kui-frame.js:207-399`（iframe 同步）
 - `src/app/bootstrap.js:208-331`（主题动作）、`:333-431`（内置选择器）、`:882-895`（初始化）；`config/app.json:178-198`

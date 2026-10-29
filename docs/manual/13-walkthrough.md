@@ -584,14 +584,14 @@ npm start          # 启动静态服务（默认 127.0.0.1:8080，端口占用�
 
 ### B6. 版本升级注意
 
-1. 子页 URL / iframe `src` 升级时带上版本参数，例如 `embed/kui-form.html?kui_v=1.4.1`，避免 304 缓存拿到旧 HTML；
+1. 子页 URL / iframe `src` 升级时带上版本参数，例如 `embed/kui-form.html?kui_v=1.4.4`，避免 304 缓存拿到旧 HTML；
 2. `src/core/kui-all.js` 注入的子脚本**不带**版本参数，所以升级要同时清 CDN/浏览器缓存（或给 `src/` 配置 `Cache-Control: no-cache`）；
 3. 桥接协议是自定义的，与 KurumiUI 的 `frame` 协议（`tab:init`/`frame:ready` 等，见 [11-api-messaging.md](11-api-messaging.md)）互不干扰；升级框架版本时只需回归本案例的 4 个事件与 4 个命令；
 4. `KUI.version` 会随子页 `ready` 事件发给父页，父页可做「最低版本」断言，防止旧页面与新协议混跑。
 
 ### B7. 验证步骤
 
-1. 启动本地服务，打开 `host.html`：右侧日志出现「子页就绪，KurumiUI 1.4.1」；
+1. 启动本地服务，打开 `host.html`：右侧日志出现「子页就绪，KurumiUI 1.4.4」；
 2. 父页点「主题 abyss」→ 子页整体变色；点「填充示例数据」→ 子页表单出现「时崎狂三」；
 3. 子页改任一字段 → 父页日志出现 `表单变化：name → {...}`；
 4. 子页点「提交到父页面」→ 父页日志出现 `收到提交`；

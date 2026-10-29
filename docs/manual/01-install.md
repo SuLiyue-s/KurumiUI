@@ -133,9 +133,9 @@ npx serve -l 8080 .
 | --- | --- | --- |
 | `?kui_debug=1` | 打开诊断面板（`src/core/diag.js:237`） | `http://127.0.0.1:8080/?kui_debug=1` |
 | `?kuiTheme=<id>` | 强制主题（`src/core/theme.js:166`） | `http://127.0.0.1:8080/?kuiTheme=starry` |
-| `?kui_v=<版本>` | 由框架自动追加到 iframe 子页 URL 做缓存穿透，手加一般无意义 | `.../pages/home.html?kui_v=1.4.1` |
+| `?kui_v=<版本>` | 由框架自动追加到 iframe 子页 URL 做缓存穿透，手加一般无意义 | `.../pages/home.html?kui_v=1.4.4` |
 
-> `?demo=<name>` 只出现在菜单项的静态 URL（`config/app.json:575` 的 `standalone/menu.html?demo=menu`），框架层与 `standalone/*.html` 都不解析它，不要写进验收脚本。
+> `?demo=<name>` 只出现在菜单项的静态 URL（`config/app.json:608` 的 `standalone/menu.html?demo=menu`），框架层与 `standalone/*.html` 都不解析它，不要写进验收脚本。
 
 ## 1.6 验证安装
 
@@ -144,8 +144,8 @@ npx serve -l 8080 .
 | `npm run build` | 重建配置包与入口清单 | 见下方预期输出 |
 | `node tools/check-assets.js` | HTML 的 CSS / JS 引用存在性、空文件、外链、重复、ESM | 末行 `汇总: 22 个 HTML，错误 0 个，警告 0 个` |
 | `node tools/check-compat.js` | 禁用语法 / API 与 Node 13.14 语法校验 | 出现 `[PASS] 未发现禁用语法 / API` |
-| `npm test` | compat / config / server / render 四套件共 33 条用例 | 末行 `=> PASS` |
-| `npm run verify` | 冒烟 111 项 + handlers 演示页 + 弹窗动作桥 + 产物一致性 | 四段均打印 ✔ / PASS |
+| `npm test` | compat / config / server / render 四套件共 37 条用例 | 末行 `=> PASS` |
+| `npm run verify` | 冒烟 125 项 + handlers 演示页 + 弹窗动作桥 + 产物一致性 | 四段均打印 ✔ / PASS |
 | `npm run audit` | 一致性审计 17 项 + 组件拆装审计 19 项 | 两个脚本均 `失败 0 项` |
 
 `npm run build` 预期输出（数值以实际输出为准）：
@@ -161,7 +161,7 @@ KurumiUI 配置打包完成
 浏览器控制台检查（http 模式打开 `http://127.0.0.1:8080/`，F12 → Console）：
 
 ```js
-KUI.version                  // '1.4.1'
+KUI.version                  // '1.4.4'
 KUI.env.isBrowser            // true
 KUI.registry.list().length   // 42（其中 19 个是表单控件）
 KUI.actions.list().length    // 28
@@ -193,7 +193,7 @@ typeof window.__KUI_BUNDLE__ // 'object'
 | `src/styles/` | 样式 | `base.css` / `controls.css` / `components.css` / `tooltip.css` / `boot.css`（v1.3.8 起启动层独立样式）/ `avatar.css`，主题 token 在 `themes/` |
 | `src/themes.json` | 主题数据 | 6 套主题（kurumi 默认、kurumi-angel、starry、sakura、abyss、dawn） |
 | `pages/`、`standalone/` | 页面 | 7 个配置驱动业务页；13 个独立渲染页 + `embedded.js` |
-| `test/`、`tools/` | 测试与工程工具 | `run.js` + 四个套件 + `dom-stub.js`；`tools/` 共 16 个 .js：构建 2 个（`build-config.js` / `build-all.js`），校验 / 审计 / 冒烟 13 个（含 `verify-build.js`、`audit-config.js`、`audit-unused.js`（v1.4.1 未消费资产审计）、两份手册的校验器 `check-manual.js` 与 `check-beginner-manual.js`，可用 `node tools/check-manual.js [--json] [--strict]` / `node tools/check-beginner-manual.js`），截图 1 个（`screenshot.js`） |
+| `test/`、`tools/` | 测试与工程工具 | `run.js` + 四个套件 + `dom-stub.js`；`tools/` 共 17 个 .js：构建 2 个（`build-config.js` / `build-all.js`），校验 / 审计 / 冒烟 / 覆盖率 14 个（含 `verify-build.js`、`audit-config.js`、`audit-unused.js`（v1.4.1 未消费资产审计）、`coverage.js`（v1.4.2 覆盖率）、两份手册的校验器 `check-manual.js` 与 `check-beginner-manual.js`，可用 `node tools/check-manual.js [--json] [--strict]` / `node tools/check-beginner-manual.js`），截图 1 个（`screenshot.js`） |
 
 `index.html:51` 只引一行 `src/core/kui-all.js`，加载哪些模块由 `config/kui-modules.json` 的 `files` 数组决定，详见 [02-build.md](02-build.md) 与第 03 章。
 
@@ -247,10 +247,10 @@ v24.14.0
 KurumiUI 配置打包完成
 [build-all] profiles: app=30, standalone=29
 汇总: 22 个 HTML，错误 0 个，警告 0 个
-汇总: 36 通过 / 0 失败 / 0 跳过   总计 35   耗时 ...ms   => PASS
+汇总: 37 通过 / 0 失败 / 0 跳过   总计 37   耗时 ...ms   => PASS
 ```
 
-最后 `npm start`，打开 `http://127.0.0.1:8080/`，在控制台执行 1.6 节检查，得到 `1.4.1 / true / 42 / 28 / 61 / true` 即安装完成。
+最后 `npm start`，打开 `http://127.0.0.1:8080/`，在控制台执行 1.6 节检查，得到 `1.4.4 / true / 42 / 28 / 61 / true` 即安装完成。
 
 ## 参考源码
 

@@ -208,7 +208,7 @@ node -e "var m = require('./src/core/kui-all.js'); console.log(m.schema, Object.
 
 | 命令 | 校验对象 | 通过判据（当前仓库实测） | 退出码 |
 | --- | --- | --- | --- |
-| `npm test` | compat / config / server / render 四套件共 33 条用例 | 末行 `=> PASS`；缺 `.tools/` 时 Node 13 用例 SKIP | 0 / 1 |
+| `npm test` | compat / config / server / render 四套件共 37 条用例 | 末行 `=> PASS`；缺 `.tools/` 时 Node 13 用例 SKIP | 0 / 1 |
 | `npm run verify` | 冒烟 125 项 + handlers 演示页 + 弹窗动作桥 + 产物一致性 | `125 通过 / 0 失败` 与三个 ✔ / PASS | 0 / 1（&&） |
 | `npm run audit` | 一致性审计 17 项 + 组件拆装审计 19 项 | `通过 17 项 / 失败 0 项 / 警告 0 项` 与 `通过 19 项 / 失败 0 项` | 0 / 1（&&） |
 | `node tools/check-compat.js` | 全项目 JS 与 HTML 内联脚本的禁用语法 / API，并用 Node 13.14 做语法校验 | `[PASS] 未发现禁用语法 / API`；`.tools/` 缺失时降级为当前运行时并打印 `[INFO]` | 0 / 1 |
@@ -216,7 +216,7 @@ node -e "var m = require('./src/core/kui-all.js'); console.log(m.schema, Object.
 | `node tools/audit-config.js` | 配置读取点审计：逐个 JSON 叶子字段检查源码是否存在读取点（`--strict` 时有缺口即失败） | 无 npm script，直接运行；v1.3.8 新增，当前 `468 个叶子 / 431 个受检字段 / 0 个缺口`、退出码 0 | 0 / 1 |
 | `node tools/coverage.js` | 代码覆盖率（V8 coverage；`--all` = test + smoke，`--json` 写 `.coverage/report.json`，`--min` 阈值，`npm run coverage`）。当前基线 **45.6%**（9867/21657 行） | 退出码 0；报告含逐文件行覆盖率 | 0 / 1 |
 | `node tools/audit-unused.js` | 未消费资产审计：storage 键、CSS 变量、`data-*`、死函数、未引用样式类（v1.4.1 新增，`npm run audit:unused`，`--strict` 时 ERROR>0 退出码 1） | 当前 `ERROR 0 / WARN 0 / INFO 87`（INFO 为公共工具类与动态拼接类，已人工复核） | 0 / 1 |
-| `node tools/audit-all-pages.js` | 19 个页面的注册表装配与 console.error | `20 / 20 页面通过，失败 0 项` | 0 / 1 |
+| `node tools/audit-all-pages.js` | 20 个页面的注册表装配与 console.error | `20 / 20 页面通过，失败 0 项` | 0 / 1 |
 
 `kui-all.js` 不在生成文件白名单（`tools/check-compat.js:42`），构建后应再跑一次兼容扫描；`bundle.js` 被跳过。产物不入库（`.gitignore:5-6`），部署时随源码带上即可。
 
@@ -276,8 +276,8 @@ npm test
 预期输出（节选，数值以实际输出为准）：
 
 ```text
-1.4.1
-[build-all] 已生成 src\core\kui-all.js (3982 字节)
+1.4.4
+[build-all] 已生成 src\core\kui-all.js (4092 字节)
 [build-all] profiles: app=30, standalone=29
 kui-modules/1 [ 'app', 'standalone' ] 30 29
 app,text,themes,demos,meta 11

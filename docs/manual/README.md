@@ -132,7 +132,7 @@ npm run build:config   # = node tools/build-config.js && node tools/build-all.js
 
 | 项目 | 值 | 说明 |
 | --- | --- | --- |
-| 框架版本 | **1.3.8** | 需四处一致：`src/core/kui.js`、`src/frame/kui-frame.js`、`src/core/dom-enhance.js`、`package.json`（`npm run audit` 的 E1 校验） |
+| 框架版本 | **1.4.4** | 需四处一致：`src/core/kui.js`、`src/frame/kui-frame.js`、`src/core/dom-enhance.js`、`package.json`（`npm run audit` 的 E1 校验） |
 | Node.js | **≥ 13.14.0** | `package.json` 的 `engines`；仓库用 `.tools/node-v13.14.0-win-x64` 实测，与 Node 24 双版本通过 |
 | npm 依赖 | **0** | `package.json` 无 `dependencies` / `devDependencies`，克隆后无需 `npm install` |
 | 构建方式 | 无打包器 | 两个自研 Node 脚本：`tools/build-config.js`、`tools/build-all.js` |
