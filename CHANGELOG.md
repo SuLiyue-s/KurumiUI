@@ -28,6 +28,7 @@
 
 - 补齐 6 个未引用 `controls.css` 的页面：`pages/notify.html`、`standalone/handlers.html`、`standalone/menu.html`、`standalone/menunav.html`、`standalone/tabs.html`、`standalone/toast.html`，表单控件恢复主题化。
 - 展示菜单「观测回廊」新增两项：加载层·时钟表盘（`standalone/boot.html`）、数据表格（`standalone/datatable.html`）；所有独立测试页可从菜单直达。
+- 数据表格测试页的主题下拉补默认项（主题未初始化时不再显示空白「请选择」）。
 
 ### 六、代码覆盖率工具
 

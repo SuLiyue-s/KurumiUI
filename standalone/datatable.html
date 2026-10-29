@@ -51,7 +51,9 @@
   </div>
   <div class="demo-bar__ops">
     <nav class="demo-nav" id="demoNav"></nav>
-    <select id="kuiThemeSwitch" data-kui-native aria-label="切换主题"></select>
+    <select id="kuiThemeSwitch" data-kui-native aria-label="切换主题">
+      <option value="kurumi">绯红刻刻帝</option>
+    </select>
   </div>
 </div>
 
@@ -194,15 +196,16 @@
   function fillThemeSelect() {
     var sel = document.getElementById('kuiThemeSwitch');
     var list = (KUI.theme && KUI.theme.list) ? KUI.theme.list() : [];
-    if (!list.length) { return; }
-    sel.innerHTML = '';
-    for (var i = 0; i < list.length; i++) {
-      var opt = document.createElement('option');
-      opt.value = list[i].id;
-      opt.textContent = (list[i].name || list[i].id) + (list[i].scheme === 'light' ? ' · light' : '');
-      sel.appendChild(opt);
+    if (list.length) {
+      sel.innerHTML = '';
+      for (var i = 0; i < list.length; i++) {
+        var opt = document.createElement('option');
+        opt.value = list[i].id;
+        opt.textContent = (list[i].name || list[i].id) + (list[i].scheme === 'light' ? ' · light' : '');
+        sel.appendChild(opt);
+      }
     }
-    if (KUI.theme.get) { sel.value = KUI.theme.get(); }
+    if (KUI.theme.get && KUI.theme.get()) { sel.value = KUI.theme.get(); }
     sel.onchange = function () {
       if (KUI.theme && KUI.theme.apply) {
         KUI.theme.apply(sel.value, { persist: true });
