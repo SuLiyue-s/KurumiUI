@@ -388,7 +388,11 @@ node tools/check-assets.js                # HTML 引用完整性
 | 5 | 测试页未集成到菜单；检查覆盖率 | `standalone/boot.html`、`standalone/datatable.html` 未入菜单；无覆盖率工具 | 菜单「观测回廊」+2 项；新增 `tools/coverage.js` + `npm run coverage` | 菜单可见两项；覆盖率 38%（8233/21657） |
 | 附 | 分页/工具栏文案显示 `{36}` 残片 | `KUI.fmt` 不认 `{{…}}`，兜底文案普遍双花括号 | `fmt` 同时兼容 `{{a.b}}` 与 `{a}` | 表格文案正常；`test/render.test.js` fmt 用例 |
 | 附 | dropdown 锚点无文字 | `syncAnchor()` 首行 `if (!root) return;`，构建期 root 为 null | 改 `if (!anchor) return;` | 列筛选/每页条数按钮文案正常 |
+| 6 | 点击行不勾选，且取消高亮后勾选仍在（第 35 轮） | 行点击只改 `activeKey`，勾选与高亮两套状态各自变化；`syncSelectionUi` 仍查旧类名，行/表头选择器不同步 | 有选择列时行点击=勾选切换，高亮统一由 `is-selected` 承担；重写 `syncSelectionUi` 按引用表同步行/表头/包装类 | 单测 4 组 + 浏览器：点击未选行选中、再点取消；表头随行变化三态 |
+| 7 | 单选模式多行同时选中 | `syncSelectionUi` 未清其它行单选框与包装类，只有 `is-selected` 跟随 | 按 `rowInputRefs` 全量回写 `checked` 与 `is-checked`，单选取值互斥 | 单测断言同时只有一个 radio 选中；浏览器单选面板仅一行高亮 |
+| 8 | 表头复选框与行不联动 | 同上（旧类名查询，表头三态从未更新） | 登记 `headSelectRef`，行变化即刷新全选/半选 | 单测 + 浏览器：全选后取消一行 → 表头半选 |
+| 9 | 悬停色不覆盖选中/高亮行 | 悬停规则用 `:not(.is-selected):not(.is-active)` 排除 | 悬停改为 `background-image` 淡色叠加并置于最后，任何状态都生效 | CSS 断言（顺序 + 叠加色）|
 
 **同类问题审计（第 34 轮要求）**：① 全仓 grep 原生 `createElement('select'|'input'|'textarea')` 在 `src/components/**` 的实例 → 结论：表单控件与 select 控件本就走主题化，其余为隐藏 file input（合规）；② 覆盖/特异性扫描所有 `:nth-child` 斑马纹规则 → 仅 datatable 一处；③ 复选框自绘样式扫描 → 仅 datatable 一处已删；④ 双花括号文案 grep → 15 处兜底文案全部经 `fmt` 修复生效；⑤ 页面样式引用完整性 → `check-assets` 新增校验（见 §14）；⑥ 菜单可达性 → 全部独立页/页均可达。
 
-**回归数字**：`test/run.js` **36/0/0**（Node24 & Node13.14）；`smoke.js` **123/0**；`audit-consistency` 17/0；`audit-components` 19/0；`audit-all-pages` 20/20；`audit-config` 0 缺口；`audit-unused` ERROR 0 / WARN 0 / INFO 87；`check-assets` 22/0/0；`check-manual` 0/0；`check-beginner-manual` 0/0；`verify-build` 6/0；覆盖率 45.6%（9867/21657 行，38 文件）。
+**回归数字**：`test/run.js` **37/0/0**（Node24 & Node13.14）；`smoke.js` **123/0**；`audit-consistency` 17/0；`audit-components` 19/0；`audit-all-pages` 20/20；`audit-config` 0 缺口；`audit-unused` ERROR 0 / WARN 0 / INFO 87；`check-assets` 22/0/0；`check-manual` 0/0；`check-beginner-manual` 0/0；`verify-build` 6/0；覆盖率 45.6%（9867/21657 行，38 文件）。

@@ -741,9 +741,9 @@ dialog iframe→主框架：
 | `search` | object | `{enabled:true,placeholder:'',width:240,keys:[]}` | 全局搜索；`keys` 缺省时搜索全部列 |
 | `filter` | object | `{enabled:true,columns:true,clearable:true}` | 列筛选行开关 |
 | `sort` | object | `{enabled:true,mode:'single',default:[]}` | `mode=single/multi`；`default` 形如 `[{key,order:'asc'\|'desc'}]` |
-| `selection` | object | `{mode:'none',showSelectAll:true,selectOnRowClick:true,keepAcrossPages:true,selectAllScope:'page'}` | `mode=none/single/multi`；`selectAllScope=page\|all` |
+| `selection` | object | `{mode:'none',showSelectAll:true,selectOnRowClick:true,keepAcrossPages:true,selectAllScope:'page'}` | `mode=none/single/multi`；`selectAllScope=page\|all`；v1.4.2 起有选择列时行点击=勾选切换（`selectOnRowClick`），`single` 互斥、表头与行三态联动 |
 | `pagination` | object | `{enabled:true,pageSize:10,pageSizes:[10,20,50,100],showTotal:true,showSizer:true,showJumper:true,maxButtons:7}` | 分页 |
-| `rowHighlight` | bool | `true` | 行点击高亮 |
+| `rowHighlight` | bool | `true` | 行点击高亮；v1.4.2 起有选择列时高亮与勾选同源（`is-selected`），无选择列时用 `is-active` |
 | `rowClickAction` | object | `null` | 行点击时执行的动作（`{action:'...'}`，走 `KUI.actions`） |
 | `toolbar` | object | `{enabled:true,title:'',subtitle:'',actions:[],actionsAlign:'right'}` | 工具栏：标题/副标题/动作按钮 |
 | `columnsToggle` / `densityToggle` / `refresh` / `export` | bool | `true/true/false/false` | 列设置、密度切换、刷新、导出 CSV |

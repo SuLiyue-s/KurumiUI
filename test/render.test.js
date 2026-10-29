@@ -730,6 +730,86 @@ module.exports = function register(suite, ctx) {
     }
   });
 
+  suite.test('datatable：行点击=勾选+高亮联动、单选互斥、表头三态、悬停样式分层（v1.4.2）', function () {
+    var rt = boot();
+    try {
+      var K = rt.KUI;
+      var doc = rt.doc;
+      var fsMod = require('fs');
+      var pathMod = require('path');
+
+      function makeTable(selMode) {
+        var host = doc.createElement('div');
+        doc.body.appendChild(host);
+        var rows = [];
+        for (var i = 1; i <= 4; i++) { rows.push({ id: i, name: '行' + i }); }
+        var inst = K.datatable.create(host, {
+          rowKey: 'id',
+          columns: [{ key: 'id', title: '编号' }, { key: 'name', title: '名称' }],
+          data: rows,
+          selection: { mode: selMode, selectOnRowClick: true, showSelectAll: true },
+          pagination: { enabled: false }
+        });
+        return { host: host, inst: inst };
+      }
+
+      // 1) 多选：行点击 = 勾选切换，且 is-selected 同步
+      var t1 = makeTable('multi');
+      var r1 = t1.host.querySelectorAll('.kui-datatable__row');
+      r1[0].click();
+      ctx.assert.strictEqual(t1.inst.getState().selected.length, 1, '多选：点击未选中行应自动勾选');
+      ctx.assert.ok(r1[0].className.indexOf('is-selected') !== -1, '多选：点击后行应有 is-selected');
+      var rowInput = t1.host.querySelector('.kui-datatable__row .kui-checkbox__input');
+      ctx.assert.ok(rowInput && rowInput.checked === true, '多选：行复选框应勾选');
+      r1[0].click();
+      ctx.assert.strictEqual(t1.inst.getState().selected.length, 0, '多选：再次点击已选行应取消');
+      ctx.assert.ok(r1[0].className.indexOf('is-selected') === -1, '多选：取消后应移除 is-selected');
+
+      // 2) 单选：多行点击互斥，只保留最后一行
+      var t2 = makeTable('single');
+      var r2 = t2.host.querySelectorAll('.kui-datatable__row');
+      r2[0].click();
+      r2[2].click();
+      ctx.assert.strictEqual(t2.inst.getState().selected.length, 1, '单选：任意时刻只应有一行选中');
+      ctx.assert.ok(r2[2].className.indexOf('is-selected') !== -1, '单选：最后点击行应选中');
+      ctx.assert.ok(r2[0].className.indexOf('is-selected') === -1, '单选：先前行应取消选中');
+      var radios = t2.host.querySelectorAll('.kui-datatable__row .kui-radio__input');
+      var checkedCount = 0;
+      for (var ri = 0; ri < radios.length; ri++) { if (radios[ri].checked) { checkedCount++; } }
+      ctx.assert.strictEqual(checkedCount, 1, '单选：同时只应有一个单选框勾选，实际 ' + checkedCount);
+
+      // 3) 表头全选/半选/取消与行联动
+      var t3 = makeTable('multi');
+      var headInput = t3.host.querySelector('.kui-datatable__th--selection .kui-checkbox__input');
+      ctx.assert.ok(headInput, '表头全选框应存在');
+      var rows3 = t3.host.querySelectorAll('.kui-datatable__row');
+      rows3[1].click();
+      ctx.assert.strictEqual(headInput.indeterminate, true, '部分选中时表头应为半选');
+      ctx.assert.strictEqual(headInput.checked, false, '部分选中时表头不应勾选');
+      headInput.checked = true;
+      headInput.dispatchEvent(new rt.win.Event('change', { bubbles: true }));
+      var checkedRows = t3.host.querySelectorAll('.kui-datatable__row.is-selected');
+      ctx.assert.strictEqual(checkedRows.length, rows3.length, '表头全选应选中所有行，实际 ' + checkedRows.length);
+      var rowsAfter = t3.host.querySelectorAll('.kui-datatable__row');
+      var headAfter = t3.host.querySelector('.kui-datatable__th--selection .kui-checkbox__input');
+      rowsAfter[0].click();
+      ctx.assert.strictEqual(headAfter.indeterminate, true, '取消一行后表头恢复半选');
+      ctx.assert.strictEqual(headAfter.checked, false, '取消一行后表头不再全选');
+
+      // 4) 悬停样式分层：选中 > 高亮 > 条纹，悬停为最后叠加的淡色
+      var css = fsMod.readFileSync(pathMod.join(__dirname, '..', 'src/styles/datatable.css'), 'utf8');
+      var iStriped = css.indexOf('.kui-datatable.is-striped .kui-datatable__body .kui-datatable__row:nth-child(even) {');
+      var iSelected = css.indexOf('.kui-datatable__row.is-selected,');
+      var iHover = css.indexOf('.kui-datatable.is-hoverable .kui-datatable__row:hover {');
+      ctx.assert.ok(iStriped !== -1 && iSelected !== -1 && iHover !== -1, '缺少条纹/选中/悬停规则');
+      ctx.assert.ok(iStriped < iSelected && iSelected < iHover, 'CSS 顺序应为 条纹 → 选中/高亮 → 悬停');
+      ctx.assert.ok(css.indexOf('background-image: linear-gradient(var(--kui-dt-hover)') !== -1,
+        '悬停应叠加淡色（background-image），保证任何状态悬浮都变色');
+    } finally {
+      teardown(rt);
+    }
+  });
+
   /* ==========================================================
    * 11. avatar：持久化恢复优先级（契约 §13 / v1.4.1）
    * ========================================================== */

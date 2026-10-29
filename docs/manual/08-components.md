@@ -1594,10 +1594,10 @@ KUI.bus.on('tabs:activate', function (payload) {
 | `search` | 全局搜索：`{enabled,placeholder,width,keys}` |
 | `filter` | 列筛选行：`{enabled,columns,clearable}`；列级 `filter: true \| {type:'text'\|'select'\|'range', options, placeholder}` |
 | `sort` | `{enabled,mode:'single'\|'multi',default:[{key,order}]}` |
-| `selection` | `{mode:'none'\|'single'\|'multi',showSelectAll,selectOnRowClick,keepAcrossPages,selectAllScope:'page'\|'all'}` |
+| `selection` | `{mode:'none'\|'single'\|'multi',showSelectAll,selectOnRowClick,keepAcrossPages,selectAllScope:'page'\|'all'}`；有选择列时行点击=勾选切换，`single` 互斥，表头与行三态联动（v1.4.2） |
 | `pagination` | `{enabled,pageSize,pageSizes,showTotal,showSizer,showJumper,maxButtons}` |
 | `toolbar` | `{enabled,title,subtitle,actions,actionsAlign}`；`actions: [{label,icon,variant,action}]` |
-| `rowHighlight` / `rowClickAction` | 行点击高亮（默认 true）/ 行点击动作 |
+| `rowHighlight` / `rowClickAction` | 行点击高亮（默认 true；有选择列时与勾选同源）/ 行点击动作 |
 | `columnsToggle` / `densityToggle` / `refresh` / `export` | 列设置 / 密度 / 刷新 / CSV 导出 |
 | `height` / `maxHeight` | 固定表体高度（滚动 + 表头吸附），0 = 自动 |
 

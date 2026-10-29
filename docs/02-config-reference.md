@@ -1537,9 +1537,9 @@ v1.0.8 起由 `src/core/dom-enhance.js` 就地升级，**不改变原有 HTML �
 | `search` | object | `{enabled:true,placeholder:'',width:240,keys:[]}` | 全局搜索，`keys` 为空时搜全部列 |
 | `filter` | object | `{enabled:true,columns:true,clearable:true}` | 列筛选行 |
 | `sort` | object | `{enabled:true,mode:'single',default:[]}` | `mode: single \| multi`，`default: [{key,order}]` |
-| `selection` | object | `{mode:'none',showSelectAll:true,selectOnRowClick:true,keepAcrossPages:true,selectAllScope:'page'}` | `mode: none \| single \| multi`；`selectAllScope: page \| all` |
+| `selection` | object | `{mode:'none',showSelectAll:true,selectOnRowClick:true,keepAcrossPages:true,selectAllScope:'page'}` | `mode: none \| single \| multi`；`selectAllScope: page \| all`；v1.4.2 起行点击=勾选切换，`single` 互斥，表头/行三态联动 |
 | `pagination` | object | `{enabled:true,pageSize:10,pageSizes:[10,20,50,100],showTotal:true,showSizer:true,showJumper:true,maxButtons:7}` | 分页 |
-| `rowHighlight` | bool | `true` | 行点击高亮 |
+| `rowHighlight` | bool | `true` | 行点击高亮；有选择列时高亮与勾选同源（`is-selected`），无选择列时用 `is-active`；悬停为更淡的叠加色 |
 | `rowClickAction` | object | `null` | 行点击动作 `{action:...}` |
 | `toolbar` | object | `{enabled:true,title:'',subtitle:'',actions:[],actionsAlign:'right'}` | 工具栏 |
 | `columnsToggle` / `densityToggle` / `refresh` / `export` | bool | `true/true/false/false` | 列设置 / 密度 / 刷新 / 导出 CSV |

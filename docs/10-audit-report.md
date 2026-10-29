@@ -365,3 +365,11 @@ npm test               # 测试
 
 - `KUI.dropdown` 面板挂在 body：页面自身设置 `transform` 的容器内锚点，定位以 `getBoundingClientRect` 计算（已验证 scroll/resize 关闭），极端嵌套变换场景未覆盖。
 - 覆盖率统计基于 V8 行区间，`document.write` 动态注入的页面级代码会被计入但不一定执行。
+
+### 14.9 选择/高亮一致性（第 35 轮修复，v1.4.2 内）
+
+- 缺陷：行点击只更新 `activeKey`（`is-active`），勾选状态本应同步却各自演化；`syncSelectionUi()` 仍按旧类名 `.kui-datatable__check-input` 查询，导致行选择器、单选互斥、表头三态全部失效。
+- 修复：登记 `rowItemEls / rowInputRefs / headSelectRef` 引用表并重写 `syncSelectionUi()`；有选择列时行点击=勾选切换、高亮统一由 `.is-selected` 承担（无选择列才用 `is-active`）。
+- 回归：`test/render.test.js` 新增 4 组断言（行点击联动 / 单选互斥 / 表头三态 / CSS 分层），`tools/smoke.js [32.5]` 改为断言 CSS 顺序（条纹 → 选中/高亮 → 悬停）与悬停叠加色。
+- 同类扫描：全仓 `.is-active` 仅 datatable 行高亮与分页按钮、滤镜栏状态，语义各自独立，无需统一；行/表头选择器类名无其它组件复用。
+

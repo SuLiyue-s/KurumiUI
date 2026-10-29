@@ -592,6 +592,9 @@
     var thead = el('thead', 'kui-datatable__head');
     var headRow = el('tr', 'kui-datatable__head-row');
     var tbody = el('tbody', 'kui-datatable__body');
+    var rowItemEls = {};      /* key -> tr（v1.4.2：选择联动） */
+    var rowInputRefs = {};    /* key -> { input, wrap } */
+    var headSelectRef = null; /* { input, wrap } */
     var colMenuEl = null;
     var loadingEl = el('div', 'kui-datatable__loading');
     var footerEl = el('div', 'kui-datatable__footer');
@@ -910,6 +913,7 @@
     }
 
     function buildHead() {
+      headSelectRef = null;
       clearNode(headRow);
       if (props.selection && (props.selection.mode === 'multi' || props.selection.mode === 'single')) {
         var thSel = el('th', 'kui-datatable__th kui-datatable__th--selection');
@@ -923,6 +927,7 @@
           input.indeterminate = !input.checked && somePageSelected();
           if (input.checked) { addClass(wrap, 'is-checked'); }
           if (input.indeterminate) { addClass(wrap, 'is-indeterminate'); }
+          headSelectRef = { input: input, wrap: wrap };
           on(input, 'change', function () {
             toggleSelectAll(input.checked);
             toggleClass(wrap, 'is-checked', input.checked);
@@ -981,7 +986,9 @@
       var key = keyOf(row, props.rowKey);
       tr.setAttribute('data-row-key', key);
       tr.setAttribute('tabindex', '0');
-      if (state.activeKey && state.activeKey === key) { addClass(tr, 'is-active'); }
+      rowItemEls[key] = tr;
+      var rowHasSelection = !!(props.selection && props.selection.mode !== 'none');
+      if (!rowHasSelection && state.activeKey && state.activeKey === key) { addClass(tr, 'is-active'); }
       if (state.selected[key]) { addClass(tr, 'is-selected'); }
       if (props.selection && props.selection.mode !== 'none') {
         var tdSel = el('td', 'kui-datatable__td kui-datatable__td--selection');
@@ -1000,6 +1007,7 @@
           toggleClass(wrap, 'is-checked', input.checked);
           setRowSelected(row, key, input.checked, 'checkbox');
         });
+        rowInputRefs[key] = { input: input, wrap: wrap };
         wrap.appendChild(input);
         wrap.appendChild(box);
         tdSel.appendChild(wrap);
@@ -1016,13 +1024,16 @@
       }
       on(tr, 'click', function (ev) {
         var target = ev && ev.target;
-        if (target && target.closest && target.closest('.kui-datatable__check')) { return; }
-        if (target && target.closest && target.closest('.kui-datatable__cell-btn')) { return; }
-        state.activeKey = key;
-        if (props.rowHighlight !== false) { syncActiveRow(); }
-        if (props.selection && props.selection.mode !== 'none' && props.selection.selectOnRowClick !== false) {
-          if (props.selection.mode === 'single') { setRowSelected(row, key, true, 'row'); }
-          else { setRowSelected(row, key, !state.selected[key], 'row'); }
+        if (target && target.closest && (target.closest('.kui-radio') || target.closest('.kui-checkbox') ||
+            target.closest('.kui-datatable__check') || target.closest('.kui-datatable__cell-btn'))) { return; }
+        var selCfg = props.selection;
+        var selectable = !!(selCfg && selCfg.mode !== 'none' && selCfg.selectOnRowClick !== false);
+        if (selectable) {
+          /* v1.4.2：有选择列时，行点击 = 勾选/取消勾选；高亮由 is-selected 承担，不再单独切换 is-active */
+          setRowSelected(row, key, !state.selected[key], 'row');
+        } else {
+          state.activeKey = key;
+          if (props.rowHighlight !== false) { syncActiveRow(); }
         }
         fire('row:click', { row: row, key: key, index: index, event: ev });
         runAction(props.rowClickAction || null, { row: row, key: key, index: index, event: ev });
@@ -1104,19 +1115,29 @@
 
     function syncSelectionUi() {
       if (!props.selection || props.selection.mode === 'none') { return; }
-      var rowsEls = tbody.children || [];
-      for (var i = 0; i < rowsEls.length; i++) {
-        var tr = rowsEls[i];
-        if (!tr || !tr.getAttribute) { continue; }
-        var key = tr.getAttribute('data-row-key');
-        toggleClass(tr, 'is-selected', !!state.selected[key]);
-        var input = safe(function () { return tr.querySelector('.kui-datatable__check-input'); }, null);
-        if (input) { input.checked = !!state.selected[key]; }
+      var key;
+      /* 行内选择器：单选模式下未选中的行会被自动取消（互斥） */
+      for (key in rowInputRefs) {
+        if (!hasOwn.call(rowInputRefs, key)) { continue; }
+        var ref = rowInputRefs[key];
+        var onFlag = !!state.selected[key];
+        ref.input.checked = onFlag;
+        toggleClass(ref.wrap, 'is-checked', onFlag);
       }
-      var headInput = safe(function () { return headRow.querySelector('.kui-datatable__check-input'); }, null);
-      if (headInput) {
-        headInput.checked = allPageSelected();
-        headInput.indeterminate = !headInput.checked && somePageSelected();
+      /* 行高亮与勾选同步：有选择列时只保留 is-selected */
+      for (key in rowItemEls) {
+        if (!hasOwn.call(rowItemEls, key)) { continue; }
+        toggleClass(rowItemEls[key], 'is-selected', !!state.selected[key]);
+        toggleClass(rowItemEls[key], 'is-active', false);
+      }
+      /* 表头全选：勾选 / 半选 / 未勾选 三态联动 */
+      if (headSelectRef) {
+        var all = allPageSelected();
+        var some = somePageSelected();
+        headSelectRef.input.checked = all;
+        headSelectRef.input.indeterminate = !all && some;
+        toggleClass(headSelectRef.wrap, 'is-checked', all);
+        toggleClass(headSelectRef.wrap, 'is-indeterminate', !all && some);
       }
       syncSelectionInfo();
     }
@@ -1277,6 +1298,8 @@
       toggleClass(root, 'is-empty', filteredRows.length === 0);
       loadingEl.style.display = state.loading ? '' : 'none';
 
+      rowItemEls = {};
+      rowInputRefs = {};
       buildHead();
       clearNode(tbody);
       if (!pageRows.length) {

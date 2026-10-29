@@ -283,7 +283,7 @@ kui-modules/1 [ 'app', 'standalone' ] 30 29
 app,text,themes,demos,meta 11
 [PASS] 未发现禁用语法 / API
 汇总: 22 个 HTML，错误 0 个，警告 0 个
-汇总: 36 通过 / 0 失败 / 0 跳过   总计 35   耗时 ...ms   => PASS
+汇总: 37 通过 / 0 失败 / 0 跳过   总计 37   耗时 ...ms   => PASS
 ```
 
 ## 参考源码

@@ -1779,10 +1779,15 @@ currentSection = 32;  console.log('\n[32] 主题化控件与表格一致性（v1
     return '选择框已统一';
   });
 
-  check('[32.5] 表格条纹/悬停不覆盖选中行（偶数行选中生效）', function () {
+  check('[32.5] 表格行状态分层：选中 > 高亮 > 条纹，悬停为最后叠加淡色（v1.4.2）', function () {
     var css = fs.readFileSync(path.join(ROOT, 'src/styles/datatable.css'), 'utf8');
-    assert(css.indexOf(':not(.is-selected)') !== -1, '条纹/悬停规则应排除 is-selected');
-    return '选中行优先级已修正';
+    var iStriped = css.indexOf('.kui-datatable.is-striped .kui-datatable__body .kui-datatable__row:nth-child(even) {');
+    var iSelected = css.indexOf('.kui-datatable__row.is-selected,');
+    var iHover = css.indexOf('.kui-datatable.is-hoverable .kui-datatable__row:hover {');
+    assert(iStriped !== -1 && iSelected !== -1 && iHover !== -1, '缺少条纹/选中/悬停规则');
+    assert(iStriped < iSelected && iSelected < iHover, 'CSS 顺序应为 条纹 → 选中/高亮 → 悬停');
+    assert(css.indexOf('background-image: linear-gradient(var(--kui-dt-hover)') !== -1, '悬停应为叠加淡色（background-image）');
+    return '行状态样式分层正确';
   });
 
   check('[32.6] 缺 controls.css 的 6 个页面已补齐（表单控件主题化）', function () {
