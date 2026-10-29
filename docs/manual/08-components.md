@@ -140,7 +140,7 @@ var menu = el.__kuiMenu;               // 等价：el.__kuiInstance
 | `footer` | object \| null | `null` | 否 | 页脚配置；`null` 时不渲染页脚 |
 | `footer.title` | string | 无（`undefined`） | 否 | 页脚标题 |
 | `footer.subtitle` | string | 无（`undefined`） | 否 | 页脚副标题；v1.3.8 起渲染（`menu.js:742-743`），未配时可由 `app.footerSubtitle` 注入（`bootstrap.js:888`） |
-| `footer.version` | string | 无（`undefined`） | 否 | 版本文字（例：`v1.3.9`）；未配时由 `app.version` 自动注入 `v<version>`（`bootstrap.js:887`） |
+| `footer.version` | string | 无（`undefined`） | 否 | 版本文字（例：`v1.4.1`）；未配时由 `app.version` 自动注入 `v<version>`（`bootstrap.js:887`） |
 | `footer.copyright` | string | 无（`undefined`） | 否 | 版权行；v1.3.8 起渲染（`menu.js:748-749`），未配时可由 `app.copyright` 注入（`bootstrap.js:889`） |
 | `footer.actions` | array | 无（`undefined`） | 否 | 页脚动作：字符串（按钮文本）或节点对象（`button` 等，经 `KUI.renderNode`），对象也可写 `{text,icon,on:{click}}` |
 | `accordion` | boolean | `true` | 否 | 同级子菜单是否互斥展开（手风琴） |
@@ -166,6 +166,7 @@ var menu = el.__kuiMenu;               // 等价：el.__kuiInstance
 | `expand([id])` | `api` | 不传参 = 展开整栏；传 id = 展开该子菜单（`openSub`） |
 | `collapse([id])` | `api` | 不传参 = 折叠整栏；传 id = 收起该子菜单（`closeSub`） |
 | `setBadge(id, value, [badgeType])` | `api` | 改徽标；`value` 为空清除，`badgeType` 见字段表 |
+| `setBrandTitle(title)` | `api` | 运行时改品牌区标题（v1.3.9 起）：设置弹窗保存「终端名称」时由 `applyShellName` 调用；传空串清空（`src/components/menu.js:842`） |
 | `setItems(items)` | `api` | 整树替换并重渲染，派发 `menu:items` |
 | `getItems()` | array | 当前菜单树 |
 | `setCollapsible(flag)` | `api` | 增删折叠按钮；`false` 时会强制展开 |
@@ -878,6 +879,8 @@ KUI.dialog.form({
 | `config(patch)` | object | 合并默认配置（谨慎：会改动 `DEFAULTS`） |
 | `defaults` | object | 只读查看默认值 |
 
+> **组件版弹窗实例**：用节点 `{ "type": "dialog", "props": { … } }` 渲染时，宿主元素（`.kui-dialog-anchor`）上挂 `__kuiDialogApi`，键为 `{ el, id, promise, close, update }`——`promise` 即该弹窗的 Promise（`resolve` 值与 `KUI.dialog.open` 一致），`close()` / `update(patch)` 已绑定 id（`src/components/dialog.js:1101-1112`）。`KUI.dialog.open()` 等静态方法返回的是 Promise 本身，并带 `promise.id` 属性（`dialog.js:610-613`）。
+
 ```js
 // 带业务提交的表单弹窗：失败不关闭
 KUI.dialog.form({
@@ -1237,7 +1240,7 @@ KUI.toast.notify({
 {
   "type": "app-shell",
   "props": {
-    "app": { "title": "刻刻帝终端", "subtitle": "KurumiUI v1.3.9", "logoIcon": "clock", "home": "pages/home.html" },
+    "app": { "title": "刻刻帝终端", "subtitle": "KurumiUI v1.4.1", "logoIcon": "clock", "home": "pages/home.html" },
     "layout": {
       "gap": 10,
       "menu": { "width": 252, "collapsedWidth": 68, "collapsed": false },
@@ -1349,7 +1352,7 @@ console.log(app.isCollapsed(), app.getActiveTab());
 
 ```json
 {
-  "app": { "title": "刻刻帝终端", "subtitle": "KurumiUI v1.3.9", "logoIcon": "clock", "home": "pages/home.html" },
+  "app": { "title": "刻刻帝终端", "subtitle": "KurumiUI v1.4.1", "logoIcon": "clock", "home": "pages/home.html" },
   "layout": { "gap": 10, "menu": { "width": 252, "collapsedWidth": 68 }, "header": { "height": 56 }, "tabbarHeight": 38 },
   "menu": {
     "type": "menu",
@@ -1555,7 +1558,7 @@ KUI.bus.on('tabs:activate', function (payload) {
 
 ---
 
-## 6.6 datatable：数据表格（v1.4.0 新增）
+## 6.6 datatable：数据表格（自 v1.4.0 起）
 
 **定位**：`datatable` 是「一体化配置」的数据表格（注册类别 `data`），把搜索、筛选、排序、选择、工具栏、列设置、密度、导出、分页收进一个 `type` 的 `props`。文件 `src/components/datatable.js` + `src/styles/datatable.css`；版本号见 `KUI.datatable.version`。
 
@@ -1607,6 +1610,8 @@ KUI.bus.on('tabs:activate', function (payload) {
 实例 API：`setData/getData/getRows/getFilteredRows`、`setColumns/getColumns/setColumnVisible`、`setKeyword/setFilter/getFilter/clearFilters`、`setSort/getSort`、`setPage/getPage/setPageSize/getPageSize`、`getSelection/getSelectedKeys/getSelectedRows/setSelection/clearSelection/selectAll/clearAllSelection`、`setActive/getActive`、`setLoading/setDensity/getDensity/setToolbarTitle`、`refresh/exportCsv/getState/getConfig/on/off/destroy`。
 
 事件：`api.on(name, fn)` 订阅，同时 `KUI.bus.emit('datatable:'+name, payload)`；`name` ∈ `ready / refresh / sort / filter / page / action / destroy`。
+
+**静态入口 `KUI.datatable`**（`src/components/datatable.js:1549-1582`）：`version`（组件自身版本 `'1.0.0'`，与框架版本无关）、`defaults`（组件默认值）、`create(host, props, ctx)`（按 `deepMerge(DEFAULTS, props)` 创建并记录为“最近实例”）、`get()`（返回最近创建的实例，无则 `null`），以及上列 37 个实例方法的同名委托（`setData…destroy`）：委托到 `currentInstance`，**无实例时静默返回 `undefined`**（不抛错）。所以单页最小用法是 `KUI.datatable.create(host, props)`，之后用 `KUI.datatable.get()` 或直接委托调用。
 
 ### 6.6.5 拆装
 

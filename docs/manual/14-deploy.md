@@ -257,7 +257,7 @@ window.addEventListener('message', function (e) {
 
 ### 6.1 方式 A：整个框架复制
 
-适合把 KurumiUI 当自家后台的技术底座。复制清单（按 v1.3.9 实测）：
+适合把 KurumiUI 当自家后台的技术底座。复制清单（按 v1.4.1 实测）：
 
 | 路径 | 作用 | 必须 |
 | --- | --- | --- |
@@ -309,7 +309,7 @@ window.addEventListener('message', function (e) {
 
 ### 7.3 回滚
 
-- 推荐发布包按版本目录保存：`/var/www/kurumi-v1.3.5`、`/var/www/kurumi-v1.3.9`，用软链 `/var/www/kurumi -> kurumi-v1.3.9`，回滚只改软链并 reload nginx。
+- 推荐发布包按版本目录保存：`/var/www/kurumi-v1.3.5`、`/var/www/kurumi-v1.4.1`，用软链 `/var/www/kurumi -> kurumi-v1.4.1`，回滚只改软链并 reload nginx。
 - 只换代码不换配置时，至少回滚两个产物；`config/app.json` 结构变化大的版本，回滚要连配置一起换。
 - 回滚后清 CDN 与浏览器强缓存路径（HTML 已 no-cache，一般无需强刷）。
 

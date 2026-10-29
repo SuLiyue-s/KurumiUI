@@ -275,10 +275,10 @@ npm test
 预期输出（节选，数值以实际输出为准）：
 
 ```text
-1.3.9
+1.4.1
 [build-all] 已生成 src\core\kui-all.js (3982 字节)
 [build-all] profiles: app=30, standalone=29
-kui-modules/1 [ 'app', 'standalone' ] 29 28
+kui-modules/1 [ 'app', 'standalone' ] 30 29
 app,text,themes,demos,meta 11
 [PASS] 未发现禁用语法 / API
 汇总: 22 个 HTML，错误 0 个，警告 0 个
@@ -287,7 +287,7 @@ app,text,themes,demos,meta 11
 
 ## 参考源码
 
-- `config/kui-modules.json:2-3`（schema 与 note）、`config/kui-modules.json:5-38`（app profile 29 个文件）、`config/kui-modules.json:39-72`（standalone profile 28 个文件）
+- `config/kui-modules.json:2-3`（schema 与 note）、`config/kui-modules.json:5-39`（app profile 30 个文件）、`config/kui-modules.json:40-73`（standalone profile 29 个文件）
 - `tools/build-config.js:21`（ROOT）、`tools/build-config.js:23-43`（readJson / listJson）、`tools/build-config.js:45-91`（build / tryRead / demos）、`tools/build-config.js:93-108`（序列化、banner、写文件）、`tools/build-config.js:110-133`（返回值与控制台输出）、`tools/build-config.js:145-153`（CLI 退出行为）
 - `tools/build-all.js:19-21`（三个常量）、`tools/build-all.js:23-37`（readManifest 校验）、`tools/build-all.js:39-47`（payload）、`tools/build-all.js:49-104`（banner 与注入逻辑）、`tools/build-all.js:106-112`（写文件与返回值）、`tools/build-all.js:115-119`（CLI）
 - `src/core/config.js:6-9`（读取优先级）、`src/core/config.js:148-212`（fetch → bundle 回退）

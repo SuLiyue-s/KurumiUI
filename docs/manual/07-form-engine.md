@@ -193,7 +193,30 @@ console.log(form.getData());      // { name:'刻刻帝', theme:null }
 | `setError` | `{field,error}` 或 `{field,text}` | `true` | 默认文案「错误」 |
 | `clearError` | `{field}` | `true` | 无 `field` 时清全部校验 |
 
-业务函数总表与 `on` 语法见 [10-actions-handlers.md](10-actions-handlers.md)。页面里取实例：`host.__kuiForm` 或 `host.__kuiControl.instance`。
+业务函数总表与 `on` 语法见 [10-actions-handlers.md](10-actions-handlers.md)。页面里取实例：`host.__kuiForm` 或 `host.__kuiControl`（见 §7.2）。
+
+### 7.2 表单包装实例（`host.__kuiControl`）
+
+`{type:'form'}` 由 `src/components/controls/index.js:79-157` 注册。渲染完成后宿主元素（`.kui-form-host`）上挂 `host.__kuiControl`（同时兼容 `host.__kuiForm`），它把内部 `KUI.form.create` 实例包了一层：
+
+| 成员 | 返回 | 说明 |
+| --- | --- | --- |
+| `el` / `node` / `instance` | Element / object / object | 宿主元素 / 配置节点 / 内层实例（创建失败为 `null`，宿主带 `data-kui-error`） |
+| `getValue()` / `getData()` | 值 / object | 转发内层实例；未就绪返回 `null` |
+| `setValue(v)` / `setData(v)` | `api` | 转发并返回包装 API，可链式 |
+| `getField(id)` | object \| null | 取字段控件实例 |
+| `validate()` | `{valid,errors,data}` | 校验；未就绪返回 `{valid:true,errors:[],data:{}}` |
+| `clearValidate()` / `reset()` | `api` | 清校验 / 重置表单 |
+| `subscribe(fn)` | 退订函数 | 订阅表单数据变化 |
+| `getInstance()` | 内层 `KUI.form` 实例 \| null | 要调内层独有方法（如 `recalc()`）时用它；注意与 `instance` 属性等价 |
+| `destroy()` | void | 销毁内层实例 |
+
+```js
+var host = document.querySelector('[data-kui-type="form"]');
+var form = host.__kuiControl;
+form.setData({ name: '狂三' });
+console.log(form.getInstance() === form.instance); // true
+```
 
 ## 8. 与 dialog.form 的联动
 

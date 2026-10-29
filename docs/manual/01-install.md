@@ -133,7 +133,7 @@ npx serve -l 8080 .
 | --- | --- | --- |
 | `?kui_debug=1` | 打开诊断面板（`src/core/diag.js:237`） | `http://127.0.0.1:8080/?kui_debug=1` |
 | `?kuiTheme=<id>` | 强制主题（`src/core/theme.js:166`） | `http://127.0.0.1:8080/?kuiTheme=starry` |
-| `?kui_v=<版本>` | 由框架自动追加到 iframe 子页 URL 做缓存穿透，手加一般无意义 | `.../pages/home.html?kui_v=1.3.9` |
+| `?kui_v=<版本>` | 由框架自动追加到 iframe 子页 URL 做缓存穿透，手加一般无意义 | `.../pages/home.html?kui_v=1.4.1` |
 
 > `?demo=<name>` 只出现在菜单项的静态 URL（`config/app.json:575` 的 `standalone/menu.html?demo=menu`），框架层与 `standalone/*.html` 都不解析它，不要写进验收脚本。
 
@@ -161,7 +161,7 @@ KurumiUI 配置打包完成
 浏览器控制台检查（http 模式打开 `http://127.0.0.1:8080/`，F12 → Console）：
 
 ```js
-KUI.version                  // '1.3.9'
+KUI.version                  // '1.4.1'
 KUI.env.isBrowser            // true
 KUI.registry.list().length   // 42（其中 19 个是表单控件）
 KUI.actions.list().length    // 28

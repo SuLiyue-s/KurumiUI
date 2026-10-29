@@ -30,7 +30,7 @@ config/app.json → build:config → config/bundle.js → KUI.config 缓存 → 
 | `src/themes.json` | 6 套主题 token（**不在 config/ 下**） | `theme.js:201` 载入、`:297` 应用 |
 | `config/demos/*.json` | 11 份示例数据，页面数据源，外壳不加载 | `KUI.config.load('demos/xxx')`（`pages/form.html:195-197`） |
 | `config/bundle.js` | 构建产物 `__KUI_BUNDLE__={app,text,themes,demos,meta}` | `config.js:82-96` 兜底读；勿手改 |
-| `config/kui-modules.json` | 模块清单 + 装配 profile（29/28 文件） | `tools/build-all.js` → `kui-all.js` |
+| `config/kui-modules.json` | 模块清单 + 装配 profile（30/29 文件） | `tools/build-all.js` → `kui-all.js` |
 
 路径写死在 `config.js:25-31`；`config.js:73-77` 把 `demos/xxx` 映射到 `config/demos/xxx.json`。主题默认值在 `app.json.theme.default`，token 在 `src/themes.json`（见 [09-theme.md](09-theme.md)）。
 
@@ -130,7 +130,7 @@ KUI.config.get('app.home', 'pages/home.html'); // ⚠️ 读 app.json 根（不�
 - `app`（3-18）名称/标题/版本/首页/启动层 → `bootstrap.js:897-933`、`app-shell.js:237-268`
 - `ui`（19-37）tooltip/toast/dialog 全局默认 → `bootstrap.js:935-953`
 - `boot`（38-48）启动层（加载中页面）与时钟指针动画 → `bootstrap.js` 启动流程的 `applyBootConfig()`（v1.3.8 起生效，可用 `KUI.boot.appliedBootConfig` 观测），详见 §8.5 与 [16-boot.md](16-boot.md)
-- `dialogs`（49-177）弹窗预设（只有 settings）→ `bootstrap.js:698-731`
+- `dialogs`（49-177）弹窗预设（只有 settings）→ `bootstrap.js:776-849`
 - `theme`（178-198）默认主题/存储键/可见列表/选择器 → 主题初始化 + `openThemePicker`/`buildThemePickerNodes`（v1.3.8 起 `visible`/`picker` 全部生效，§6）
 - `layout`（199-210）菜单/头部/标签栏/间距尺寸 → `app-shell.js:146-193`
 - `menu`（211-616）左侧菜单（品牌/树/页脚）→ `app-shell.js:237-258` → `menu.js`
@@ -171,7 +171,7 @@ KurumiUI 的“节点”没有强类型 schema，字段由渲染器按需读取�
 | `name` | string | `"KurumiUI"` | 否 | 应用名。启动层标题（`bootstrap.js:897-933`）、品牌区兜底（`app-shell.js:240-244`）、`app.info`（`app-shell.handlers.js:126-128`） |
 | `title` | string | `"刻刻帝终端"` | 否 | 应用标题。品牌/顶部导航标题默认（`:268-269`）；渲染后**改写 `document.title`**（`:535-537`），优先于 `documentTitle`；启动层标题实际取 `name` |
 | `subtitle` | string | `"灵装回路 · 时间结界控制台"` | 否 | 启动层副标题（`bootstrap.js:897-933`）、品牌/导航副标题默认（`:242,269`）；缺省回退 `text.app.subtitle` |
-| `version` | string | `"1.4.0"` | 否 | 应用版本（演示应用版本，随发布更新）。v1.3.8 起注入 `menu.props.footer.version`（配置未写时补 `'v'+version`）；显式写 `menu.props.footer.version` 仍优先 |
+| `version` | string | `"1.4.1"` | 否 | 应用版本（演示应用版本，随发布更新）。v1.3.8 起注入 `menu.props.footer.version`（配置未写时补 `'v'+version`）；显式写 `menu.props.footer.version` 仍优先 |
 | `documentTitle` | string | `"刻刻帝终端 · KurumiUI"` | 否 | 浏览器标题兜底：仅 `title` 缺失时生效（`bootstrap.js:897-933`），实际被 `title` 覆盖 |
 | `logoIcon` | string | `"clock"` | 否 | 仅 `menu` 节点**没有** `props.brand` 时兜底品牌区图标（`app-shell.js:239-244`）；也作头像 `fallbackIcon` 兜底（`menu.js:180`） |
 | `logoText` | string | `"KUI"` | 否 | 品牌区图标旁徽记文字。v1.3.8 起：`menu.props.brand.logoText` 未写时回落到本字段，由 `menu.js` 渲染 `.kui-menu__logo-text`（有 `avatar` 时不显示） |
@@ -315,7 +315,7 @@ KUI.bootLayer.instance().error("配置损坏");   // 失败态卡片
 
 ## 9. dialogs.settings：打开设置弹窗
 
-`settings.open` 动作读取 `appCfg.dialogs.settings`（`bootstrap.js:698-731`），**`title/desc/width/okText/cancelText/nodes/data/draggable/layout` 全部传给 `KUI.dialog.form`（v1.3.9 起补全）**；提交后由 **`KUI.boot.applySettings`** 统一应用：`shellName/defaultTheme/startTab/remember/density`，并兼容旧 `theme/collapsed/motion`（v1.3.9 起保存真正生效）。
+`settings.open` 动作读取 `appCfg.dialogs.settings`（`bootstrap.js:776-849`），**`title/desc/width/okText/cancelText/nodes/data/draggable/layout` 全部传给 `KUI.dialog.form`（v1.3.9 起补全）**；提交后由 **`KUI.boot.applySettings`** 统一应用：`shellName/defaultTheme/startTab/remember/density`，并兼容旧 `theme/collapsed/motion`（v1.3.9 起保存真正生效）。
 
 | 字段 | 类型 | 默认值 | 必填 | 作用与取值 |
 | --- | --- | --- | --- | --- |

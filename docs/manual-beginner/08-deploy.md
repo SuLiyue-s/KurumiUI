@@ -53,7 +53,7 @@
 | --- | --- |
 | `config/kui-modules.json` | 框架的模块清单；以后想重新打包、核对文件时要用 |
 | `config/demos/` | 11 个示例配置；`standalone/` 里的演示页会读取它们 |
-| `standalone/` | 12 个单组件演示页；主配置的菜单里有一组演示条目指向这里 |
+| `standalone/` | 13 个单组件演示页；主配置的菜单里有一组演示条目指向这里 |
 
 > 注意：默认菜单「灵装回路」一组指向 `standalone/…html`；不上传 `standalone/` 时点这些条目会 404，把 `menu.props.items` 里这一组删掉即可（见 [04-config-ui.md](04-config-ui.md)）。
 
@@ -88,7 +88,7 @@
 │  ├─ bundle.js      ← 自动生成（必须上传）
 │  └─ demos/         ← 可选：示例配置
 ├─ pages/            ← 7 个业务页面
-└─ standalone/       ← 可选：12 个演示页
+└─ standalone/       ← 可选：13 个演示页
 ```
 
 ### 2.5 两个「自动生成」的文件要特别注意
@@ -158,7 +158,7 @@ npm run check:assets
 最后一行应该是：
 
 ```text
-汇总: 21 个 HTML，错误 0 个，警告 0 个
+汇总: 22 个 HTML，错误 0 个，警告 0 个
 ```
 
 ```bash

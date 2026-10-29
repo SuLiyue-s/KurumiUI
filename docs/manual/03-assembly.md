@@ -33,7 +33,7 @@
 
 ### 1.1 两份 profile
 
-`app` 29 个文件，`standalone` 28 个（`config/kui-modules.json`，v1.3.8 起各含 `boot.js`）。
+`app` 30 个文件，`standalone` 29 个（`config/kui-modules.json`，v1.4.0 起各含 `datatable.js`）。
 
 | 对比项 | `app` | `standalone`（缺省） |
 | --- | --- | --- |

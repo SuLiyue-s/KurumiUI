@@ -97,9 +97,9 @@
 | --- | --- | --- |
 | `npm start` | 启动本地服务器，地址 `http://127.0.0.1:8080`（端口占用会自动 +1） | 日常开发第一件事 |
 | `npm run build:config` | 重建 `config/bundle.js`（配置包）和 `src/core/kui-all.js` | 改完 JSON 配置、要打包给别人时 |
-| `npm test` | 跑 33 项自动化测试 | 改完源码或想确认项目没坏 |
+| `npm test` | 跑 35 项自动化测试 | 改完源码或想确认项目没坏 |
 | `npm run smoke` | 跑冒烟测试，检查主要功能 | 大改后做一次快速体检 |
-| `npm run check:assets` | 检查 21 个 HTML 引用的文件是否齐全 | 移动/删除文件之后 |
+| `npm run check:assets` | 检查 22 个 HTML 引用的文件是否齐全 | 移动/删除文件之后 |
 | `npm run verify:build` | 校验构建产物与源码是否一致 | 担心产物过期或改错产物 |
 | `node tools/audit-config.js` | 审计 `app.json` 的字段有没有实际读取点 | 想确认某个配置是否真的生效 |
 | `node tools/audit-unused.js` | 审计是否有「写了但没人读」的字段 / 样式 / 函数 / API（v1.4.1 新增） | 怀疑某个样式或配置没生效 |
@@ -135,14 +135,33 @@ KurumiUI 的更新记录放在仓库根目录的 `CHANGELOG.md` 里：**最新�
 
 看到 `CHANGELOG.md` 写「修复了某个配置不生效」时，说明这个字段以前可能不起作用，升级后值得再试。
 
-## 9. 结束语
+## 9. 常用 API 速查（想用代码控制界面时看）
+
+命令和配置文件能解决 90% 的问题；剩下 10% 要在浏览器控制台或自己的页面里调 API。下面这些是入门阶段最常用的（完整 API 表在 [../manual/11-api-messaging.md](../manual/11-api-messaging.md)）：
+
+| 想做什么 | 一行代码 | 说明 |
+| --- | --- | --- |
+| 看当前版本 / 注册数量 | `KUI.info()` | 返回 `{name,version,controls,themes,env}` |
+| 切换主题 | `KUI.theme.apply('starry')` | id 见 `src/themes.json`；立即生效并记到 `localStorage['kui-theme']` |
+| 读当前主题 id | `KUI.theme.currentId()` | 返回字符串 |
+| 弹一条成功提示 | `KUI.toast.success('已保存')` | 还有 `info/warning/error/notify`；`KUI.toast.clear()` 清空 |
+| 确认框 | `KUI.dialog.confirm('确定删除？').then(function(ok){})` | 返回 `Promise<boolean>` |
+| 打开一个标签页 | `KUI.app.openTab({id:'home',title:'总览',url:'pages/home.html'})` | 字段说明见高级 08 章 |
+| 读文案 | `KUI.text('boot.loading')` | 读 `config/text.json`；第二个参数可当兜底 |
+| 监听事件 | `KUI.bus.on('theme:change', fn)` | 解绑用 `KUI.bus.off(同一个 fn)` |
+| 列出全部动作名 | `KUI.actions.list()` | 动作怎么配见高级 10 章 |
+| 给表格换数据 | `var dt = KUI.datatable.get(); dt && dt.setData(rows)` | v1.4.0 新增；完整见高级 08 §6.6 |
+| 页面里取表单对象 | `document.querySelector('[data-kui-type="form"]').__kuiControl.getValue()` | 包装 API 见高级 07 §7.2 |
+| 清掉本机记住的主题 | `localStorage.removeItem('kui-theme')` | 其它键见 [04-config-ui.md](04-config-ui.md) §9.2 |
+
+## 10. 结束语
 
 到这里，你已经能独立启动、修改、扩展并部署一个 KurumiUI 项目了。真正的进步来自「改一点、看一眼、再改一点」：每读一章就找项目里一个地方动手改，改坏了有第 09 章兜底。慢慢你会发现，界面不再是别人给的模板，而是你可以随手捏成任何样子的东西。
 
 ## 动手练习
 
 1. **写自己的计划。** 对照第 4 节的 7 天计划，按你的时间把 7 天改成 7 个具体日期，并把「动手做什么」换成你自己项目里真正想做的事。
-2. **跑三条命令。** 依次执行 `npm test`、`npm run check:assets`、`npm run verify:build`，把每条的末行输出记下来（例如「汇总: 33 通过 / 0 失败 / 0 跳过」）。
+2. **跑三条命令。** 依次执行 `npm test`、`npm run check:assets`、`npm run verify:build`，把每条的末行输出记下来（例如「汇总: 35 通过 / 0 失败 / 0 跳过」）。
 3. **查一个字段。** 从第 7 节选一个你感兴趣的字段（比如 `boot.stages`），去 `config/app.json` 里找到它，改一处文案，刷新看效果。
 4. **读一章高级手册。** 从第 3 节的路线里挑第 1 章（04-config-app）读 20 分钟，回来写一句「我以前不知道的是……」。
 

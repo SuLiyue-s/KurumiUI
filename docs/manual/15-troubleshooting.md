@@ -45,18 +45,18 @@
 
 ```js
 KUI.info()
-// => { name: "KurumiUI", version: "1.3.9", controls: 41, themes: 6, env: {...} }
+// => { name: "KurumiUI", version: "1.4.1", controls: 42, themes: 6, env: {...} }
 ```
 
 | 返回字段 | 含义 | 异常时的含义 |
 | --- | --- | --- |
 | `name` | 框架名，恒为 `KurumiUI` | 不是它 → 页面里跑的是别的库或被覆盖 |
 | `version` | 当前运行时版本（源码 [src/core/kui.js:21](../../src/core/kui.js#L21)） | 与 `package.json` 不一致 → 加载了旧产物 |
-| `controls` | `KUI.registry.list().length` | 远小于 40 → 有脚本没加载（见 1.3） |
+| `controls` | `KUI.registry.list().length` | 远小于 42 → 有脚本没加载（见 1.3） |
 | `themes` | `KUI.theme.list().length` | 为 0 → `themes.json` 没加载或 `theme.load()` 未执行 |
 | `env` | `isBrowser / isNode / nodeVersion` | 在浏览器里 `isBrowser` 应为 true |
 
-严格来说 `controls` 统计的是**所有注册类型**（含组件），v1.3.9 是 41 个，不是 19 个表单控件。实现见 [src/core/kui.js:1322-1330](../../src/core/kui.js#L1322-L1330)。
+严格来说 `controls` 统计的是**所有注册类型**（含组件），v1.4.1 是 42 个，不是 19 个表单控件。实现见 [src/core/kui.js:1322-1330](../../src/core/kui.js#L1322-L1330)。
 
 ### 1.2 `?kui_debug=1` 诊断面板（推荐第一时间打开）
 
@@ -87,7 +87,7 @@ http://127.0.0.1:8080/?kui_debug=1
 
 面板也可以不通过 URL 启用——在控制台执行 `localStorage.setItem('kui-debug', '1')` 后刷新；清除用 `localStorage.removeItem('kui-debug')`（判断逻辑见 [src/core/diag.js:235-241](../../src/core/diag.js#L235-L241)）。
 
-> 面板自身有独立版本号（历史值为 `1.1.0`，与框架 1.3.9 无关），不要混淆。
+> 面板自身有独立版本号（历史值为 `1.1.0`，与框架 1.4.1 无关），不要混淆。
 
 ### 1.3 控制台错误关键词对照表（源码原话 → 处理）
 
@@ -149,7 +149,7 @@ KurumiUI 的告警都带明确前缀，直接按关键词搜：
 node -e "var fs=require('fs');['config/bundle.js','src/core/kui-all.js'].forEach(function(f){try{var s=fs.statSync(f);console.log(f,s.size+'B',s.mtime.toISOString())}catch(e){console.log(f,'MISSING')}})"
 ```
 
-判断标准（v1.3.9 参考值）：
+判断标准（v1.4.1 参考值）：
 
 | 文件 | 参考大小 | 内容特征 |
 | --- | --- | --- |
@@ -176,7 +176,7 @@ node -e "var fs=require('fs');['config/bundle.js','src/core/kui-all.js'].forEach
 | 杀毒软件拦截 `node server.js` | 监听本地端口被拦 | 放行 node，或换静态服务器 |
 | 删除 `node_modules` 后项目照常运行 | 正常——零依赖 | 无需恢复 |
 
-> 判断「是否需要安装依赖」只看一件事：`package.json` 里有没有 `dependencies`。v1.3.9 **一个都没有**，[package.json](../../package.json) 里只有 `engines.node >= 13.14.0` 这条环境声明。
+> 判断「是否需要安装依赖」只看一件事：`package.json` 里有没有 `dependencies`。v1.4.1 **一个都没有**，[package.json](../../package.json) 里只有 `engines.node >= 13.14.0` 这条环境声明。
 
 ---
 
@@ -327,7 +327,7 @@ npm start
 | 菜单折叠后图标错位 | 未设置 `collapsedWidth` | 配 `layout.menu.collapsedWidth`，见 [04-config-app.md](04-config-app.md) |
 | 启动层不出现或一直不消失 | `boot.js` 未加载、配置缺失或启动失败 | 看控制台 `boot:error` 与 `KUI.boot.ready()`；见 [16-boot.md](16-boot.md) §6、§13 |
 
-### 6.1 加载层 boot 专项（v1.3.9）
+### 6.1 加载层 boot 专项
 
 | 现象 | 原因 | 处理 |
 | --- | --- | --- |
@@ -569,7 +569,7 @@ curl -I https://your.site/src/themes.json
     A：沙箱里 server 套件可能降级同进程；以「35 通过/0 失败」为准，失败先看具体断言。
 
 29. **Q：如何确认当前页面加载的是哪个版本？**
-    A：控制台 `KUI.info().version`，应为 `1.3.9`。
+    A：控制台 `KUI.info().version`，应为 `1.4.1`。
 
 30. **Q：出问题该提供什么信息？**
     A：`KUI.info()` 输出 + `?kui_debug=1` 面板全文 + 控制台截图 + 复现步骤。
@@ -586,9 +586,9 @@ curl -I https://your.site/src/themes.json
 - [ ] 4. `node tools/check-compat.js` → 未发现禁用语法
 - [ ] 5. `node tools/check-assets.js` → 无缺失资源
 - [ ] 6. `config/bundle.js` 存在且非空、时间戳是本次构建
-- [ ] 7. `src/core/kui-all.js` 存在且 profile 数量正确（app 29 / standalone 28）
+- [ ] 7. `src/core/kui-all.js` 存在且 profile 数量正确（app 30 / standalone 29）
 - [ ] 8. 首页 200、无控制台红色错误
-- [ ] 9. 控制台 `KUI.info()` → version `1.3.9`、controls 41、themes 6
+- [ ] 9. 控制台 `KUI.info()` → version `1.4.1`、controls 42、themes 6
 - [ ] 10. 6 套主题逐一切换无闪烁、无样式丢失
 - [ ] 11. 菜单每一项都能打开对应 tab，子页无 404
 - [ ] 12. tab 关闭/刷新/保活行为符合预期
@@ -617,10 +617,10 @@ node tools/check-compat.js
 # 3) 浏览器里打开诊断面板，确认面板出现
 #    访问 http://127.0.0.1:8080/?kui_debug=1
 # 4) 控制台确认版本与加载量
-#    KUI.info()  // version 1.3.9, controls 41, themes 6
+#    KUI.info()  // version 1.4.1, controls 42, themes 6
 ```
 
-预期：自检脚本退出码 0；`npm test` 33 通过；面板右下角出现且 `env` 行版本为 1.3.9。
+预期：自检脚本退出码 0；`npm test` 35 通过；面板右下角出现且 `env` 行版本为 1.4.1。
 
 ## 参考源码
 
