@@ -178,9 +178,28 @@
 }
 .kui-datatable__filter-input::placeholder { color: var(--kui-control-text-placeholder, #8d7f8c); }
 .kui-datatable__filter-input:focus,
-.kui-datatable__filter-select:focus {
+.kui-datatable__filter-select:focus-visible {
   border-color: var(--kui-control-border-focus, #c8102e);
+  box-shadow: var(--kui-focus-ring, 0 0 0 2px var(--kui-accent-soft, rgba(200, 16, 46, 0.16)));
 }
+/* 主题化下拉按钮（替代原生 select，v1.4.2） */
+.kui-datatable__filter-select,
+.kui-pagination__sizer {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+}
+.kui-datatable__filter-select:hover,
+.kui-pagination__sizer:hover {
+  border-color: var(--kui-control-border-hover, rgba(244, 238, 240, 0.32));
+}
+.kui-datatable__filter-select { min-width: 96px; }
+.kui-datatable__filter-select .kui-dropdown-anchor-glyph,
+.kui-pagination__sizer .kui-dropdown-anchor-glyph { opacity: 0.6; }
 .kui-datatable__filter-input--num { min-width: 66px; max-width: 84px; }
 .kui-datatable__filter-range { display: inline-flex; align-items: center; gap: 4px; }
 .kui-datatable__filter-sep { color: var(--kui-text-3, #8d7f8c); font-size: 12px; }
@@ -241,7 +260,7 @@
   color: var(--kui-text-2, #bfaebd);
 }
 .kui-datatable__col-menu-item:hover { background: var(--kui-dt-hover); color: var(--kui-text-1); }
-.kui-datatable__col-menu-input { accent-color: var(--kui-accent, #c8102e); }
+.kui-datatable__col-menu-item.kui-checkbox { gap: 8px; }
 
 /* ==========================================================================
    4. 表格本体
@@ -309,15 +328,17 @@
   transition: background 0.12s ease;
   cursor: default;
 }
-.kui-datatable.is-hoverable .kui-datatable__row:hover { background: var(--kui-dt-hover); }
-.kui-datatable.is-striped .kui-datatable__body .kui-datatable__row:nth-child(even) {
+.kui-datatable.is-hoverable .kui-datatable__row:hover:not(.is-selected):not(.is-active) { background: var(--kui-dt-hover); }
+.kui-datatable.is-striped .kui-datatable__body .kui-datatable__row:nth-child(even):not(.is-selected):not(.is-active) {
   background: var(--kui-bg-2, #130d17);
 }
-.kui-datatable.is-striped .kui-datatable.is-hoverable .kui-datatable__row:nth-child(even):hover,
-.kui-datatable.is-striped.kui-datatable.is-hoverable .kui-datatable__row:nth-child(even):hover {
+.kui-datatable.is-striped.is-hoverable .kui-datatable__row:nth-child(even):hover:not(.is-selected):not(.is-active) {
   background: var(--kui-dt-hover);
 }
-.kui-datatable__row.is-selected { background: var(--kui-dt-selected); }
+/* 选中 / 行高亮必须压过条纹与悬停（选择器顺序 + 同等特异度） */
+.kui-datatable__row.is-selected,
+.kui-datatable.is-striped .kui-datatable__body .kui-datatable__row.is-selected:nth-child(even) { background: var(--kui-dt-selected); }
+.kui-datatable__row.is-selected > .kui-datatable__td { color: var(--kui-text-1); }
 .kui-datatable__row.is-active {
   background: var(--kui-dt-active);
   box-shadow: inset 3px 0 0 var(--kui-accent, #c8102e);
@@ -431,72 +452,17 @@
 .kui-datatable__cell-icon { flex: none; }
 
 /* ==========================================================================
-   6. 选择框
+   6. 选择框（v1.4.2 起复用框架 .kui-checkbox / .kui-radio，与表单控件同款）
    ========================================================================== */
-.kui-datatable__check {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  position: relative;
-  cursor: pointer;
+.kui-datatable__td--selection .kui-checkbox,
+.kui-datatable__td--selection .kui-radio,
+.kui-datatable__td--selection .kui-checkbox__box,
+.kui-datatable__td--selection .kui-radio__box {
   vertical-align: middle;
 }
-.kui-datatable__check-input {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  margin: 0;
-  cursor: pointer;
-}
-.kui-datatable__check-box {
-  width: 15px;
-  height: 15px;
-  border: 1px solid var(--kui-control-border, rgba(244, 238, 240, 0.24));
-  border-radius: var(--kui-radius-sm, 4px);
-  background: var(--kui-control-bg, #1b141c);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.12s ease, border-color 0.12s ease;
-}
-.kui-datatable__check.is-radio .kui-datatable__check-box { border-radius: 50%; }
-.kui-datatable__check-input:checked + .kui-datatable__check-box,
-.kui-datatable__check-input:indeterminate + .kui-datatable__check-box {
-  background: var(--kui-accent, #c8102e);
-  border-color: var(--kui-accent, #c8102e);
-}
-.kui-datatable__check-input:checked + .kui-datatable__check-box::after,
-.kui-datatable__check-input:indeterminate + .kui-datatable__check-box::after {
-  content: "";
-  width: 8px;
-  height: 4px;
-  border-left: 2px solid var(--kui-on-accent, #fff);
-  border-bottom: 2px solid var(--kui-on-accent, #fff);
-  transform: rotate(-45deg) translateY(-1px);
-}
-.kui-datatable__check.is-radio .kui-datatable__check-input:checked + .kui-datatable__check-box::after {
-  width: 5px;
-  height: 5px;
-  border: 0;
-  border-radius: 50%;
-  background: var(--kui-on-accent, #fff);
-  transform: none;
-}
-.kui-datatable__check-input:indeterminate + .kui-datatable__check-box::after {
-  width: 8px;
-  height: 0;
-  border-left: 0;
-  border-bottom: 2px solid var(--kui-on-accent, #fff);
-  transform: none;
-}
-.kui-datatable__check-input:focus-visible + .kui-datatable__check-box {
-  border-color: var(--kui-control-border-focus, #c8102e);
-  box-shadow: 0 0 0 2px var(--kui-accent-soft, rgba(200, 16, 46, 0.16));
-}
+.kui-datatable__td--selection .kui-checkbox,
+.kui-datatable__td--selection .kui-radio { cursor: pointer; }
+.kui-datatable__row.is-selected .kui-datatable__td--selection .kui-checkbox__box { border-color: var(--kui-accent); }
 
 /* ==========================================================================
    7. 空态 / 加载

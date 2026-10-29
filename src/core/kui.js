@@ -18,7 +18,7 @@
   KUI.name = 'KurumiUI';
   // 版本号同时用于 iframe 的缓存穿透（tabs 会拼到子页面 URL 的 kui_v 参数上），
   // 每次发布 UI 修复时递增，避免旧 iframe 文档被浏览器缓存后继续跑旧版代码。
-  KUI.version = '1.4.1';
+  KUI.version = '1.4.2';
   KUI.env = {
     isBrowser: typeof window !== 'undefined' && typeof document !== 'undefined',
     isNode: typeof process !== 'undefined' && !!(process.versions && process.versions.node),
@@ -450,16 +450,29 @@
     return KUI.fmt(v, vars);
   };
 
-  /** 变量替换：{name} / {0} */
+  /**
+   * 变量替换：{name} / {0}，同时兼容 {{name}} 与 {{a.b}}（点路径）
+   * 组件内兜底文案常用双花括号，这里统一归一，避免输出「共 {7} 条」这类残片。
+   */
   KUI.fmt = function (str, vars) {
     if (str === null || str === undefined) return '';
     str = String(str);
     if (!vars) return str;
-    return str.replace(/\{([\w$]+)\}/g, function (m, key) {
+    var resolve = function (key) {
       if (vars[key] !== undefined) return String(vars[key]);
       var idx = parseInt(key, 10);
       if (!isNaN(idx) && vars[idx] !== undefined) return String(vars[idx]);
-      return m;
+      var deep = utils.deepGet(vars, key);
+      if (deep !== undefined && deep !== null) return String(deep);
+      return null;
+    };
+    str = str.replace(/\{\{\s*([\w$.]+)\s*\}\}/g, function (m, key) {
+      var v = resolve(key);
+      return v === null ? m : v;
+    });
+    return str.replace(/\{([\w$]+)\}/g, function (m, key) {
+      var v = resolve(key);
+      return v === null ? m : v;
     });
   };
 
@@ -1309,6 +1322,237 @@
       KUI.warn('全屏切换失败:', e);
     }
     return !isFull;
+  };
+
+  /* =============================================================
+   *  9.5 主题化下拉菜单（v1.4.2）
+   *  原生 <select> 的 option 列表由浏览器绘制、无法换肤，
+   *  因此需要下拉的组件（表格筛选 / 每页条数 等）统一调用 KUI.dropdown。
+   * ============================================================= */
+  var openDropdown = null;
+  var dropdownSeq = 0;
+
+  function closeOpenDropdown() {
+    if (openDropdown && openDropdown._instance) { openDropdown._instance.close(); }
+  }
+
+  /**
+   * 主题化下拉菜单。
+   * @param {Element} anchor   触发按钮（点击 / ↓ / Enter / Space 打开）
+   * @param {Array}   options  [{ value, label, icon, disabled }]
+   * @param {Object}  [opts]   { value, minWidth, maxHeight, ariaLabel, onSelect, placement }
+   * @returns {Object} 实例 API：open/close/toggle/setValue/getValue/setOptions/destroy/isOpen
+   */
+  KUI.dropdown = function (anchor, options, opts) {
+    if (!anchor || !anchor.ownerDocument) { return null; }
+    opts = opts || {};
+    var doc = anchor.ownerDocument;
+    var list = [];
+    var current = opts.value;
+    var root = null;
+    var focusIndex = -1;
+    var id = 'kui-dropdown-' + (++dropdownSeq);
+    var destroyed = false;
+
+    function normalize(src) {
+      list = [];
+      var arr = src || [];
+      for (var i = 0; i < arr.length; i++) {
+        var it = arr[i] || {};
+        list.push({ value: it.value, label: it.label == null ? String(it.value) : String(it.label), icon: it.icon || '', disabled: !!it.disabled });
+      }
+      if (list.length) {
+        for (var j = 0; j < list.length; j++) { if (list[j].value === current) { focusIndex = j; return; } }
+      }
+      focusIndex = -1;
+    }
+
+    function currentLabel() {
+      for (var i = 0; i < list.length; i++) { if (list[i].value === current) { return list[i].label; } }
+      return '';
+    }
+
+    function syncAnchor() {
+      if (!anchor) { return; }
+      var label = currentLabel();
+      anchor.textContent = '';
+      anchor.appendChild(doc.createTextNode(label));
+      var glyph = KUI.icons && KUI.icons.create ? KUI.icons.create('chevron-down', { size: 12, class: 'kui-dropdown-anchor-glyph' }) : null;
+      if (glyph) { anchor.appendChild(glyph); }
+      anchor.setAttribute('aria-haspopup', 'listbox');
+      anchor.setAttribute('aria-expanded', 'false');
+    }
+
+    function build() {
+      if (root) { return; }
+      root = doc.createElement('div');
+      root.className = 'kui-dropdown';
+      root.id = id;
+      root.setAttribute('role', 'listbox');
+      if (opts.ariaLabel) { root.setAttribute('aria-label', String(opts.ariaLabel)); }
+      for (var i = 0; i < list.length; i++) { root.appendChild(buildOption(i)); }
+      doc.body.appendChild(root);
+    }
+
+    function buildOption(i) {
+      var it = list[i];
+      var btn = doc.createElement('button');
+      btn.type = 'button';
+      btn.className = 'kui-dropdown__option';
+      btn.setAttribute('role', 'option');
+      btn.setAttribute('data-index', String(i));
+      if (it.disabled) { btn.disabled = true; btn.className += ' is-disabled'; }
+      if (it.value === current) { btn.className += ' is-selected'; btn.setAttribute('aria-selected', 'true'); }
+      if (it.icon && KUI.icons && KUI.icons.create) {
+        var ic = KUI.icons.create(it.icon, { size: 13, class: 'kui-dropdown__option-icon' });
+        if (ic) { btn.appendChild(ic); }
+      }
+      var sp = doc.createElement('span');
+      sp.className = 'kui-dropdown__option-label';
+      sp.appendChild(doc.createTextNode(it.label));
+      btn.appendChild(sp);
+      var ck = doc.createElement('span');
+      ck.className = 'kui-dropdown__check';
+      if (KUI.icons && KUI.icons.create) {
+        var tick = KUI.icons.create('check', { size: 12, class: 'kui-dropdown__tick' });
+        if (tick) { ck.appendChild(tick); }
+      }
+      btn.appendChild(ck);
+      KUI.on(btn, 'click', function (ev) {
+        if (ev && ev.stopPropagation) { ev.stopPropagation(); }
+        if (it.disabled) { return; }
+        pick(i);
+      });
+      return btn;
+    }
+
+    function pick(i) {
+      var it = list[i];
+      if (!it || it.disabled) { return; }
+      current = it.value;
+      syncAnchor();
+      refreshSelected();
+      api.close();
+      if (typeof opts.onSelect === 'function') { opts.onSelect(it.value, it, i); }
+    }
+
+    function refreshSelected() {
+      if (!root) { return; }
+      var kids = root.querySelectorAll('.kui-dropdown__option');
+      for (var i = 0; i < kids.length; i++) {
+        var idx = Number(kids[i].getAttribute('data-index'));
+        var sel = list[idx] && list[idx].value === current;
+        kids[i].className = 'kui-dropdown__option' + (list[idx] && list[idx].disabled ? ' is-disabled' : '') +
+          (sel ? ' is-selected' : '') + (idx === focusIndex ? ' is-focus' : '');
+        if (sel) { kids[i].setAttribute('aria-selected', 'true'); } else { kids[i].removeAttribute('aria-selected'); }
+      }
+    }
+
+    function place() {
+      if (!root) { return; }
+      var r = anchor.getBoundingClientRect();
+      var win = doc.defaultView || window;
+      var mw = root.offsetWidth;
+      var mh = root.offsetHeight;
+      var vw = win.innerWidth || 0;
+      var vh = win.innerHeight || 0;
+      var left = r.left;
+      if (left + mw > vw - 8) { left = Math.max(8, vw - mw - 8); }
+      var top = r.bottom + 4;
+      if (opts.placement === 'top') { top = r.top - mh - 4; }
+      if (top + mh > vh - 8) {
+        if (r.top - mh - 4 > 8) { top = r.top - mh - 4; }
+        else { top = Math.max(8, vh - mh - 8); }
+      }
+      root.style.left = Math.round(left + (win.pageXOffset || 0)) + 'px';
+      root.style.top = Math.round(top + (win.pageYOffset || 0)) + 'px';
+      root.style.minWidth = Math.max(opts.minWidth || 0, Math.round(r.width)) + 'px';
+    }
+
+    function onDocDown(ev) {
+      if (!root) { return; }
+      var t = ev && ev.target;
+      if (root.contains(t) || anchor.contains(t)) { return; }
+      api.close();
+    }
+
+    function onKey(ev) {
+      var k = ev && ev.key;
+      if (!root || !root.classList.contains('is-open')) { return; }
+      var enabled = [];
+      for (var i = 0; i < list.length; i++) { if (!list[i].disabled) { enabled.push(i); } }
+      if (!enabled.length) { return; }
+      var pos = enabled.indexOf(focusIndex);
+      if (k === 'ArrowDown') { ev.preventDefault(); pos = (pos + 1) % enabled.length; focusIndex = enabled[pos]; refreshSelected(); }
+      else if (k === 'ArrowUp') { ev.preventDefault(); pos = (pos - 1 + enabled.length) % enabled.length; focusIndex = enabled[pos]; refreshSelected(); }
+      else if (k === 'Enter' || k === ' ') { ev.preventDefault(); pick(focusIndex); }
+      else if (k === 'Escape') { ev.preventDefault(); api.close(); anchor.focus(); }
+    }
+
+    function onAnchorKey(ev) {
+      var k = ev && ev.key;
+      if (k === 'ArrowDown' || k === 'Enter' || k === ' ') {
+        ev.preventDefault();
+        if (api.isOpen()) { api.close(); } else { api.open(); }
+      }
+    }
+
+    function onWindowScroll() { if (api.isOpen()) { api.close(); } }
+
+    normalize(options);
+    syncAnchor();
+    var api = {
+      el: function () { return root; },
+      open: function () {
+        if (destroyed) { return api; }
+        closeOpenDropdown();
+        build();
+        refreshSelected();
+        root.classList.add('is-open');
+        anchor.setAttribute('aria-expanded', 'true');
+        openDropdown = { _instance: api };
+        var win = doc.defaultView || window;
+        win.addEventListener('scroll', onWindowScroll, true);
+        win.addEventListener('resize', onWindowScroll, true);
+        return api;
+      },
+      close: function () {
+        if (!root) { return api; }
+        root.classList.remove('is-open');
+        anchor.setAttribute('aria-expanded', 'false');
+        var win = doc.defaultView || window;
+        win.removeEventListener('scroll', onWindowScroll, true);
+        win.removeEventListener('resize', onWindowScroll, true);
+        if (openDropdown && openDropdown._instance === api) { openDropdown = null; }
+        return api;
+      },
+      toggle: function () { return api.isOpen() ? api.close() : api.open(); },
+      isOpen: function () { return !!(root && root.classList.contains('is-open')); },
+      setValue: function (v, silent) {
+        current = v;
+        syncAnchor();
+        refreshSelected();
+        if (!silent && typeof opts.onSelect === 'function') { opts.onSelect(v, null, -1); }
+        return api;
+      },
+      getValue: function () { return current; },
+      setOptions: function (arr) { normalize(arr); if (root) { while (root.firstChild) { root.removeChild(root.firstChild); } for (var i = 0; i < list.length; i++) { root.appendChild(buildOption(i)); } refreshSelected(); } syncAnchor(); return api; },
+      destroy: function () {
+        destroyed = true;
+        api.close();
+        if (root && root.parentNode) { root.parentNode.removeChild(root); }
+        root = null;
+        KUI.off(anchor, 'keydown', onAnchorKey);
+        return api;
+      }
+    };
+    KUI.on(anchor, 'keydown', onAnchorKey);
+    KUI.on(doc, 'mousedown', onDocDown, true);
+    KUI.on(doc, 'keydown', onKey);
+    api._refreshPosition = place;
+    var origOpen = api.open;
+    api.open = function () { origOpen(); place(); return api; };
+    return api;
   };
 
   /* =============================================================

@@ -984,6 +984,7 @@
     });
     nextBtn.appendChild(base.iconEl('chevron-right', 'kui-pagination__arrow'));
     var sizerEl = null;
+    var sizerDd = null;
     var jumperEl = null;
 
     box.appendChild(totalEl);
@@ -1014,23 +1015,44 @@
 
     function buildSizer() {
       if (!props.showSizer || sizerEl) { return; }
-      sizerEl = base.el('select', {
-        'class': 'kui-pagination__sizer',
-        'aria-label': base.t('pagination.pageSize', '每页条数')
-      });
+      var items = [];
       base.each(props.pageSizes || PAGINATION_DEFAULTS.pageSizes, function (size) {
         var n = num(size, 0);
         if (n <= 0) { return; }
-        var opt = base.el('option', { value: String(n), text: base.t('pagination.pageSizeOption', '{{size}} 条/页', { size: n }) });
-        if (n === state.pageSize) { opt.selected = true; }
-        sizerEl.appendChild(opt);
+        items.push({ value: String(n), label: base.t('pagination.pageSizeOption', '{{size}} 条/页', { size: n }) });
       });
-      base.on(sizerEl, 'change', function () {
-        state.pageSize = Math.max(1, num(sizerEl.value, state.pageSize));
-        state.page = 1;
-        sync();
-        emit('pageSize');
-      });
+      var label = base.t('pagination.pageSize', '每页条数');
+      /* v1.4.2：原生 select 的 option 弹层无法换肤，统一改为主题化下拉 */
+      if (KUI.dropdown) {
+        sizerEl = base.el('button', { type: 'button', 'class': 'kui-pagination__sizer', 'aria-label': label });
+        sizerDd = KUI.dropdown(sizerEl, items, {
+          value: String(state.pageSize),
+          ariaLabel: label,
+          onSelect: function (v) {
+            state.pageSize = Math.max(1, num(v, state.pageSize));
+            state.page = 1;
+            sync();
+            emit('pageSize');
+          }
+        });
+        base.on(sizerEl, 'click', function (ev) {
+          if (ev && ev.preventDefault) { ev.preventDefault(); }
+          if (sizerDd) { sizerDd.toggle(); }
+        });
+      } else {
+        sizerEl = base.el('select', { 'class': 'kui-pagination__sizer', 'aria-label': label });
+        base.each(items, function (it) {
+          var opt = base.el('option', { value: it.value, text: it.label });
+          if (it.value === String(state.pageSize)) { opt.selected = true; }
+          sizerEl.appendChild(opt);
+        });
+        base.on(sizerEl, 'change', function () {
+          state.pageSize = Math.max(1, num(sizerEl.value, state.pageSize));
+          state.page = 1;
+          sync();
+          emit('pageSize');
+        });
+      }
       box.appendChild(sizerEl);
     }
     function buildJumper() {
@@ -1106,7 +1128,8 @@
 
       if (props.showSizer) {
         buildSizer();
-        if (sizerEl) { sizerEl.value = String(state.pageSize); }
+        if (sizerDd) { sizerDd.setValue(String(state.pageSize), true); }
+        else if (sizerEl) { sizerEl.value = String(state.pageSize); }
       }
       if (props.showJumper) { buildJumper(); }
     }

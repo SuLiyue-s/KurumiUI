@@ -487,6 +487,40 @@
                   "icon": "user"
                 }
               }
+            },
+            {
+              "type": "item",
+              "id": "boot-lab",
+              "label": "加载层 · 时钟表盘",
+              "icon": "clock",
+              "badge": "NEW",
+              "badgeType": "success",
+              "tooltip": "启动层可单独拆装：时钟表盘按进度 0%→100% 对应 0 时→12 时转动时针与分针",
+              "target": {
+                "tab": {
+                  "id": "boot-lab",
+                  "title": "加载层 · 时钟表盘",
+                  "url": "standalone/boot.html",
+                  "icon": "clock"
+                }
+              }
+            },
+            {
+              "type": "item",
+              "id": "datatable-lab",
+              "label": "数据表格",
+              "icon": "database",
+              "badge": "v1.4",
+              "badgeType": "accent",
+              "tooltip": "一体化 JSON 配置的表格：筛选 / 排序 / 单选 / 复选 / 全选 / 分页 / 行高亮 / 列设置 / 导出",
+              "target": {
+                "tab": {
+                  "id": "datatable-lab",
+                  "title": "数据表格",
+                  "url": "standalone/datatable.html",
+                  "icon": "database"
+                }
+              }
             }
           ]
         },

@@ -1,6 +1,6 @@
 # 08 · 组件详解：menu / menunav / tabs / dialog / toast / app-shell / boot
 
-> 适用版本：KurumiUI v1.4.1 ｜ 前置章节：[03-assembly.md](03-assembly.md)、[04-config-app.md](04-config-app.md)、[07-form-engine.md](07-form-engine.md) ｜ 阅读时长：约 45 分钟
+> 适用版本：KurumiUI v1.4.2 ｜ 前置章节：[03-assembly.md](03-assembly.md)、[04-config-app.md](04-config-app.md)、[07-form-engine.md](07-form-engine.md) ｜ 阅读时长：约 45 分钟
 
 ## 本章目标
 
@@ -1721,3 +1721,11 @@ KUI.dialog.alert('自检弹窗');                // 出现一个 iframe 弹窗
 - `src/components/handlers/menu.handlers.js`、`menunav.handlers.js`、`tabs.handlers.js`、`dialog.handlers.js`、`toast.handlers.js`、`app-shell.handlers.js`、`form.handlers.js` —— 7 个 scope 的业务函数实现（完整清单见 [10-actions-handlers.md](10-actions-handlers.md)）。
 - `config/app.json` —— `app`/`layout`/`menu`/`menunav`/`tabs`/`dialogs` 段的真实配置；`config/demos/{menu,menunav,tabs,dialog,toast}.json` —— 组件 demo；`standalone/{menu,menunav,tabs,dialog,toast,no-shell}.html` —— 独立装配示例。
 - `src/styles/components.css`、`src/styles/base.css:340-343` —— 组件类名与层级变量；`index.html:120-154` —— 挂载点与唯一入口脚本。
+
+
+### 6.6.1 v1.4.2：表格控件全面主题化（补充）
+
+- 列筛选、每页条数由原生 `<select>` 改为 `KUI.dropdown`（见 [11-api-messaging.md](11-api-messaging.md)），无内核时回退原生；
+- 表头全选 / 行选择 / 单选框改用框架 `.kui-checkbox` / `.kui-radio`，与表单页外观一致；
+- 选中行（含偶数行）不再被斑马纹覆盖；
+- 分页与工具栏文案不再出现 `{36}` 残片（`KUI.fmt` 兼容双花括号）。

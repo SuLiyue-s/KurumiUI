@@ -319,3 +319,49 @@ npm test               # 测试
 
 - INFO 87 项不逐一列出（`node tools/audit-unused.js --json` 可导出）；判定为公共 CSS 钩子/状态类/动态拼接类，删除会破坏按 `class` 自定义样式的用户配置。
 - 审计为静态扫描：通过字符串拼接、运行时算出名字的键/类仍可能漏检；新增「写入侧」代码时同步补读取点是维护约定（契约 §23）。
+
+## §14 第 34 轮同类问题审计（v1.4.2）
+
+**审计范围**：用户第 34 轮指出的「原生控件 / 选中高亮 / 选择框样式 / 菜单可达 / 覆盖率」五类问题，逐类做全仓同类扫描。
+
+### 14.1 浏览器原生控件
+
+- 扫描 `src/**` 中 `createElement('select'|'input'|'radio'|'checkbox'|'textarea')` 与模板字符串 `<select>`：
+  - `src/components/datatable.js`：列筛选、每页条数 → **已改为 `KUI.dropdown`**（v1.4.2）；
+  - `src/components/controls/misc.js`：pagination sizer → **已改为 `KUI.dropdown`**；
+  - 其余命中均为合规：隐藏 `input[type=file]`（上传/头像选图）、控件自身构建（`control-base.js` 的 checkbox/radio 标记输出 `.kui-checkbox` 等框架类）。
+- 页面级扫描：6 个页面缺 `controls.css` → 已补齐；`check-assets` 现对「页面引用控件但未加载控件样式」给出警告（见 §14.5）。
+
+### 14.2 斑马纹 / 交互态覆盖
+
+- 全仓 `:nth-child(even)`：仅 `datatable.css` 一处（已修）；`menu`、`tabs`、`table`（基础表格）列表类均使用无条纹或用 `:not(.is-selected)`。
+- 结论：同一类缺陷仅 datatable；已补充 smoke `[32.3]` 静态断言防回归。
+
+### 14.3 自绘选择框样式
+
+- 全仓 `.…__check*` 自定义勾选样式：仅 datatable（已删除），改用 `.kui-checkbox` / `.kui-radio`；其他组件（toast/dialog/form）无自绘选择器。
+- `smoke [32.4]` 断言 datatable 源码不得再出现 `kui-datatable__check` 类名。
+
+### 14.4 文案占位符（双花括号）
+
+- `grep` 兜底文案中 `{{` 的 15 处（分页、工具栏、空态、列设置等），全部经 `KUI.fmt` 渲染；修复 `fmt` 后统一生效，无需逐处改文案。
+- 结论：这是「模板语法不一致」类系统缺陷，已用 `fmt` 兼容而非多点修补；`test/render.test.js` 增加 `{{a.b}}` 用例。
+
+### 14.5 页面资源完整性（新增检查）
+
+- `tools/check-assets.js` 扩展：页面若引用 `KUI.form`/`KUI.controls` 相关控件（源码含 `type: 'form'`、`radio-group`、`checkbox-group` 等）却未 `<link controls.css>`，输出 WARNING。
+- 当前 22 个 HTML 全部 0 错误 0 警告。
+
+### 14.6 菜单可达性
+
+- `config/app.json` 菜单项由 19 → 21，新增 `boot-lab`（`standalone/boot.html`）与 `datatable-lab`（`standalone/datatable.html`），两页从此可从菜单直达；`smoke [32.5]` 断言菜单含这两项。
+- `pages/*.html` 由首页快捷卡片与菜单共同覆盖；`audit-all-pages` 20/20（挂载未知类型 0）。
+
+### 14.7 覆盖率
+
+- 新增 `tools/coverage.js`；`npm run coverage` → 45.6%（9867/21657 行，38 文件）。未覆盖集中在 `controls/*`（表单控件细节分支）与 `frame/*`（iframe 协议回调），属预期；已在手册 02 说明「覆盖率不是门禁，仅用于定位盲区」。
+
+### 14.8 残余风险
+
+- `KUI.dropdown` 面板挂在 body：页面自身设置 `transform` 的容器内锚点，定位以 `getBoundingClientRect` 计算（已验证 scroll/resize 关闭），极端嵌套变换场景未覆盖。
+- 覆盖率统计基于 V8 行区间，`document.write` 动态注入的页面级代码会被计入但不一定执行。

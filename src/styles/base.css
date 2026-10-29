@@ -341,6 +341,7 @@ pre {
   --kui-z-content: 1;
   --kui-z-header: 100;
   --kui-z-mask: 1900;
+  --kui-z-popup: 1500;
   --kui-z-dialog: 2000;
   --kui-z-toast: 3000;
   --kui-z-fullscreen: 4000;
@@ -1436,3 +1437,62 @@ html[data-kui-density="loose"] {
   --kui-header-height: 60px;
   --kui-tabbar-height: 42px;
 }
+
+/* ==========================================================================
+   主题化下拉菜单（KUI.dropdown，v1.4.2）
+   原生 <select> 的 option 弹层无法换肤，组件内统一下拉一律使用本样式
+   ========================================================================== */
+.kui-dropdown {
+  position: absolute;
+  z-index: var(--kui-z-popup, 1200);
+  display: none;
+  min-width: 96px;
+  max-width: 320px;
+  max-height: 264px;
+  overflow: auto;
+  padding: 4px;
+  border: 1px solid var(--kui-popup-border);
+  border-radius: var(--kui-radius-md);
+  background: var(--kui-popup-bg);
+  box-shadow: var(--kui-popup-shadow);
+  backdrop-filter: blur(var(--kui-glass-blur, 18px));
+  scrollbar-width: thin;
+  scrollbar-color: var(--kui-scrollbar-thumb) var(--kui-scrollbar-track);
+}
+.kui-dropdown.is-open { display: block; animation: kui-dropdown-in var(--kui-duration-fast) var(--kui-ease); }
+@keyframes kui-dropdown-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.kui-dropdown__option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 30px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--kui-radius-sm);
+  background: transparent;
+  color: var(--kui-text-1);
+  font-family: inherit;
+  font-size: var(--kui-fs-sm, 13px);
+  line-height: 1.4;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  outline: none;
+  transition: background var(--kui-duration-fast) var(--kui-ease);
+}
+.kui-dropdown__option:hover,
+.kui-dropdown__option.is-focus { background: var(--kui-option-hover-bg); }
+.kui-dropdown__option.is-selected { background: var(--kui-option-selected-bg); color: var(--kui-option-selected-text); }
+.kui-dropdown__option.is-disabled { color: var(--kui-control-text-disabled); cursor: not-allowed; }
+.kui-dropdown__option-label { flex: 1 1 auto; }
+.kui-dropdown__option-icon { flex: none; opacity: 0.8; }
+.kui-dropdown__option .kui-dropdown__check { display: inline-flex; flex: none; opacity: 0; }
+.kui-dropdown__option.is-selected .kui-dropdown__check { opacity: 1; }
+.kui-dropdown__tick { flex: none; }
+.kui-dropdown-anchor-glyph { flex: none; pointer-events: none; opacity: 0.7; }

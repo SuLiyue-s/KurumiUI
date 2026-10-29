@@ -1,6 +1,6 @@
 # 11 · JS API 全表与跨页通信
 
-> 适用版本：KurumiUI v1.4.1 ｜ 前置章节：10-actions-handlers.md、08-components.md ｜ 阅读时长：约 40 分钟
+> 适用版本：KurumiUI v1.4.2 ｜ 前置章节：10-actions-handlers.md、08-components.md ｜ 阅读时长：约 40 分钟
 
 ## 本章目标
 
@@ -82,7 +82,9 @@ KUI 是挂在 `window` 上的单命名空间：核心提供工具与渲染，组
 
 ### 2.5 文案与信息
 
-`KUI.text(key, fallback?, vars?)` 先查字典再回退；`KUI.fmt(str,vars)` 替换 `{name}`/`{0}`；`KUI.i18n={dict,set,reset,has,get,all}`；`KUI.info()` 见 9 节；`KUI.toggleFullscreen()` 返回是否全屏。
+`KUI.text(key, fallback?, vars?)` 先查字典再回退；`KUI.fmt(str,vars)` 同时替换 `{{name}}`/`{{a.b}}` 与 `{name}`/`{0}`（v1.4.2：兼容兜底文案的双花括号）；`KUI.i18n={dict,set,reset,has,get,all}`；`KUI.info()` 见 9 节；`KUI.toggleFullscreen()` 返回是否全屏。
+
+**`KUI.dropdown(anchor, options, opts)`（v1.4.2）**：主题化下拉（非原生 select）。`options=[{value,label,icon?,disabled?}]`；`opts={value,minWidth,maxHeight,ariaLabel,placement,onSelect}`；返回 `{open,close,toggle,isOpen,setValue,getValue,setOptions,destroy,el}`。键盘 ↑↓/Enter/Space/Esc、点外/滚动/resize 关闭；样式类 `.kui-dropdown*`，层级 token `--kui-z-popup`（1500）。契约 §24。
 
 ## 3. 模块 API 速查
 

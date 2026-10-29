@@ -130,6 +130,14 @@ function scanHtml(file) {
     results.push({ ok: true, level: 'info', msg: 'ok  ' + ref.url + '  (' + (size / 1024).toFixed(1) + ' KB)' });
   });
 
+  /* v1.4.2：页面自身包含表单控件配置，却未引用 controls.css → 会退化成浏览器原生样式 */
+  var hasControlsCss = refs.some(function (r) { return /controls\.css(?:\?|$)/.test(r.url || ''); });
+  var bodyText = html;
+  var usesFormControls = /["']type["']\s*:\s*["'](?:radio-group|checkbox-group|select|multiselect|number|slider|switch|textarea|date|time|color|upload)["']/.test(bodyText) ||
+    /kui-(?:checkbox|radio|input|select|textarea|switch)\b/.test(bodyText);
+  if (usesFormControls && !hasControlsCss && !/dialog-frame\.html$/.test(file)) {
+    results.push({ ok: false, level: 'warn', msg: '页面疑似渲染表单控件，但未引用 src/styles/controls.css（控件会显示为浏览器原生样式）' });
+  }
   return { file: file, refs: refs, results: results };
 }
 

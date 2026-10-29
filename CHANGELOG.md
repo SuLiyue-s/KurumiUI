@@ -1,3 +1,52 @@
+## v1.4.2（2026-10-29）— 表格控件主题化 + 原生控件清零 + 第 34 轮同类问题审计
+
+> 需求（用户）：「表格中部分组件仍是浏览器原生样式（筛选下拉 / 单选 / 复选框）→ 要修复，并检查其他未使用主题样式的组件；表格选中高亮偶数行不生效；表格单选/复选框样式应参考表单内的；有几个测试页未集成到展示菜单；检查代码覆盖率。修复以上问题后，要审计是否存在同类型问题，存在则修复。」
+
+### 一、新增核心能力：KUI.dropdown（主题化下拉）
+
+- `src/core/kui.js` 新增 `KUI.dropdown(anchor, options, opts)`：锚点按钮 + `body` 级弹层；键盘 ↑↓ / Enter / Space / Esc、点击外部或滚动 / resize 关闭、空间不足自动上下翻转、`aria-haspopup` / `aria-expanded`。
+- 实例 API：`open / close / toggle / isOpen / setValue / getValue / setOptions / destroy / el / _refreshPosition`；`opts` 支持 `value / minWidth / maxHeight / ariaLabel / placement / onSelect`。
+- 样式进 `src/styles/base.css`（`.kui-dropdown`、`__option(.is-selected/.is-focus/.is-disabled)`、`__check`、`.kui-dropdown-anchor-glyph`），颜色全部走主题 token；新增 `--kui-z-popup: 1500` 并在 `tools/audit-unused.js` 白名单登记。
+
+### 二、表格内的浏览器原生控件清零
+
+- 列筛选「归属 / 状态」与分页「每页条数」由原生 `<select>` 改为 `KUI.dropdown`；内核缺失时自动回退原生 select（保持可拆卸）。
+- `pagination` 控件（`src/components/controls/misc.js`）的每页条数 sizer 同步改为主题化下拉。
+
+### 三、表格选择框与表单「同主题同类型」一致
+
+- 表头全选、行选择、单选框改用框架 `.kui-checkbox` / `.kui-radio` 的 DOM 与样式；删除自绘 `.kui-datatable__check*` 样式与结构。
+- 选中行（含偶数行）高亮修复：条纹 / 悬停规则排除 `.is-selected`，选中规则提升到同特异度，选中后不再被斑马纹覆盖。
+
+### 四、KUI.fmt 兼容双花括号（顺带修复系统性文案残片）
+
+- 现象：分页「共 {36} 条」、工具栏「已选 {2} 项」、每页「{6} 条/页」把占位符原样显示。
+- 根因：组件兜底文案普遍写 `{{total}}`，而 `KUI.fmt` 只替换 `{total}`，`{{total}}` 被替换成 `{7}` 留下残片。
+- 修复：`KUI.fmt` 同时支持 `{{name}}`、`{{a.b}}`（点路径）与 `{name}` / `{0}`。
+
+### 五、页面样式补齐与展示菜单
+
+- 补齐 6 个未引用 `controls.css` 的页面：`pages/notify.html`、`standalone/handlers.html`、`standalone/menu.html`、`standalone/menunav.html`、`standalone/tabs.html`、`standalone/toast.html`，表单控件恢复主题化。
+- 展示菜单「观测回廊」新增两项：加载层·时钟表盘（`standalone/boot.html`）、数据表格（`standalone/datatable.html`）；所有独立测试页可从菜单直达。
+
+### 六、代码覆盖率工具
+
+- 新增 `tools/coverage.js`（零依赖，基于 `NODE_V8_COVERAGE`）：`npm run coverage` 等价 `--all`（`test/run.js` + `tools/smoke.js`），`--json` 写 `.coverage/report.json`（已 gitignore），支持 `--min=<n>` 阈值与 `--quiet`。
+- 当前基线：**src/ 行覆盖率 45.6%（9867 / 21657 行，38 个文件）**；报告用于定位未覆盖文件，不作为强制门禁。
+
+### 七、测试、审计与文档
+
+- `test/render.test.js` 新增 dropdown / fmt 双花括号用例（36 项）；`tools/smoke.js` 新增 `[32]` 八组断言（123 项）。
+- `tools/audit-unused.js` 白名单补 `--kui-z-popup`；全量审计 ERROR 0 / WARN 0 / INFO 87。
+- 文档：契约 §24（dropdown 与 fmt 兼容）、§23 审计工具补 coverage；配置参考补充说明；验收表 v1.4.2；审计报告 §14（第 34 轮同类问题审计）；手册 02 / 05 / 08 / 11 / 15 / 16 与 README 数字、版本 1.4.2。
+
+### 验证
+
+- `node test/run.js` **36 通过 / 0 失败**（Node 24 与 Node 13.14 双版本）；`node tools/smoke.js` **123 通过 / 0 失败**。
+- `audit-consistency` 17/0、`audit-components` 19/0、`audit-all-pages` 20/20、`audit-config` 0 缺口、`audit-unused` ERROR 0 / WARN 0、`check-assets` 22/0/0、`check-manual` 0/0、`check-beginner-manual` 0/0、`verify-build` 6/0。
+- 真实浏览器：`standalone/datatable.html` 列筛选/每页条数展开为主题化下拉、偶数行选中高亮、选择框与表单一致；`index.html` 菜单可见「加载层·时钟表盘 / 数据表格」；`pages/notify.html` 下拉已主题化。
+
+
 ## v1.4.1（2026-10-29）— 未消费资产审计 + 头像持久化修复
 
 > 需求（用户）：「要检查是否存在未消费的字段、样式、函数、api，如果有需要修复。展示页的头像缓存在浏览器了，但是刷新后失效，怀疑该缓存未被消费，需要检查是否存在同类问题，存在的话也需要修复。」

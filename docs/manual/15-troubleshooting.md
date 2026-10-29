@@ -1,6 +1,6 @@
 # 15 · 排错手册、FAQ 与上线验收清单
 
-> 适用版本：KurumiUI v1.4.1 ｜ 前置章节：[03-assembly.md](03-assembly.md)、[11-api-messaging.md](11-api-messaging.md) ｜ 阅读时长：约 20 分钟
+> 适用版本：KurumiUI v1.4.2 ｜ 前置章节：[03-assembly.md](03-assembly.md)、[11-api-messaging.md](11-api-messaging.md) ｜ 阅读时长：约 20 分钟
 
 ## 本章目标
 
@@ -119,7 +119,7 @@ KurumiUI 的告警都带明确前缀，直接按关键词搜：
 
 | 命令 | 检查什么 | 预期 | 失败通常意味着 |
 | --- | --- | --- | --- |
-| `npm test` | 兼容 / 配置 / 服务器 / 渲染等套件 35 项 | `35 通过 / 0 失败` | 运行时被改动、配置不合法 |
+| `npm test` | 兼容 / 配置 / 服务器 / 渲染等套件 36 项 | `36 通过 / 0 失败` | 运行时被改动、配置不合法 |
 | `npm run verify` | 冒烟 + 两个运行时装配验证 | 全 PASS | 装配链路坏了 |
 | `npm run audit` | 一致性 + 组件拆装 | 全 PASS | 文档/契约与源码不一致 |
 | `node tools/check-compat.js` | Node 13.14 禁用语法 | `[PASS] 未发现禁用语法` | 用了 `?.`、`??`、`replaceAll` 等 |
@@ -566,7 +566,7 @@ curl -I https://your.site/src/themes.json
     A：`npm test` 约 2 秒（30 项）；`npm run verify` 与 `npm run audit` 各约数秒到十几秒。
 
 28. **Q：测试失败会不会是环境问题？**
-    A：沙箱里 server 套件可能降级同进程；以「35 通过/0 失败」为准，失败先看具体断言。
+    A：沙箱里 server 套件可能降级同进程；以「36 通过/0 失败」为准，失败先看具体断言。
 
 29. **Q：如何确认当前页面加载的是哪个版本？**
     A：控制台 `KUI.info().version`，应为 `1.4.1`。
@@ -580,7 +580,7 @@ curl -I https://your.site/src/themes.json
 
 逐项打勾，全绿再发布：
 
-- [ ] 1. `npm test` → 35 通过 / 0 失败
+- [ ] 1. `npm test` → 36 通过 / 0 失败
 - [ ] 2. `npm run verify` 全 PASS
 - [ ] 3. `npm run audit` 全 PASS
 - [ ] 4. `node tools/check-compat.js` → 未发现禁用语法
@@ -620,7 +620,7 @@ node tools/check-compat.js
 #    KUI.info()  // version 1.4.1, controls 42, themes 6
 ```
 
-预期：自检脚本退出码 0；`npm test` 35 通过；面板右下角出现且 `env` 行版本为 1.4.1。
+预期：自检脚本退出码 0；`npm test` 35 通过；面板右下角出现且 `env` 行版本为 1.4.2。
 
 ## 参考源码
 

@@ -1,6 +1,6 @@
 # 07 · 表单引擎：布局、绑定、校验与联动
 
-> 适用版本：KurumiUI v1.4.1 ｜ 前置章节：[05-controls-input.md](05-controls-input.md) ｜ 阅读时长：约 35 分钟
+> 适用版本：KurumiUI v1.4.2 ｜ 前置章节：[05-controls-input.md](05-controls-input.md) ｜ 阅读时长：约 35 分钟
 
 表单引擎即 `type:"form"` 背后的 `KUI.form`（`src/components/form.js`）：把 `props.nodes` 渲染成控件、按 `data` 回填、统一校验与 `deps` 联动，实例挂到 `hostEl.__kuiForm`。
 

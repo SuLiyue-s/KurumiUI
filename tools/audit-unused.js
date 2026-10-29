@@ -46,7 +46,7 @@ var ALLOW = {
   publicTokens: {
     '--kui-radius-xl': 1, '--kui-z-header': 1, '--kui-z-mask': 1,
     '--kui-z-fullscreen': 1, '--kui-z-content': 1, '--kui-z-art': 1,
-    '--kui-z-dialog': 1, '--kui-z-toast': 1, '--kui-popup-z': 1
+    '--kui-z-dialog': 1, '--kui-z-toast': 1, '--kui-popup-z': 1, '--kui-z-popup': 1
   },
   dataAttr: {
     /* 可观测性标记：框架写进 DOM 供 DevTools/用户脚本/回归测试观察，框架自身不需要回读 */

@@ -374,3 +374,21 @@ node tools/check-assets.js                # HTML 引用完整性
 | 需要长期防回归 | 无自动检查 | 新增 `tools/audit-unused.js` + npm scripts + smoke `[31]` | ERROR 0 / WARN 0；`npm run audit` 串联通过 |
 
 **回归数字**：`test/run.js` **35/0/0**（Node24 & Node13.14）；`smoke.js` **115/0**；`audit-unused` ERROR 0 / WARN 0；`audit-consistency` 17/0；`audit-components` 19/0；`audit-all-pages` 20/20；`audit-config` 0 缺口；`check-assets` 22/0/0；`check-manual` 0/0；`check-beginner-manual` 0/0；`verify-build` 6/0。
+
+## v1.4.2 表格控件主题化 + 原生控件清零（2026-10-29）
+
+**需求来源**：用户第 34 轮反馈（原生 select / radio / checkbox 截图；选中高亮偶数行失效；选择框样式与表单不一致；测试页未进菜单；要查覆盖率），并要求修复后审计同类问题。
+
+| # | 反馈 | 根因 | 修复 | 验证 |
+| --- | --- | --- | --- | --- |
+| 1 | 表格筛选 / 每页条数是浏览器原生样式 | `datatable.js` 直接 `el('select')`；`misc.js` 分页 sizer 同样 | 新增 `KUI.dropdown`（core），datatable `themedSelect()` 与分页 sizer 改用主题化下拉，缺内核时回退原生 | 浏览器：展开/选择/KB/点外关闭正常；快照无原生 `<select>` |
+| 2 | 表单页 radio / checkbox 呈原生样式 | 6 个页面未引用 `controls.css`（`pages/notify.html`、`standalone/handlers|menu|menunav|tabs|toast.html`） | 补齐 `<link controls.css>` | `pages/notify.html` 下拉/复选主题化截图 |
+| 3 | 表格选中高亮偶数行不生效 | 斑马纹 `:nth-child(even)` 优先级高于 `.is-selected`，悬停同理 | 条纹/悬停规则排除 `.is-selected`，选中规则提升特异度 | 选中第 1、2 行均高亮（截图为证） |
+| 4 | 表格单选/复选样式应与表单一致 | datatable 自绘 `.kui-datatable__check*` | 改用 `.kui-checkbox` / `.kui-radio` 结构与样式，删除自绘 | 浏览器对比表单页外观一致 |
+| 5 | 测试页未集成到菜单；检查覆盖率 | `standalone/boot.html`、`standalone/datatable.html` 未入菜单；无覆盖率工具 | 菜单「观测回廊」+2 项；新增 `tools/coverage.js` + `npm run coverage` | 菜单可见两项；覆盖率 38%（8233/21657） |
+| 附 | 分页/工具栏文案显示 `{36}` 残片 | `KUI.fmt` 不认 `{{…}}`，兜底文案普遍双花括号 | `fmt` 同时兼容 `{{a.b}}` 与 `{a}` | 表格文案正常；`test/render.test.js` fmt 用例 |
+| 附 | dropdown 锚点无文字 | `syncAnchor()` 首行 `if (!root) return;`，构建期 root 为 null | 改 `if (!anchor) return;` | 列筛选/每页条数按钮文案正常 |
+
+**同类问题审计（第 34 轮要求）**：① 全仓 grep 原生 `createElement('select'|'input'|'textarea')` 在 `src/components/**` 的实例 → 结论：表单控件与 select 控件本就走主题化，其余为隐藏 file input（合规）；② 覆盖/特异性扫描所有 `:nth-child` 斑马纹规则 → 仅 datatable 一处；③ 复选框自绘样式扫描 → 仅 datatable 一处已删；④ 双花括号文案 grep → 15 处兜底文案全部经 `fmt` 修复生效；⑤ 页面样式引用完整性 → `check-assets` 新增校验（见 §14）；⑥ 菜单可达性 → 全部独立页/页均可达。
+
+**回归数字**：`test/run.js` **36/0/0**（Node24 & Node13.14）；`smoke.js` **123/0**；`audit-consistency` 17/0；`audit-components` 19/0；`audit-all-pages` 20/20；`audit-config` 0 缺口；`audit-unused` ERROR 0 / WARN 0 / INFO 87；`check-assets` 22/0/0；`check-manual` 0/0；`check-beginner-manual` 0/0；`verify-build` 6/0；覆盖率 45.6%（9867/21657 行，38 文件）。

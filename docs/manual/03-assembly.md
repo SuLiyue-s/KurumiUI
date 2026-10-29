@@ -1,6 +1,6 @@
 # 03 · 组装
 
-> 适用版本：KurumiUI v1.4.1 ｜ 前置章节：02-build.md ｜ 阅读时长：约 16 分钟
+> 适用版本：KurumiUI v1.4.2 ｜ 前置章节：02-build.md ｜ 阅读时长：约 16 分钟
 
 一个 KurumiUI 页面 = 几个 `<link>` + 一个 `<script>` + 一到两个挂载点。本章拆开 `index.html`，讲清单入口 `kui-all.js` 如何注入模块、`bootstrap.js` 如何四步起界面，并给 5 种装配配方。
 

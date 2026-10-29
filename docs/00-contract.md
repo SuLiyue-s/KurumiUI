@@ -780,3 +780,33 @@ dialog iframe→主框架：
 5. 删除功能时同步删除其样式类、token、data 属性与函数，避免再次出现「只写不读」。
 
 **存储读取优先级（v1.4.1 起）**：`avatar.persist` 为真时，`localStorage[storageKey]` 中的用户选择优先于配置 `url`；清除存储后回退配置。
+
+## §24 KUI.dropdown 与 KUI.fmt 双花括号兼容（v1.4.2）
+
+### 24.1 KUI.dropdown(anchor, options, opts) → api
+
+主题化下拉菜单（非原生 `<select>`）。`anchor` 为任意可聚焦元素（通常是按钮）；面板挂在 `document.body`，自动定位、上下翻转。
+
+| 参数 | 类型 | 说明 |
+| --- | --- | --- |
+| `anchor` | HTMLElement | 锚点元素（按钮），组件只改其文本/aria 与点击行为，不替换节点 |
+| `options` | Array | `[{ value, label, icon?, disabled? }]`；也支持 `{ label, items:[…] }` 分组 |
+| `opts` | Object | `value` 初值、`minWidth` 面板最小宽、`maxHeight` 面板最大高、`ariaLabel`、`placement: 'auto'\|'bottom-start'\|'top-start'`、`onSelect(value, item)` |
+
+实例 API：`open() / close() / toggle() / isOpen() / setValue(value, silent?) / getValue() / setOptions(list) / destroy() / el / _refreshPosition()`。
+
+键盘与可访问性：↑↓ 移动焦点、Enter/Space 选中、Esc 关闭；`role="listbox" / "option"`、`aria-haspopup="listbox"`、`aria-expanded`；点击外部、页面滚动、窗口 resize 自动关闭。
+
+样式类（`src/styles/base.css`）：`.kui-dropdown`、`.kui-dropdown__option(.is-selected/.is-focus/.is-disabled)`、`.kui-dropdown__check`、`.kui-dropdown-anchor-glyph`；层级使用新 token `--kui-z-popup: 1500`（低于 dialog 2000）。
+
+**拆装性**：`KUI.dropdown` 属于 core（`kui.js`），所有组件共享；`datatable` / `pagination` 内部按 `KUI.dropdown ? 用它 : 原生 select` 回退，因此把 core 换成精简版也不会报错。
+
+### 24.2 KUI.fmt 双花括号兼容
+
+`KUI.fmt(str, vars)` 现同时支持：
+
+- `{{name}}`、`{{a.b}}`（点路径）——组件兜底文案的写法；
+- `{name}`、`{0}`（数字索引）——历史写法。
+
+原因：v1.4.2 修复「共 {36} 条 / 已选 {2} 项 / {6} 条/页」残片——兜底文案是 `{{total}}` 形式，而 `fmt` 只认 `{total}`，导致 `{{total}}` 被替换为 `{7}`。
+

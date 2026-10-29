@@ -5,6 +5,7 @@ node_modules/
 config/bundle.js
 src/core/kui-all.js
 .shots/
+.coverage/
 
 # 本机工具链（Node 13.14 兼容性验证用，不入库）
 .tools/

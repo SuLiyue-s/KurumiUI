@@ -88,6 +88,37 @@
     return box;
   }
 
+
+  /* 主题化下拉（v1.4.2）：优先 KUI.dropdown；内核缺失时回退原生 select，保证可拆卸 */
+  function themedSelect(btnCls, items, value, ariaLabel, onChange) {
+    if (KUI.dropdown) {
+      var btn = el('button', btnCls);
+      btn.type = 'button';
+      btn.setAttribute('aria-label', ariaLabel || '');
+      var dd = KUI.dropdown(btn, items, {
+        value: value,
+        ariaLabel: ariaLabel || '',
+        onSelect: function (v) { onChange(v); }
+      });
+      on(btn, 'click', function (ev) {
+        if (ev && ev.preventDefault) { ev.preventDefault(); }
+        if (ev && ev.stopPropagation) { ev.stopPropagation(); }
+        if (dd) { dd.toggle(); }
+      });
+      return btn;
+    }
+    var sel = el('select', btnCls);
+    sel.setAttribute('aria-label', ariaLabel || '');
+    for (var i = 0; i < items.length; i++) {
+      var o = el('option', '', items[i].label);
+      o.value = String(items[i].value);
+      if (String(items[i].value) === String(value)) { o.selected = true; }
+      sel.appendChild(o);
+    }
+    on(sel, 'change', function () { onChange(sel.value); });
+    return sel;
+  }
+
   function addClass(node, cls) {
     if (!node || !cls) { return node; }
     var list = String(cls).split(/\s+/);
@@ -699,16 +730,21 @@
       for (var i = 0; i < state.columns.length; i++) {
         (function (col) {
           if (col.type === 'actions') { return; }
-          var row = el('label', 'kui-datatable__col-menu-item');
-          var box = el('input', 'kui-datatable__col-menu-input');
+          var row = el('label', 'kui-datatable__col-menu-item kui-checkbox');
+          var box = el('input', 'kui-checkbox__input kui-datatable__col-menu-input');
           box.setAttribute('type', 'checkbox');
           box.checked = !state.hiddenCols[col.key];
+          var vis = el('span', 'kui-checkbox__box');
+          vis.appendChild(iconEl('check', 'kui-checkbox__tick', 12));
+          if (box.checked) { addClass(row, 'is-checked'); }
           on(box, 'change', function () {
+            toggleClass(row, 'is-checked', box.checked);
             if (box.checked) { delete state.hiddenCols[col.key]; }
             else { state.hiddenCols[col.key] = true; }
             render();
           });
           row.appendChild(box);
+          row.appendChild(vis);
           row.appendChild(el('span', '', col.title || col.key));
           colMenuEl.appendChild(row);
         })(state.columns[i]);
@@ -740,20 +776,15 @@
             var type = col.filter.type || 'text';
             var fstate = state.colFilters[col.key] || null;
             if (type === 'select') {
-              var sel = el('select', 'kui-datatable__filter-select');
+              var selItems = [{ value: '', label: text('filterAll', '全部') }];
               var opts = isArr(col.filter.options) ? col.filter.options : [];
-              var allOpt = el('option', '', text('filterAll', '全部'));
-              allOpt.value = '';
-              sel.appendChild(allOpt);
               var seen = {};
               for (var o = 0; o < opts.length; o++) {
                 var op = isObj(opts[o]) ? opts[o] : { value: opts[o], label: opts[o] };
                 var oval = str(op.value);
                 if (seen[oval]) { continue; }
                 seen[oval] = true;
-                var opt = el('option', '', str(op.label !== undefined ? op.label : op.value));
-                opt.value = oval;
-                sel.appendChild(opt);
+                selItems.push({ value: oval, label: displayText(op.label !== undefined ? op.label : op.value) });
               }
               if (col.dict) {
                 for (var dk in col.dict) {
@@ -761,20 +792,17 @@
                   seen[dk] = true;
                   var dmeta = col.dict[dk];
                   var dlabel = isObj(dmeta) ? (dmeta.label !== undefined ? dmeta.label : dmeta.text) : dmeta;
-                  var dopt = el('option', '', displayText(dlabel));
-                  dopt.value = String(dk);
-                  sel.appendChild(dopt);
+                  selItems.push({ value: String(dk), label: displayText(dlabel) });
                 }
               }
-              if (fstate && fstate.value !== undefined) { sel.value = String(fstate.value); }
-              on(sel, 'change', function () {
-                if (sel.value === '') { delete state.colFilters[col.key]; }
-                else { state.colFilters[col.key] = { type: 'select', value: sel.value }; }
+              var selValue = fstate && fstate.value !== undefined ? String(fstate.value) : '';
+              field.appendChild(themedSelect('kui-datatable__filter-select', selItems, selValue, (col.title || col.key), function (v) {
+                if (v === '') { delete state.colFilters[col.key]; }
+                else { state.colFilters[col.key] = { type: 'select', value: v }; }
                 state.page = 1;
                 render();
                 fire('filter', { keyword: state.keyword, columns: state.colFilters, reason: 'column' });
-              });
-              field.appendChild(sel);
+              }));
             } else if (type === 'range') {
               var rw = el('span', 'kui-datatable__filter-range');
               var minIn = el('input', 'kui-datatable__filter-input kui-datatable__filter-input--num');
@@ -886,13 +914,21 @@
       if (props.selection && (props.selection.mode === 'multi' || props.selection.mode === 'single')) {
         var thSel = el('th', 'kui-datatable__th kui-datatable__th--selection');
         if (props.selection.mode === 'multi' && props.selection.showSelectAll !== false) {
-          var wrap = el('label', 'kui-datatable__check');
-          var input = el('input', 'kui-datatable__check-input');
+          var wrap = el('label', 'kui-checkbox kui-datatable__select-all');
+          var input = el('input', 'kui-checkbox__input');
           input.setAttribute('type', 'checkbox');
-          var box = el('span', 'kui-datatable__check-box');
+          var box = el('span', 'kui-checkbox__box');
+          box.appendChild(iconEl('check', 'kui-checkbox__tick', 12));
           input.checked = allPageSelected();
           input.indeterminate = !input.checked && somePageSelected();
-          on(input, 'change', function () { toggleSelectAll(input.checked); });
+          if (input.checked) { addClass(wrap, 'is-checked'); }
+          if (input.indeterminate) { addClass(wrap, 'is-indeterminate'); }
+          on(input, 'change', function () {
+            toggleSelectAll(input.checked);
+            toggleClass(wrap, 'is-checked', input.checked);
+            toggleClass(wrap, 'is-indeterminate', false);
+            input.indeterminate = false;
+          });
           wrap.appendChild(input);
           wrap.appendChild(box);
           thSel.appendChild(wrap);
@@ -949,14 +985,19 @@
       if (state.selected[key]) { addClass(tr, 'is-selected'); }
       if (props.selection && props.selection.mode !== 'none') {
         var tdSel = el('td', 'kui-datatable__td kui-datatable__td--selection');
-        var wrap = el('label', 'kui-datatable__check');
-        var input = el('input', 'kui-datatable__check-input');
-        input.setAttribute('type', props.selection.mode === 'single' ? 'radio' : 'checkbox');
+        var singleMode = props.selection.mode === 'single';
+        var wrap = el('label', singleMode ? 'kui-radio' : 'kui-checkbox');
+        var input = el('input', singleMode ? 'kui-radio__input' : 'kui-checkbox__input');
+        input.setAttribute('type', singleMode ? 'radio' : 'checkbox');
+        if (singleMode) { input.setAttribute('name', 'kui-datatable-radio-' + (root.id || 'dt')); }
+        var box = el('span', singleMode ? 'kui-radio__box' : 'kui-checkbox__box');
+        if (singleMode) { box.appendChild(el('span', 'kui-radio__dot')); }
+        else { box.appendChild(iconEl('check', 'kui-checkbox__tick', 12)); }
         input.checked = !!state.selected[key];
-        if (props.selection.mode === 'single') { addClass(wrap, 'is-radio'); }
-        var box = el('span', 'kui-datatable__check-box');
+        if (input.checked) { addClass(wrap, 'is-checked'); }
         on(input, 'change', function (ev) {
           if (ev && ev.stopPropagation) { ev.stopPropagation(); }
+          toggleClass(wrap, 'is-checked', input.checked);
           setRowSelected(row, key, input.checked, 'checkbox');
         });
         wrap.appendChild(input);
@@ -1181,23 +1222,18 @@
       on(next, 'click', function () { goPage(state.page + 1, 'next'); });
       pager.appendChild(next);
       if (pg.showSizer !== false && isArr(pg.pageSizes) && pg.pageSizes.length) {
-        var sizer = el('select', 'kui-pagination__sizer');
-        sizer.setAttribute('aria-label', text('pageSize', '每页条数'));
+        var sizeItems = [];
         for (var s = 0; s < pg.pageSizes.length; s++) {
           var size = num(pg.pageSizes[s], 0);
           if (!size) { continue; }
-          var opt = el('option', '', text('pageSizeOption', '{{size}} 条/页', { size: size }));
-          opt.value = String(size);
-          if (size === state.pageSize) { opt.selected = true; }
-          sizer.appendChild(opt);
+          sizeItems.push({ value: String(size), label: text('pageSizeOption', '{{size}} 条/页', { size: size }) });
         }
-        on(sizer, 'change', function () {
-          state.pageSize = Math.max(1, num(sizer.value, state.pageSize));
+        pager.appendChild(themedSelect('kui-pagination__sizer', sizeItems, String(state.pageSize), text('pageSize', '每页条数'), function (v) {
+          state.pageSize = Math.max(1, num(v, state.pageSize));
           state.page = 1;
           render();
           fire('page', { page: state.page, pageSize: state.pageSize, total: filteredRows.length, reason: 'pageSize' });
-        });
-        pager.appendChild(sizer);
+        }));
       }
       if (pg.showJumper !== false) {
         var jumper = el('span', 'kui-pagination__jumper');

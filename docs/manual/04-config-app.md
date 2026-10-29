@@ -1,6 +1,6 @@
 # 04 · 配置总览 + app.json 全字段
 
-> 适用版本：KurumiUI v1.4.1 ｜ 前置章节：[03-assembly.md](03-assembly.md) ｜ 阅读时长：约 40 分钟
+> 适用版本：KurumiUI v1.4.2 ｜ 前置章节：[03-assembly.md](03-assembly.md) ｜ 阅读时长：约 40 分钟
 
 ## 本章目标
 

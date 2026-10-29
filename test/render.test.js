@@ -790,4 +790,61 @@ module.exports = function register(suite, ctx) {
     }
   });
 
+  /**
+   * 13. KUI.dropdown：锚点标签、展开/选择/关闭、fmt 双花括号兼容（v1.4.2）
+   */
+  suite.test('dropdown：锚点标签 + 展开 + 选择 + 关闭；KUI.fmt 兼容 {{name}}（v1.4.2）', function () {
+    var rt = boot();
+    try {
+      var win = rt.win;
+      var doc = rt.doc;
+      var KUI = rt.KUI;
+      ctx.assert.ok(KUI.dropdown, 'KUI.dropdown 应存在');
+
+      // fmt：单/双花括号与点路径
+      ctx.assert.strictEqual(KUI.fmt('共 {total} 条', { total: 7 }), '共 7 条', '单花括号插值');
+      ctx.assert.strictEqual(KUI.fmt('共 {{total}} 条', { total: 7 }), '共 7 条', '双花括号也应插值（v1.4.2 修复）');
+      ctx.assert.strictEqual(KUI.fmt('{{a.b}} / {0}', { a: { b: 'x' }, 0: 'y' }), 'x / y', '点路径与索引变量');
+
+      var host = doc.createElement('div');
+      doc.body.appendChild(host);
+      var anchor = doc.createElement('button');
+      anchor.type = 'button';
+      anchor.className = 'kui-test-anchor';
+      host.appendChild(anchor);
+
+      var picked = null;
+      var dd = KUI.dropdown(anchor, [
+        { value: '', label: '全部' },
+        { value: 'a', label: '选项 A' },
+        { value: 'b', label: '选项 B' }
+      ], { value: '', ariaLabel: '测试下拉', onSelect: function (v) { picked = v; } });
+
+      ctx.assert.ok(dd, 'KUI.dropdown 应返回实例');
+      // 构建后锚点就应有可见文案（v1.4.2 修复：syncAnchor 曾因 root 尚未创建而直接 return）
+      ctx.assert.strictEqual(anchor.textContent.replace('▾', '').trim(), '全部', '锚点应显示当前项文案，实际 ' + anchor.textContent);
+      ctx.assert.strictEqual(anchor.getAttribute('aria-haspopup'), 'listbox', '锚点应有 aria-haspopup');
+
+      dd.open();
+      ctx.assert.strictEqual(dd.isOpen(), true, 'open 后应展开');
+      ctx.assert.strictEqual(anchor.getAttribute('aria-expanded'), 'true', '展开时 aria-expanded 应为 true');
+      var menu = doc.getElementById(dd.el && dd.el.id ? dd.el.id : '');
+      ctx.assert.ok(doc.querySelector('.kui-dropdown'), '弹层应挂载到 body');
+      var optB = doc.querySelectorAll('.kui-dropdown__option')[2];
+      ctx.assert.ok(optB, '应有第 3 个选项');
+      optB.click();
+      ctx.assert.strictEqual(picked, 'b', '点击选项应触发 onSelect');
+      ctx.assert.strictEqual(dd.getValue(), 'b', 'getValue 应为 b');
+      ctx.assert.strictEqual(dd.isOpen(), false, '选择后应收起');
+      ctx.assert.strictEqual(anchor.textContent.replace('▾', '').trim(), '选项 B', '锚点文案应更新为选中项');
+
+      dd.close();
+      dd.destroy();
+      ctx.assert.strictEqual(doc.querySelector('.kui-dropdown'), null, 'destroy 后弹层应移除');
+    } finally {
+      teardown(rt);
+    }
+  });
+
 };
+

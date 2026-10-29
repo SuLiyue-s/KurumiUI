@@ -1733,6 +1733,81 @@ currentSection = 31;  console.log('\n[31] 未消费资产与持久化（v1.4.1�
     return '运行时头像持久化 OK';
   });
 
+currentSection = 32;  console.log('\n[32] 主题化控件与表格一致性（v1.4.2）');
+
+  check('[32.1] KUI.dropdown 已提供，锚点构建即显示当前项文案', function () {
+    assert(typeof KUI.dropdown === 'function', 'KUI.dropdown 应为函数');
+    var host = env.document.createElement('div');
+    env.document.body.appendChild(host);
+    var anchor = env.document.createElement('button');
+    host.appendChild(anchor);
+    var picked = null;
+    var dd = KUI.dropdown(anchor, [{ value: '', label: '全部' }, { value: 'a', label: 'A' }], {
+      value: '', ariaLabel: '冒烟下拉', onSelect: function (v) { picked = v; }
+    });
+    assert(dd && anchor.textContent.indexOf('全部') === 0, '锚点应显示当前项，实际 ' + anchor.textContent);
+    dd.open();
+    var opt = env.document.querySelectorAll('.kui-dropdown__option')[1];
+    assert(opt, '弹层应有选项');
+    opt.click();
+    assert(picked === 'a' && dd.getValue() === 'a', '选择应生效');
+    dd.destroy();
+    if (host.parentNode) { host.parentNode.removeChild(host); }
+    return 'dropdown 可用';
+  });
+
+  check('[32.2] KUI.fmt 兼容 {{name}} 双花括号（兜底文案不再输出 {n} 残片）', function () {
+    assert(KUI.fmt('共 {{total}} 条', { total: 7 }) === '共 7 条', '双花括号应插值，实际 ' + KUI.fmt('共 {{total}} 条', { total: 7 }));
+    assert(KUI.fmt('共 {total} 条', { total: 7 }) === '共 7 条', '单花括号应插值');
+    return 'fmt 兼容双花括号';
+  });
+
+  check('[32.3] datatable 不再生成原生 select（列筛选/每页条数走 KUI.dropdown）', function () {
+    var src = fs.readFileSync(path.join(ROOT, 'src/components/datatable.js'), 'utf8');
+    assert(src.indexOf("el('select', 'kui-datatable__filter-select')") === -1, '列筛选仍使用原生 select');
+    assert(src.indexOf("el('select', 'kui-pagination__sizer')") === -1, '分页 sizer 仍使用原生 select');
+    assert(src.indexOf('KUI.dropdown(') !== -1, 'datatable 应调用 KUI.dropdown');
+    return '无原生 select';
+  });
+
+  check('[32.4] datatable 选择框复用框架 .kui-checkbox / .kui-radio', function () {
+    var src = fs.readFileSync(path.join(ROOT, 'src/components/datatable.js'), 'utf8');
+    assert(src.indexOf('kui-checkbox__box') !== -1, '选择框应使用框架 checkbox 标记');
+    assert(src.indexOf('kui-radio__box') !== -1, '单选框应使用框架 radio 标记');
+    var css = fs.readFileSync(path.join(ROOT, 'src/styles/datatable.css'), 'utf8');
+    assert(css.indexOf('.kui-datatable__check-box') === -1, '旧的自绘选择框样式应已删除');
+    return '选择框已统一';
+  });
+
+  check('[32.5] 表格条纹/悬停不覆盖选中行（偶数行选中生效）', function () {
+    var css = fs.readFileSync(path.join(ROOT, 'src/styles/datatable.css'), 'utf8');
+    assert(css.indexOf(':not(.is-selected)') !== -1, '条纹/悬停规则应排除 is-selected');
+    return '选中行优先级已修正';
+  });
+
+  check('[32.6] 缺 controls.css 的 6 个页面已补齐（表单控件主题化）', function () {
+    var files = ['pages/notify.html', 'standalone/handlers.html', 'standalone/menu.html',
+      'standalone/menunav.html', 'standalone/tabs.html', 'standalone/toast.html'];
+    for (var i = 0; i < files.length; i++) {
+      var html = fs.readFileSync(path.join(ROOT, files[i]), 'utf8');
+      assert(/styles\/controls\.css/.test(html), files[i] + ' 未引用 controls.css');
+    }
+    return '6 页已补齐';
+  });
+
+  check('[32.7] 展示菜单包含新增测试页（boot / datatable）', function () {
+    var appJson = JSON.parse(fs.readFileSync(path.join(ROOT, 'config/app.json'), 'utf8'));
+    var texts = JSON.stringify(appJson.menu || {});
+    assert(texts.indexOf('standalone/boot.html') !== -1, '菜单缺少加载层测试页');
+    assert(texts.indexOf('standalone/datatable.html') !== -1, '菜单缺少数据表格测试页');
+    return '菜单已含 2 个测试页';
+  });
+
+  check('[32.8] 覆盖率工具存在（tools/coverage.js）', function () {
+    assert(fs.existsSync(path.join(ROOT, 'tools/coverage.js')), '缺少 tools/coverage.js');
+    return 'coverage 工具存在';
+  });
+
 currentSection = 6;   console.log('\n[6] 控制台与错误汇总');
       check('加载与启动期无 console.error', function () {
         assert(consoleErrors.length === 0, consoleErrors.slice(0, 3).join(' | '));

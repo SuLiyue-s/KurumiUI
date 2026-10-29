@@ -1,6 +1,6 @@
 {
   "name": "kurumi-ui",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "private": true,
   "description": "KurumiUI —— 科技未来 + 动漫（时崎狂三）风格的配置驱动、可拆解 UI 框架",
   "main": "server.js",
@@ -24,7 +24,9 @@
     "audit:components": "node tools/audit-components.js",
     "audit": "node tools/audit-consistency.js && node tools/audit-components.js && node tools/audit-unused.js --strict",
     "build": "node tools/build-config.js && node tools/build-all.js",
-    "audit:unused": "node tools/audit-unused.js --strict"
+    "audit:unused": "node tools/audit-unused.js --strict",
+    "coverage": "node tools/coverage.js --all",
+    "coverage:json": "node tools/coverage.js --all --json"
   },
   "engines": {
     "node": ">=13.14.0"
