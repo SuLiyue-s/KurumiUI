@@ -1,6 +1,6 @@
 # 02 · 构建与产物
 
-> 适用版本：KurumiUI v1.4.2 ｜ 前置章节：01 · 安装与首次运行 ｜ 阅读时长：约 20 分钟
+> 适用版本：KurumiUI v1.4.3 ｜ 前置章节：01 · 安装与首次运行 ｜ 阅读时长：约 20 分钟
 
 ## 本章目标
 
@@ -209,7 +209,7 @@ node -e "var m = require('./src/core/kui-all.js'); console.log(m.schema, Object.
 | 命令 | 校验对象 | 通过判据（当前仓库实测） | 退出码 |
 | --- | --- | --- | --- |
 | `npm test` | compat / config / server / render 四套件共 33 条用例 | 末行 `=> PASS`；缺 `.tools/` 时 Node 13 用例 SKIP | 0 / 1 |
-| `npm run verify` | 冒烟 123 项 + handlers 演示页 + 弹窗动作桥 + 产物一致性 | `123 通过 / 0 失败` 与三个 ✔ / PASS | 0 / 1（&&） |
+| `npm run verify` | 冒烟 125 项 + handlers 演示页 + 弹窗动作桥 + 产物一致性 | `125 通过 / 0 失败` 与三个 ✔ / PASS | 0 / 1（&&） |
 | `npm run audit` | 一致性审计 17 项 + 组件拆装审计 19 项 | `通过 17 项 / 失败 0 项 / 警告 0 项` 与 `通过 19 项 / 失败 0 项` | 0 / 1（&&） |
 | `node tools/check-compat.js` | 全项目 JS 与 HTML 内联脚本的禁用语法 / API，并用 Node 13.14 做语法校验 | `[PASS] 未发现禁用语法 / API`；`.tools/` 缺失时降级为当前运行时并打印 `[INFO]` | 0 / 1 |
 | `node tools/check-assets.js` | 22 个 HTML 的 `link` / `script` 引用：存在、非空、外链、重复、ESM | 末行 `汇总: 22 个 HTML，错误 0 个，警告 0 个` | 0 / 1 |

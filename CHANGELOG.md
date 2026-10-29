@@ -1,3 +1,24 @@
+## v1.4.3（2026-10-30）
+
+> 修复 v1.4.2 表格行状态样式的两处回归：偶数行悬停/选中失效、悬停叠色过淡。
+
+### 1. 问题与根因
+
+- **偶数行悬停/选中失效**：条纹规则 `.is-striped .kui-datatable__body .row:nth-child(even)` 特异度（0,5,0）高于选中（0,2,0）与悬停（0,3,0）；v1.4.2 把 `background` 简写改为 `background-color` 后悬停的 `background-image` 不再被重置，但偶数行选中底色仍被条纹覆盖，悬停叠加也因底色不同而观感不明显。
+- **悬停过淡**：v1.4.2 用不透明深灰 `--kui-control-bg-hover` 叠加，在表格行上对比不足，且亮色主题缺少对应叠色。
+
+### 2. 修复
+
+- 条纹规则加 `:not(.is-selected):not(.is-active)`：状态行不再参与条纹，从根本上消除特异度竞争；
+- 新增 scheme 级 token `--kui-dt-hover-overlay`（暗 `rgba(255,255,255,.14)` / 亮 `rgba(0,0,0,.10)`）与 `--kui-dt-hover-selected`（accent 叠色，选中/高亮行悬停更红）；
+- 行状态统一 `background-color`，悬停统一 `background-image`，不再使用 `background` 简写；
+- `test/render.test.js` 与 `tools/smoke.js [32.5]/[32.9]/[32.10]` 增加回归防护断言。
+
+### 3. 验证
+
+- 真实浏览器（1280×800）像素采样：选中行未悬停 `R=101,G=39,B=52`；偶数选中行悬停 `R=120,G=41,B=57`（红色增强）；奇数未选中 `R=45,G=40,B=47`、偶数未选中 `R=49,G=43,B=52`（条纹可辨、悬停提亮）。
+- `test/run.js` **37/0/0**（Node24 & Node13.14）；`smoke.js` **125/0**；`check-assets` 22/0/0；`audit-consistency` 17/0；`audit-components` 19/0；`audit-all-pages` 20/20；`audit-config` 0 缺口；`audit-unused` ERROR 0 / WARN 0 / INFO 87；`verify-build` 6/0；`check-manual` 与 `check-beginner-manual` 0/0。
+
 ## v1.4.2（2026-10-29）— 表格控件主题化 + 原生控件清零 + 第 34 轮同类问题审计
 
 > 需求（用户）：「表格中部分组件仍是浏览器原生样式（筛选下拉 / 单选 / 复选框）→ 要修复，并检查其他未使用主题样式的组件；表格选中高亮偶数行不生效；表格单选/复选框样式应参考表单内的；有几个测试页未集成到展示菜单；检查代码覆盖率。修复以上问题后，要审计是否存在同类型问题，存在则修复。」

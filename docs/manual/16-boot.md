@@ -1,6 +1,6 @@
 # 16 · 加载层组件 boot：启动屏、时钟指针进度与拆装指南
 
-> 适用版本：KurumiUI v1.4.2 ｜ 前置章节：[03-assembly.md](03-assembly.md)、[04-config-app.md](04-config-app.md)、[08-components.md](08-components.md) ｜ 阅读时长：约 50 分钟
+> 适用版本：KurumiUI v1.4.3 ｜ 前置章节：[03-assembly.md](03-assembly.md)、[04-config-app.md](04-config-app.md)、[08-components.md](08-components.md) ｜ 阅读时长：约 50 分钟
 
 ## 本章目标
 

@@ -7,13 +7,17 @@
 /* ==========================================================================
    1. 容器与尺寸
    ========================================================================== */
+/* v1.4.3：悬停叠加色随主题 scheme 变化（暗色提亮、亮色压暗），保证任何底色上都可辨识 */
+:root { --kui-dt-hover-overlay: rgba(255, 255, 255, 0.14); --kui-dt-hover-selected: rgba(226, 32, 64, 0.16); }
+:root[data-kui-scheme="light"] { --kui-dt-hover-overlay: rgba(0, 0, 0, 0.10); --kui-dt-hover-selected: rgba(189, 33, 56, 0.10); }
+
 .kui-datatable {
   --kui-dt-header-bg: var(--kui-bg-2, #130d17);
   --kui-dt-header-fg: var(--kui-text-2, #bfaebd);
   --kui-dt-row-h: 42px;
   --kui-dt-cell-px: 12px;
   --kui-dt-border: var(--kui-border, rgba(244, 238, 240, 0.12));
-  --kui-dt-hover: var(--kui-control-bg-hover, rgba(255, 255, 255, 0.05));
+  --kui-dt-hover: var(--kui-dt-hover-overlay, rgba(255, 255, 255, 0.12));
   --kui-dt-active: var(--kui-accent-soft, rgba(200, 16, 46, 0.16));
   --kui-dt-selected: var(--kui-selection-bg, rgba(200, 16, 46, 0.1));
   display: flex;
@@ -329,24 +333,32 @@
   cursor: default;
 }
 /* 斑马纹（基础底色） */
-.kui-datatable.is-striped .kui-datatable__body .kui-datatable__row:nth-child(even) {
-  background: var(--kui-bg-2, #130d17);
+.kui-datatable.is-striped .kui-datatable__body .kui-datatable__row:nth-child(even):not(.is-selected):not(.is-active) {
+  /* v1.4.3：① 只用 background-color，避免 background 简写把悬停的 background-image 重置；
+     ② 显式排除选中/高亮行，否则条纹规则（特异度更高）会盖掉偶数行的选中底色 */
+  background-color: var(--kui-bg-2, #130d17);
 }
 /* 选中行：颜色最重，承担高亮语义（有选择列时高亮与勾选同源） */
-.kui-datatable__row.is-selected,
-.kui-datatable.is-striped .kui-datatable__body .kui-datatable__row.is-selected:nth-child(even) { background: var(--kui-dt-selected); }
+.kui-datatable__row.is-selected { background-color: var(--kui-dt-selected); }
 .kui-datatable__row.is-selected > .kui-datatable__td { color: var(--kui-text-1); }
 /* 无选择列时的行点击高亮 */
 .kui-datatable__row.is-active {
-  background: var(--kui-dt-active);
+  background-color: var(--kui-dt-active);
   box-shadow: inset 3px 0 0 var(--kui-accent, #c8102e);
 }
 .kui-datatable__row.is-active > .kui-datatable__td { color: var(--kui-text-1); }
 /* 悬停：叠加一层淡色（比选中/高亮淡），任何状态都生效；放在最后以保证压过条纹/选中 */
 .kui-datatable__row { transition: background-color .15s ease, background-image .15s ease, color .15s ease; }
 .kui-datatable.is-hoverable .kui-datatable__row:hover {
+  /* v1.4.3：叠加层（background-image）不依赖行底色，因此条纹/选中/高亮行都可叠加 */
   background-image: linear-gradient(var(--kui-dt-hover), var(--kui-dt-hover));
 }
+/* 选中/高亮行悬停：用 accent 叠色而不是白色，保持「红得更重」的语义 */
+.kui-datatable.is-hoverable .kui-datatable__row.is-selected:hover,
+.kui-datatable.is-hoverable .kui-datatable__row.is-active:hover {
+  background-image: linear-gradient(var(--kui-dt-hover-selected), var(--kui-dt-hover-selected));
+}
+
 .kui-datatable.is-hoverable .kui-datatable__row:hover > .kui-datatable__td { color: var(--kui-text-1); }
 .kui-datatable__row:focus-visible {
   outline: none;

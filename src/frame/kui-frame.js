@@ -751,7 +751,7 @@
   }
 
   var api = {
-    version: currentVersion() || '1.4.2',
+    version: currentVersion() || '1.4.3',
     /* 生命周期 */
     ready: ready,
     boot: boot,

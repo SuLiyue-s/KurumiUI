@@ -1,6 +1,6 @@
 # 08 · 组件详解：menu / menunav / tabs / dialog / toast / app-shell / boot
 
-> 适用版本：KurumiUI v1.4.2 ｜ 前置章节：[03-assembly.md](03-assembly.md)、[04-config-app.md](04-config-app.md)、[07-form-engine.md](07-form-engine.md) ｜ 阅读时长：约 45 分钟
+> 适用版本：KurumiUI v1.4.3 ｜ 前置章节：[03-assembly.md](03-assembly.md)、[04-config-app.md](04-config-app.md)、[07-form-engine.md](07-form-engine.md) ｜ 阅读时长：约 45 分钟
 
 ## 本章目标
 
@@ -1614,6 +1614,8 @@ KUI.bus.on('tabs:activate', function (payload) {
 **静态入口 `KUI.datatable`**（`src/components/datatable.js:1549-1582`）：`version`（组件自身版本 `'1.0.0'`，与框架版本无关）、`defaults`（组件默认值）、`create(host, props, ctx)`（按 `deepMerge(DEFAULTS, props)` 创建并记录为“最近实例”）、`get()`（返回最近创建的实例，无则 `null`），以及上列 37 个实例方法的同名委托（`setData…destroy`）：委托到 `currentInstance`，**无实例时静默返回 `undefined`**（不抛错）。所以单页最小用法是 `KUI.datatable.create(host, props)`，之后用 `KUI.datatable.get()` 或直接委托调用。
 
 ### 6.6.5 拆装
+
+**行状态与悬停**（v1.4.3）：选中（`is-selected`，有选择列时与勾选同源）> 点击高亮（`is-active`，无选择列且 `rowHighlight:true`）> 条纹（`striped:true` 的偶数行）> 普通行；悬停始终在最上层以 `background-image` 叠加，暗色主题提亮、亮色主题压暗，选中/高亮行悬停用 accent 叠色（更红）。对应 token：`--kui-dt-hover-overlay` / `--kui-dt-hover-selected`（见 [00-contract.md §24.3](../../docs/00-contract.md)）。
 
 从 `config/kui-modules.json` 的 `profiles.app.files` / `profiles.standalone.files` 移除 `src/components/datatable.js` → `npm run build:config`：`{type:'datatable'}` 渲染为未注册占位块，其他组件不受影响。单独页面只引 `base.css` + `datatable.css` + core 脚本 + `datatable.js`，然后 `KUI.datatable.create(host, props)` 手动挂载；参考 `standalone/datatable.html`。
 

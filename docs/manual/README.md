@@ -1,6 +1,6 @@
 # KurumiUI 使用手册
 
-> **适用版本：KurumiUI v1.4.2** ｜ 适用仓库：`SuLiyue-s/KurumiUI`（main 分支）｜ 手册语言：中文
+> **适用版本：KurumiUI v1.4.3** ｜ 适用仓库：`SuLiyue-s/KurumiUI`（main 分支）｜ 手册语言：中文
 > 本手册的所有字段、默认值、数量与行为，均以**仓库源码与运行时可枚举结果**为准；与 `docs/` 下旧文档或 `README.md` 冲突时，以源码为准（旧文档是设计档案，本手册是操作指南）。
 
 ---

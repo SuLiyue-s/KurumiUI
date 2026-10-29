@@ -18,7 +18,7 @@
  *   4. 每章元信息行：> 适用版本：KurumiUI v1.4.2 ｜ 难度 ｜ 前置章节 ｜ 阅读时长
  *   5. 必备小节：## 本章目标 / ## 本章小结 / ## 延伸阅读
  *   6. 所有 ```json 代码块可被 JSON.parse
- *   7. json 里的节点 type ∈ 运行时 41 个注册类型（action 同理）
+ *   7. json 里的节点 type ∈ 运行时 42 个注册类型（action 同理）
  *   8. 相对内链目标存在；禁止源码行号 / 绝对路径 / TODO·待核实
  *   9. 数量口径与运行时一致（注册类型 / 表单控件 / 内置动作 / 业务函数 / 主题）
  *  10. 章节体量下限（章 ≥ 6000 字符、README ≥ 4000 字符）
@@ -46,7 +46,7 @@ var EXPECTED = [
   '10-next-steps'
 ];
 
-var VER = '1.4.2';
+var VER = '1.4.3';
 var MIN_CHAPTER_CHARS = 6000;
 var MIN_README_CHARS = 4000;
 

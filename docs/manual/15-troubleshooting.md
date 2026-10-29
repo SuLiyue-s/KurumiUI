@@ -1,6 +1,6 @@
 # 15 · 排错手册、FAQ 与上线验收清单
 
-> 适用版本：KurumiUI v1.4.2 ｜ 前置章节：[03-assembly.md](03-assembly.md)、[11-api-messaging.md](11-api-messaging.md) ｜ 阅读时长：约 20 分钟
+> 适用版本：KurumiUI v1.4.3 ｜ 前置章节：[03-assembly.md](03-assembly.md)、[11-api-messaging.md](11-api-messaging.md) ｜ 阅读时长：约 20 分钟
 
 ## 本章目标
 
@@ -620,7 +620,7 @@ node tools/check-compat.js
 #    KUI.info()  // version 1.4.1, controls 42, themes 6
 ```
 
-预期：自检脚本退出码 0；`npm test` 35 通过；面板右下角出现且 `env` 行版本为 1.4.2。
+预期：自检脚本退出码 0；`npm test` 37 通过；面板右下角出现且 `env` 行版本为 1.4.3。
 
 ## 参考源码
 

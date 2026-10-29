@@ -373,3 +373,18 @@ npm test               # 测试
 - 回归：`test/render.test.js` 新增 4 组断言（行点击联动 / 单选互斥 / 表头三态 / CSS 分层），`tools/smoke.js [32.5]` 改为断言 CSS 顺序（条纹 → 选中/高亮 → 悬停）与悬停叠加色。
 - 同类扫描：全仓 `.is-active` 仅 datatable 行高亮与分页按钮、滤镜栏状态，语义各自独立，无需统一；行/表头选择器类名无其它组件复用。
 
+## §15 v1.4.3 表格行状态样式审计（2026-10-30）
+
+**范围**：`src/styles/datatable.css` 行状态（条纹 / 选中 / 高亮 / 悬停）与主题 scheme 叠色。
+
+### P1 特异度竞争导致偶数行状态被覆盖（已修）
+条纹规则 `.is-striped .kui-datatable__body .row:nth-child(even)` = (0,5,0)，高于 `.row.is-selected` (0,2,0) 与 `.is-hoverable .row:hover` (0,3,0)。偶数行选中底色被条纹盖掉，悬停叠色混入不同底色后观感不一致。修法：条纹规则排除 `.is-selected` / `.is-active`，状态与悬停各用独立属性，不再依赖书写顺序。
+
+### P2 悬停叠色缺少亮色主题版本（已修）
+v1.4.2 只用不透明深灰 `--kui-control-bg-hover`，在亮色皮肤上叠加后对比不足。修法：`--kui-dt-hover-overlay` 在 `:root[data-kui-scheme="light"]` 下切换为黑色低透明度；选中行悬停额外用 `--kui-dt-hover-selected`（accent）叠色。
+
+### P3 同类问题扫描（结论）
+- 其它组件（controls / form / menu / tabs / dropdown / dialog / toast）hover 均使用 `background-color` 或 token 变量，未发现「`background` 简写重置叠加层」的同型写法；
+- `audit-unused.js` 复跑：ERROR 0 / WARN 0 / INFO 87，新增 token 均被引用；
+- 回归防护：`smoke [32.9]/[32.10]` 与 `test/render.test.js` 覆盖「条纹排除状态行」「悬停使用 background-image」「scheme 叠色 token」。
+

@@ -396,3 +396,15 @@ node tools/check-assets.js                # HTML 引用完整性
 **同类问题审计（第 34 轮要求）**：① 全仓 grep 原生 `createElement('select'|'input'|'textarea')` 在 `src/components/**` 的实例 → 结论：表单控件与 select 控件本就走主题化，其余为隐藏 file input（合规）；② 覆盖/特异性扫描所有 `:nth-child` 斑马纹规则 → 仅 datatable 一处；③ 复选框自绘样式扫描 → 仅 datatable 一处已删；④ 双花括号文案 grep → 15 处兜底文案全部经 `fmt` 修复生效；⑤ 页面样式引用完整性 → `check-assets` 新增校验（见 §14）；⑥ 菜单可达性 → 全部独立页/页均可达。
 
 **回归数字**：`test/run.js` **37/0/0**（Node24 & Node13.14）；`smoke.js` **123/0**；`audit-consistency` 17/0；`audit-components` 19/0；`audit-all-pages` 20/20；`audit-config` 0 缺口；`audit-unused` ERROR 0 / WARN 0 / INFO 87；`check-assets` 22/0/0；`check-manual` 0/0；`check-beginner-manual` 0/0；`verify-build` 6/0；覆盖率 45.6%（9867/21657 行，38 文件）。
+
+## v1.4.3 验收记录（表格行悬停与偶数行状态修复）
+
+**反馈**：① 鼠标悬浮在偶数行不生效（旧问题复发）；② 悬停淡色太淡，与表格背景区分不开。
+
+| 编号 | 反馈 | 根因 | 修复 | 验证 |
+| --- | --- | --- | --- | --- |
+| 1 | 偶数行悬停/选中状态异常 | 条纹规则特异度高于状态规则：偶数行选中底色被覆盖；状态与悬停混用 `background` 简写 | 条纹规则 `:not(.is-selected):not(.is-active)`；状态用 `background-color`、悬停用 `background-image` | `test/render.test.js` + `smoke [32.5]/[32.9]`；真实浏览器像素采样偶数选中行 `R=120`、奇数选中 `R=101` |
+| 2 | 悬停色过淡 | 悬停叠色为不透明深灰，且亮色主题无对应叠色 | 新增 scheme 级 `--kui-dt-hover-overlay`（暗 0.14 白 / 亮 0.10 黑）与 `--kui-dt-hover-selected`（accent 0.16） | `smoke [32.10]` 断言 token 与 scheme；像素采样未选中行悬停提亮 |
+
+**回归数字**：`test/run.js` 37/0/0（Node24 & Node13.14）；`smoke.js` 125/0；`check-assets` 22/0/0；`audit-consistency` 17/0；`audit-components` 19/0；`audit-all-pages` 20/20；`audit-config` 0 缺口；`audit-unused` ERROR 0 / WARN 0 / INFO 87；`verify-build` 6/0；`check-manual` 0/0；`check-beginner-manual` 0/0。
+

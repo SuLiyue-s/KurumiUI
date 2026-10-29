@@ -798,13 +798,17 @@ module.exports = function register(suite, ctx) {
 
       // 4) 悬停样式分层：选中 > 高亮 > 条纹，悬停为最后叠加的淡色
       var css = fsMod.readFileSync(pathMod.join(__dirname, '..', 'src/styles/datatable.css'), 'utf8');
-      var iStriped = css.indexOf('.kui-datatable.is-striped .kui-datatable__body .kui-datatable__row:nth-child(even) {');
-      var iSelected = css.indexOf('.kui-datatable__row.is-selected,');
+      var iStriped = css.indexOf('.kui-datatable.is-striped .kui-datatable__body .kui-datatable__row:nth-child(even)');
+      var iSelected = css.indexOf('.kui-datatable__row.is-selected {');
       var iHover = css.indexOf('.kui-datatable.is-hoverable .kui-datatable__row:hover {');
       ctx.assert.ok(iStriped !== -1 && iSelected !== -1 && iHover !== -1, '缺少条纹/选中/悬停规则');
       ctx.assert.ok(iStriped < iSelected && iSelected < iHover, 'CSS 顺序应为 条纹 → 选中/高亮 → 悬停');
       ctx.assert.ok(css.indexOf('background-image: linear-gradient(var(--kui-dt-hover)') !== -1,
         '悬停应叠加淡色（background-image），保证任何状态悬浮都变色');
+      var stateBlock = css.slice(css.indexOf('斑马纹（基础底色）'), css.indexOf('悬停：叠加一层淡色'));
+      ctx.assert.strictEqual(stateBlock.indexOf('background:'), -1,
+        '条纹/选中/高亮规则不得用 background 简写（会重置悬停的 background-image）');
+      ctx.assert.ok(css.indexOf('--kui-dt-hover-overlay') !== -1, '悬停叠加色应定义 scheme 感知 token');
     } finally {
       teardown(rt);
     }

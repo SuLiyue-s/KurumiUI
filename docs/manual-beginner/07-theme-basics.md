@@ -1,6 +1,6 @@
 # 07 · 配色与主题
 
-> 适用版本：KurumiUI v1.4.2 ｜ 难度：⭐ 入门 ｜ 前置章节：[06-form-basics.md](06-form-basics.md) ｜ 阅读时长：约 30 分钟
+> 适用版本：KurumiUI v1.4.3 ｜ 难度：⭐ 入门 ｜ 前置章节：[06-form-basics.md](06-form-basics.md) ｜ 阅读时长：约 30 分钟
 
 ## 本章目标
 

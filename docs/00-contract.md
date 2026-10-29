@@ -132,7 +132,7 @@ v1.0.9 起，页面**不再逐条引入框架脚本**，改由单一入口 `src/
 
 ```js
 window.KUI = {
-  version: '1.4.0',
+  version: '1.4.3',
   utils: {
     el(tag, attrs, children),          // 创建元素；attrs 支持 class/属性/onXxx/style/text/html
     qs(sel, root), qsa(sel, root),
@@ -809,4 +809,12 @@ dialog iframe→主框架：
 - `{name}`、`{0}`（数字索引）——历史写法。
 
 原因：v1.4.2 修复「共 {36} 条 / 已选 {2} 项 / {6} 条/页」残片——兜底文案是 `{{total}}` 形式，而 `fmt` 只认 `{total}`，导致 `{{total}}` 被替换为 `{7}`。
+
+### 24.3 表格行状态与悬停叠色（v1.4.3）
+
+行状态优先级：**选中（is-selected） > 点击高亮（is-active） > 条纹（nth-child(even)） > 普通行**；悬停（`:hover`）始终在最上层以 `background-image` 叠加。
+
+- 条纹规则必须带 `:not(.is-selected):not(.is-active)`，避免特异度竞争；
+- 行底色一律 `background-color`，悬浮叠色一律 `background-image`（禁止 `background` 简写）；
+- 叠色 token：`--kui-dt-hover-overlay`（暗 `rgba(255,255,255,.14)` / 亮 `rgba(0,0,0,.10)`）、`--kui-dt-hover-selected`（accent 0.16，用于选中/高亮行悬停）。
 

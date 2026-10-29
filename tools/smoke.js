@@ -1781,12 +1781,17 @@ currentSection = 32;  console.log('\n[32] 主题化控件与表格一致性（v1
 
   check('[32.5] 表格行状态分层：选中 > 高亮 > 条纹，悬停为最后叠加淡色（v1.4.2）', function () {
     var css = fs.readFileSync(path.join(ROOT, 'src/styles/datatable.css'), 'utf8');
-    var iStriped = css.indexOf('.kui-datatable.is-striped .kui-datatable__body .kui-datatable__row:nth-child(even) {');
-    var iSelected = css.indexOf('.kui-datatable__row.is-selected,');
+    var iStriped = css.indexOf('.kui-datatable.is-striped .kui-datatable__body .kui-datatable__row:nth-child(even)');
+    var iSelected = css.indexOf('.kui-datatable__row.is-selected {');
     var iHover = css.indexOf('.kui-datatable.is-hoverable .kui-datatable__row:hover {');
     assert(iStriped !== -1 && iSelected !== -1 && iHover !== -1, '缺少条纹/选中/悬停规则');
     assert(iStriped < iSelected && iSelected < iHover, 'CSS 顺序应为 条纹 → 选中/高亮 → 悬停');
     assert(css.indexOf('background-image: linear-gradient(var(--kui-dt-hover)') !== -1, '悬停应为叠加淡色（background-image）');
+    // v1.4.2 悬停回归防护：行状态规则不得使用 background 简写（会重置悬停的 background-image，偶数行最明显）
+    var stateBlock = css.slice(css.indexOf('斑马纹（基础底色）'), css.indexOf('悬停：叠加一层淡色'));
+    assert(stateBlock.indexOf('background:') === -1, '条纹/选中/高亮规则不得用 background 简写，必须用 background-color');
+    assert(stateBlock.indexOf('background-color: var(--kui-bg-2') !== -1, '条纹规则应使用 background-color');
+    assert(css.indexOf('--kui-dt-hover-overlay') !== -1 && css.indexOf('data-kui-scheme="light"') !== -1, '悬停叠加色应随主题 scheme 变化');
     return '行状态样式分层正确';
   });
 
@@ -1812,6 +1817,31 @@ currentSection = 32;  console.log('\n[32] 主题化控件与表格一致性（v1
     assert(fs.existsSync(path.join(ROOT, 'tools/coverage.js')), '缺少 tools/coverage.js');
     return 'coverage 工具存在';
   });
+
+check('[32.9] 偶数行悬停回归防护：条纹规则排除选中/高亮，行状态只用 background-color', function () {
+  var css = fs.readFileSync(path.join(ROOT, 'src/styles/datatable.css'), 'utf8');
+  var i = css.indexOf('.kui-datatable.is-striped .kui-datatable__body .kui-datatable__row:nth-child(even)');
+  assert(i !== -1, '缺少条纹规则');
+  var ruleTail = css.slice(i, i + 260);
+  assert(ruleTail.indexOf(':not(.is-selected)') !== -1, '条纹规则必须排除选中行，否则偶数行选中底色被条纹覆盖');
+  assert(ruleTail.indexOf(':not(.is-active)') !== -1, '条纹规则必须排除高亮行');
+  var hoverIdx = css.indexOf('.kui-datatable.is-hoverable .kui-datatable__row:hover {');
+  assert(hoverIdx !== -1, '缺少悬停规则');
+  var hoverBlock = css.slice(hoverIdx, css.indexOf('}', hoverIdx) + 1);
+  assert(hoverBlock.indexOf('background-image') !== -1, '悬停应使用 background-image 叠加');
+  assert(hoverBlock.indexOf('background:') === -1, '悬停不得使用 background 简写');
+  return '条纹/悬停规则已防回归';
+});
+
+check('[32.10] 悬停叠色随主题 scheme 变化，选中/高亮行用 accent 叠色', function () {
+  var css = fs.readFileSync(path.join(ROOT, 'src/styles/datatable.css'), 'utf8');
+  assert(css.indexOf('--kui-dt-hover-overlay: rgba(255, 255, 255, 0.14)') !== -1, '暗色 scheme 悬停叠色应提亮');
+  assert(css.indexOf(':root[data-kui-scheme="light"]') !== -1, '应提供亮色 scheme 悬停叠色');
+  assert(css.indexOf('--kui-dt-hover-selected: rgba(226, 32, 64, 0.16)') !== -1, '选中行悬停应用 accent 叠色而非白色');
+  var selHover = css.indexOf('.kui-datatable.is-hoverable .kui-datatable__row.is-selected:hover');
+  assert(selHover !== -1, '缺少选中行悬停规则');
+  return 'scheme 悬停叠色正确';
+});
 
 currentSection = 6;   console.log('\n[6] 控制台与错误汇总');
       check('加载与启动期无 console.error', function () {
