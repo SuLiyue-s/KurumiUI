@@ -59,7 +59,10 @@
     <strong>boot</strong>
     <span class="desc">加载层 · 时钟表盘 + 进度指针（0%→0 时，100%→12 时）· 可单独拆装</span>
   </div>
-  <nav class="demo-nav" id="demo-nav"></nav>
+  <div class="demo-bar__ops">
+    <nav class="demo-nav" id="demo-nav"></nav>
+  </div>
+  
 </header>
 
 <main class="demo-main">
@@ -203,7 +206,7 @@ KUI.bootLayer.instance() // 不适用
   </section>
 
 </main>
-
+<script src="embedded.js"></script>
 <script src="../src/core/kui-all.js" data-kui-profile="standalone"></script>
 <script>
 (function () {
